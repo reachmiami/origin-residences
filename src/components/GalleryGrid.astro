@@ -1,0 +1,518 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { useTranslations, type Locale } from '../i18n/ui';
+
+import buildingFromWaterSunset from '../assets/gallery/building-from-water-sunset.jpg';
+import lobbyDoubleHeight from '../assets/gallery/lobby-double-height.jpg';
+import residenceLivingDiningBayView from '../assets/gallery/residence-living-dining-bay-view.jpg';
+import rooftopPoolBar from '../assets/gallery/rooftop-pool-bar.jpg';
+import buildingCanalElevation from '../assets/gallery/building-canal-elevation.jpg';
+import residenceGreatRoomKitchen from '../assets/gallery/residence-great-room-kitchen.jpg';
+import primaryBedroomWaterView from '../assets/gallery/primary-bedroom-water-view.jpg';
+import lobbyReceptionDesk from '../assets/gallery/lobby-reception-desk.jpg';
+import terracePergolaDining from '../assets/gallery/terrace-pergola-dining.jpg';
+import residenceLivingTerraceOpen from '../assets/gallery/residence-living-terrace-open.jpg';
+import buildingWaterfrontApproach from '../assets/gallery/building-waterfront-approach.jpg';
+import residentsLoungeWoodWall from '../assets/gallery/residents-lounge-wood-wall.jpg';
+import primaryBathroomMarble from '../assets/gallery/primary-bathroom-marble.jpg';
+import rooftopPoolTerrace from '../assets/gallery/rooftop-pool-terrace.jpg';
+import residenceKitchenIsland from '../assets/gallery/residence-kitchen-island.jpg';
+import elevatorLobbyBrass from '../assets/gallery/elevator-lobby-brass.jpg';
+import residenceCurvedSofaLounge from '../assets/gallery/residence-curved-sofa-lounge.jpg';
+import buildingStreetEntrance from '../assets/gallery/building-street-entrance.jpg';
+import bedroomWoodPanelling from '../assets/gallery/bedroom-wood-panelling.jpg';
+import privateTerraceLounge from '../assets/gallery/private-terrace-lounge.jpg';
+import childrensPlayroom from '../assets/gallery/childrens-playroom.jpg';
+import residenceLivingBlueRug from '../assets/gallery/residence-living-blue-rug.jpg';
+import rooftopDeckSkyline from '../assets/gallery/rooftop-deck-skyline.jpg';
+import residenceTerraceToLiving from '../assets/gallery/residence-terrace-to-living.jpg';
+
+interface Props {
+  locale: Locale;
+  /** Id of the page heading that names this section. */
+  headingId?: string;
+  /** Step labels — the ui dictionary only carries the residence wording. */
+  prevLabel?: string;
+  nextLabel?: string;
+  /** Translated captions and alt text, keyed to the artwork by asset id. */
+  photos?: { id: string; label: string; alt: string }[];
+}
+
+const {
+  locale,
+  headingId = 'gallery-heading',
+  prevLabel = 'Previous image',
+  nextLabel = 'Next image',
+  photos: photoCopy,
+} = Astro.props;
+const t = useTranslations(locale);
+
+interface Photo {
+  src: ImageMetadata;
+  /** Short caption shown alongside the expanded photograph. */
+  label: string;
+  /** Written after inspecting the file — never guessed from the filename. */
+  alt: string;
+}
+
+/* The photographs are locale-independent; their captions and alt text are
+   translated copy passed in by the page and matched here by asset id. The
+   English fallback below keeps the component usable on its own. */
+const artwork: Record<string, ImageMetadata> = {
+  'building-from-water-sunset': buildingFromWaterSunset,
+  'lobby-double-height': lobbyDoubleHeight,
+  'residence-living-dining-bay-view': residenceLivingDiningBayView,
+  'rooftop-pool-bar': rooftopPoolBar,
+  'building-canal-elevation': buildingCanalElevation,
+  'residence-great-room-kitchen': residenceGreatRoomKitchen,
+  'primary-bedroom-water-view': primaryBedroomWaterView,
+  'lobby-reception-desk': lobbyReceptionDesk,
+  'terrace-pergola-dining': terracePergolaDining,
+  'residence-living-terrace-open': residenceLivingTerraceOpen,
+  'building-waterfront-approach': buildingWaterfrontApproach,
+  'residents-lounge-wood-wall': residentsLoungeWoodWall,
+  'primary-bathroom-marble': primaryBathroomMarble,
+  'rooftop-pool-terrace': rooftopPoolTerrace,
+  'residence-kitchen-island': residenceKitchenIsland,
+  'elevator-lobby-brass': elevatorLobbyBrass,
+  'residence-curved-sofa-lounge': residenceCurvedSofaLounge,
+  'building-street-entrance': buildingStreetEntrance,
+  'bedroom-wood-panelling': bedroomWoodPanelling,
+  'private-terrace-lounge': privateTerraceLounge,
+  'childrens-playroom': childrensPlayroom,
+  'residence-living-blue-rug': residenceLivingBlueRug,
+  'rooftop-deck-skyline': rooftopDeckSkyline,
+  'residence-terrace-to-living': residenceTerraceToLiving,
+};
+
+const ORDER = Object.keys(artwork);
+
+const photos: Photo[] = (photoCopy ?? []).length
+  ? photoCopy!
+      .filter((p) => artwork[p.id])
+      .map((p) => ({ src: artwork[p.id], label: p.label, alt: p.alt }))
+  : ORDER.map((id) => ({
+      src: artwork[id],
+      label: id.replace(/-/g, ' '),
+      alt: id.replace(/-/g, ' '),
+    }));
+
+const total = photos.length;
+
+/* The fragment identifier is the gallery's state, so each figure needs a
+   stable, locale-independent anchor — index-based, never derived from
+   translated text. */
+const idFor = (i: number) => `shot-${i + 1}`;
+
+/* A tile is a third of the grid at most, but the :target state expands it to a
+   full-bleed band, so the ladder has to reach viewport width. */
+const WIDTHS = [420, 720, 1024, 1440, 1920];
+const SIZES = '(max-width: 640px) 94vw, (max-width: 1080px) 48vw, 32vw';
+
+---
+
+{/*
+  The incumbent opened every photograph in a modal lightbox. This does the
+  opposite: the fragment identifier IS the state, `:target` expands the chosen
+  figure in place to a full-bleed band, and the View Transitions API morphs the
+  tile into it. No dialog, no overlay, no trapped focus — and it still works
+  with JavaScript switched off, because a link and a stylesheet do the work.
+*/}
+<section class="gallery section" id="gallery" aria-labelledby={headingId}>
+  <div class="shell">
+    <div class="mosaic" data-gallery>
+      {photos.map((photo, i) => {
+        const id = idFor(i);
+        const prev = idFor((i - 1 + total) % total);
+        const next = idFor((i + 1) % total);
+
+        return (
+          <figure class="tile" id={id} data-tile data-reveal="fade">
+            <a class="tile__trigger" href={`#${id}`} data-open>
+              <Image
+                class="tile__img"
+                src={photo.src}
+                alt={photo.alt}
+                widths={WIDTHS}
+                sizes={SIZES}
+                data-sizes={SIZES}
+                loading={i < 3 ? 'eager' : 'lazy'}
+                fetchpriority={i === 0 ? 'high' : 'auto'}
+                decoding="async"
+              />
+              <span class="tile__cue">{t('galleryOpen')}</span>
+            </a>
+
+            <figcaption class="tile__cap">
+              <span class="tile__count">{t('imageOf', { n: i + 1, total })}</span>
+              <span class="tile__label">{photo.label}</span>
+            </figcaption>
+
+            {/* Three links, not a landmark — only one figure is ever open. */}
+            <div class="tile__nav">
+              <a class="tile__step" href={`#${prev}`} rel="prev" data-open data-prev>
+                <span aria-hidden="true">&larr;</span> {prevLabel}
+              </a>
+              <a class="tile__step" href={`#${next}`} rel="next" data-open data-next>
+                {nextLabel} <span aria-hidden="true">&rarr;</span>
+              </a>
+              <a class="tile__close" href="#gallery" data-close>{t('close')}</a>
+            </div>
+          </figure>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<style>
+  .gallery {
+    background: var(--ground);
+    /* The expanded figure bleeds past the shell padding; keep it contained. */
+    overflow-x: clip;
+  }
+
+  /* --- Mosaic ------------------------------------------------------------
+     CSS columns, not a JS masonry: nothing is cropped, nothing is measured,
+     and `column-span` gives the expanded figure a full-width band for free. */
+  .mosaic {
+    column-count: 1;
+    column-gap: var(--s-4);
+  }
+
+  @media (min-width: 640px) {
+    .mosaic { column-count: 2; }
+  }
+
+  @media (min-width: 1080px) {
+    .mosaic { column-count: 3; column-gap: var(--s-5); }
+  }
+
+  .tile {
+    position: relative;
+    break-inside: avoid;
+    margin: 0 0 var(--s-4);
+    scroll-margin-top: calc(var(--header-h-condensed) + var(--s-5));
+  }
+
+  @media (min-width: 1080px) {
+    .tile { margin-bottom: var(--s-5); }
+  }
+
+  .tile__trigger {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--navy-deep);
+  }
+
+  .tile__img {
+    width: 100%;
+    height: auto;
+    transition: transform var(--dur-slow) var(--ease-out),
+                opacity var(--dur-base) var(--ease-out);
+  }
+
+  .tile__trigger:hover .tile__img,
+  .tile__trigger:focus-visible .tile__img {
+    transform: scale(1.035);
+    opacity: 0.88;
+  }
+
+  .tile__cue {
+    position: absolute;
+    inset-inline-start: var(--s-4);
+    inset-block-end: var(--s-4);
+    padding: var(--s-2) var(--s-4);
+    background: var(--navy);
+    color: var(--off-white);
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity var(--dur-base) var(--ease-out),
+                transform var(--dur-base) var(--ease-out);
+  }
+
+  .tile__trigger:hover .tile__cue,
+  .tile__trigger:focus-visible .tile__cue {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Caption and controls exist for the expanded state only. The caption stays
+     in the accessibility tree throughout; the controls are removed from it
+     until they are usable. */
+  .tile__cap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tile__nav { display: none; }
+
+  /* --- Expanded, in place ------------------------------------------------ */
+  .tile:target {
+    column-span: all;
+    margin-block: var(--s-6) var(--s-7);
+    /* Cancel the shell gutter so the viewer runs edge to edge. */
+    margin-inline: calc(var(--gutter) * -1);
+    padding: clamp(1rem, 0.4rem + 2.4vw, 2.5rem);
+    color: var(--ink);
+  }
+
+  .tile:target .tile__trigger {
+    overflow: visible;
+    background: none;
+    cursor: zoom-out;
+  }
+
+  .tile:target .tile__img {
+    max-width: 100%;
+    max-height: min(78vh, 900px);
+    margin-inline: auto;
+  }
+
+  .tile:target .tile__trigger:hover .tile__img,
+  .tile:target .tile__trigger:focus-visible .tile__img {
+    transform: none;
+    opacity: 1;
+  }
+
+  .tile:target .tile__cue { display: none; }
+
+  .tile:target .tile__cap {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: var(--s-5) 0 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-5);
+  }
+
+  .tile__count {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+
+  .tile__label {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  .tile:target .tile__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-5);
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--rule);
+  }
+
+  .tile__step,
+  .tile__close {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 44px;
+    padding-inline: var(--s-2);
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    /* AA-safe muted ink now that the viewer sits on the sand ground. */
+    color: var(--ink-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .tile__step:hover,
+  .tile__close:hover {
+    color: var(--gold-ink);
+  }
+
+  .tile__close {
+    margin-inline-start: auto;
+    padding-inline: var(--s-5);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+  }
+
+  .tile__close:hover {
+    border-color: var(--gold-ink);
+    color: var(--gold-ink);
+  }
+
+  @media (max-width: 520px) {
+    .tile__close { margin-inline-start: 0; }
+  }
+</style>
+
+<style is:global>
+  /* View Transition pseudos live outside any component scope. Exactly one
+     photograph carries the name at a time, so old and new pair up and the
+     tile morphs into the band instead of cross-fading. */
+  ::view-transition-group(origin-photo) {
+    animation-duration: var(--dur-slow);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-old(origin-photo),
+  ::view-transition-new(origin-photo) {
+    height: 100%;
+    object-fit: cover;
+    mix-blend-mode: normal;
+    animation-duration: var(--dur-slow);
+    animation-timing-function: var(--ease-out);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-base);
+    animation-timing-function: var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+</style>
+
+<script>
+  const gallery = document.querySelector<HTMLElement>('[data-gallery]');
+
+  if (gallery) {
+    const GRID_HASH = '#gallery';
+    const tiles = Array.from(gallery.querySelectorAll<HTMLElement>('[data-tile]'));
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const openTile = () => tiles.find((tile) => `#${tile.id}` === location.hash) ?? null;
+    const imageIn = (tile: HTMLElement | null) => tile?.querySelector('img') ?? null;
+
+    /** Full-bleed needs a larger source than the mosaic tile ever asked for. */
+    function retune(tile: HTMLElement, expanded: boolean) {
+      const img = imageIn(tile);
+      const base = img?.dataset.sizes;
+      if (!img || !base) return;
+      img.sizes = expanded ? '100vw' : base;
+    }
+
+    function sync() {
+      const open = openTile();
+      tiles.forEach((tile) => retune(tile, tile === open));
+    }
+
+    /** Focus follows the state, so the keyboard never lands nowhere. */
+    function settle(to: HTMLElement | null, from: HTMLElement | null) {
+      if (to) {
+        to.querySelector<HTMLAnchorElement>('[data-close]')?.focus({ preventScroll: true });
+      } else if (from) {
+        from.querySelector<HTMLAnchorElement>('[data-open]')?.focus({ preventScroll: true });
+        from.scrollIntoView({ block: 'center' });
+      }
+    }
+
+    function go(hash: string) {
+      const from = openTile();
+      const to = tiles.find((tile) => `#${tile.id}` === hash) ?? null;
+      // The fragment is the state — assigning it is what flips `:target`.
+      const commit = () => {
+        location.hash = hash;
+      };
+
+      // The photograph that survives the change is the one worth morphing.
+      const morph = imageIn(to ?? from);
+
+      if (!document.startViewTransition || reduced.matches || !morph) {
+        commit();
+        sync();
+        settle(to, from);
+        return;
+      }
+
+      morph.style.viewTransitionName = 'origin-photo';
+      const transition = document.startViewTransition(commit);
+
+      transition.updateCallbackDone
+        .then(() => {
+          sync();
+          settle(to, from);
+        })
+        .catch(() => {});
+
+      transition.finished.finally(() => {
+        morph.style.viewTransitionName = '';
+      });
+    }
+
+    // Capture phase: claim the click before the global smooth-scroll handler
+    // in scripts/motion.ts swallows it and cancels the fragment change.
+    gallery.addEventListener(
+      'click',
+      (event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return;
+
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const link = target.closest('a[href^="#"]');
+        if (!(link instanceof HTMLAnchorElement)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const hash = link.getAttribute('href') ?? GRID_HASH;
+        const open = openTile();
+        // Clicking the photograph that is already open puts it back.
+        go(open && `#${open.id}` === hash ? GRID_HASH : hash);
+      },
+      true,
+    );
+
+    document.addEventListener('keydown', (event) => {
+      const open = openTile();
+      if (!open) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        go(GRID_HASH);
+        return;
+      }
+
+      // Arrows only steer while the gallery holds focus.
+      if (!gallery.contains(document.activeElement)) return;
+
+      const step =
+        event.key === 'ArrowRight' ? '[data-next]' : event.key === 'ArrowLeft' ? '[data-prev]' : null;
+      if (!step) return;
+
+      const href = open.querySelector<HTMLAnchorElement>(step)?.getAttribute('href');
+      if (!href) return;
+      event.preventDefault();
+      go(href);
+    });
+
+    // Deep links and the browser's own back/forward keep the sizes honest.
+    window.addEventListener('hashchange', sync);
+    sync();
+  }
+</script>

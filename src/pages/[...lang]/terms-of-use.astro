@@ -1,0 +1,155 @@
+---
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { legalCopy, legalBody } from '../../content/pages/legal';
+import { ADDRESS, PHONE, PHONE_HREF } from '../../data/contact';
+
+/* Every word of the Terms below is the incumbent site's own published text.
+   Nothing has been added: where the Company has not published a clause, this
+   page renders less rather than inventing one.
+
+   That published text stays in ENGLISH on every locale — see the note at the
+   head of src/content/pages/legal.ts. Only the title, meta, the English-text
+   notice and the cross-references are translated. */
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
+/* BCP47 casing for the lang attribute on the translated cross-references. */
+const htmlLang = locale === 'pt-br' ? 'pt-BR' : locale;
+
+const chrome = legalCopy[locale];
+const c = chrome.terms;
+const body = legalBody.terms;
+
+const EMAIL = 'germanr.realty@gmail.com';
+---
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="terms-of-use"
+>
+  <header class="page-head">
+    <div class="shell shell--narrow">
+      <p class="eyebrow">{c.eyebrow}</p>
+      <h1 class="page-head__title">{c.title}</h1>
+      <hr class="page-head__rule" />
+      {chrome.englishNote && <p class="page-head__note">{chrome.englishNote}</p>}
+    </div>
+  </header>
+
+  <div class="section legal">
+    <div class="shell shell--narrow legal__inner" lang="en">
+      <p class="legal__lede" data-reveal>{body.lede}</p>
+
+      <section class="legal__section" aria-labelledby="terms-scope" data-reveal>
+        <h2 class="subheading" id="terms-scope">{body.scopeTitle}</h2>
+        <p class="prose">
+          {body.scopeBeforeUrl}<a href={body.scopeUrl}>{body.scopeUrl}</a>{body.scopeAfterUrl}
+        </p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="terms-acceptance" data-reveal>
+        <h2 class="subheading" id="terms-acceptance">{body.acceptanceTitle}</h2>
+        <p class="prose">{body.acceptanceBody}</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="terms-contact" data-reveal>
+        <h2 class="subheading" id="terms-contact">{body.contactTitle}</h2>
+        <p class="prose">
+          {body.contactBeforeEmail}<a href={`mailto:${EMAIL}`}>{EMAIL}</a>{
+            body.contactBetweenEmailPhone
+          }<a href={PHONE_HREF}>{PHONE}</a>{body.contactBetweenPhoneAddress}{ADDRESS}{
+            body.contactAfterAddress
+          }
+        </p>
+        {/* Cross-references are navigation, so they follow the reader's
+            language even though the Terms themselves do not. */}
+        <p class="prose" lang={htmlLang}>
+          {c.seeAlso.lead}<a href={L('privacy-policy')}>{t('privacy')}</a>{c.seeAlso.join}<a
+            href={L('accessibility')}>{t('accessibility')}</a>{c.seeAlso.tail}
+        </p>
+      </section>
+    </div>
+  </div>
+
+  {/* Every page carries the form at its foot so the Inquire and Schedule
+      Private Presentation controls always have somewhere on-page to land. */}
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="compact" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head {
+    padding-block: calc(var(--header-h) + clamp(var(--s-6), 6vw, var(--s-9)))
+      clamp(var(--s-6), 4vw, var(--s-8));
+    background: var(--ground);
+  }
+
+  /* The shared eyebrow is gold, which is 2.1:1 on this sand ground. Darkened
+     against --navy-deep it holds the accent and clears AA. */
+  .eyebrow {
+    color: var(--gold-ink, color-mix(in srgb, var(--gold) 52%, var(--navy-deep)));
+  }
+
+  .page-head__title {
+    margin-top: var(--s-4);
+    font-size: var(--t-h1);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+  }
+
+  .page-head__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    margin-top: clamp(var(--s-5), 3vw, var(--s-6));
+    border: 0;
+    background: var(--gold);
+  }
+
+  /* Only rendered on es and pt-br: the Terms below are published in English. */
+  .page-head__note {
+    max-width: var(--measure);
+    margin-top: var(--s-5);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    line-height: 1.8;
+    color: var(--ink-muted);
+  }
+
+  .legal { background: var(--ground-alt); }
+
+  .legal__inner { display: grid; gap: clamp(var(--s-6), 4vw, var(--s-8)); }
+
+  /* The all-caps preamble is set as published — tracked, not shouted. */
+  .legal__lede {
+    max-width: var(--measure);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: 0.08em;
+    line-height: 1.9;
+  }
+
+  .legal__section { display: grid; gap: var(--s-4); }
+
+  .legal a {
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    overflow-wrap: anywhere;
+    transition: color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+  }
+  .legal a:hover { color: var(--gold-ink); border-bottom-color: var(--gold); }
+</style>

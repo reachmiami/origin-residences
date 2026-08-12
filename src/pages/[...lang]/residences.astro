@@ -1,0 +1,291 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import InventoryGrid from '../../components/InventoryGrid.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import FeatureBand from '../../components/FeatureBand.astro';
+
+import slidingGlass from '../../assets/residences/sliding-glass-living-bay-view.jpg';
+import greatRoomGlass from '../../assets/residences/great-room-kitchen-through-glass.jpg';
+import bedroomBay from '../../assets/residences/primary-bedroom-bay-view.jpg';
+import bathShower from '../../assets/residences/bathroom-shower-double-vanity.jpg';
+import balconyBleed from '../../assets/residences/balcony-full-bleed.jpg';
+import modernBath from '../../assets/residences/modern-bathroom-cabinetry.jpg';
+import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { getCopy } from '../../content/copy';
+import { residencesCopy } from '../../content/pages/residences';
+import { unitCount } from '../../data/units';
+import bandImage from '../../assets/inventory/living-room-balcony-bay-view.jpg';
+import featureImage from '../../assets/inventory/primary-bath-marble-and-cabinetry.jpg';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const c = getCopy(locale);
+const r = residencesCopy[locale];
+
+/* The RESIDENCES FEATURES list, in the incumbent's published order. */
+const features = r.features;
+
+/* Written out rather than computed — 0.08 + 0.06 is 0.14000000000000001 in
+   binary floating point, and that lands in the attribute verbatim. */
+const discoverDelays = ['0.08', '0.14'];
+
+/* Artwork is locale-independent and matched to translated copy by id, the same
+   way the homepage bands do it. */
+const bandArt: Record<string, ImageMetadata[]> = {
+  'sliding-glass': [slidingGlass, greatRoomGlass, bedroomBay],
+  'modern-bathrooms': [modernBath, bathShower],
+};
+
+/* Pair each slide with its own alt text, in order. */
+const slidesFor = (band: (typeof r.bands)[number]) =>
+  (bandArt[band.id] ?? []).map((src, i) => ({ src, alt: band.alts[i] ?? band.alts[0] ?? '' }));
+---
+
+<Base
+  title={r.metaTitle}
+  description={r.metaDescription(unitCount)}
+  locale={locale}
+  path="residences"
+  darkHeader
+>
+  <section class="band" aria-labelledby="page-title">
+    <Image
+      class="band__media"
+      src={bandImage}
+      alt={r.bandAlt}
+      widths={[640, 990, 1228]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="band__veil" aria-hidden="true"></div>
+
+    <div class="shell band__inner">
+      <p class="eyebrow band__eyebrow">{c.home.inventoryTitle}</p>
+      <h1 class="display band__title" id="page-title">{r.title}</h1>
+      <hr class="band__rule" />
+      <p class="band__lede">{c.home.inventoryLede}</p>
+    </div>
+  </section>
+
+  <section class="section discover" aria-labelledby="discover-heading">
+    <div class="shell shell--narrow discover__inner">
+      <h2 class="heading" id="discover-heading" data-reveal>{r.discoverTitle}</h2>
+      <hr class="rule discover__rule" data-reveal="fade" />
+      {r.discoverParagraphs.map((para, n) => (
+        <p class="prose" data-reveal data-reveal-delay={discoverDelays[n] ?? '0.14'}>{para}</p>
+      ))}
+    </div>
+  </section>
+
+  <InventoryGrid locale={locale} />
+
+  <section class="section features" aria-labelledby="features-heading">
+    <div class="shell features__inner">
+      <figure class="features__figure" data-reveal="fade">
+        <Image
+          class="features__image"
+          src={featureImage}
+          alt={r.featuresAlt}
+          widths={[640, 990, 1200]}
+          sizes="(max-width: 900px) 100vw, 46vw"
+          loading="lazy"
+        />
+      </figure>
+
+      <div class="features__body">
+        <h2 class="heading" id="features-heading" data-reveal>{r.featuresTitle}</h2>
+        <hr class="rule features__rule" data-reveal="fade" />
+        <ul class="features__list" data-reveal-group>
+          {features.map((item) => <li class="features__item">{item}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {r.bands[0] && (
+    <FeatureBand
+      id={r.bands[0].id}
+      lines={r.bands[0].lines}
+      images={slidesFor(r.bands[0])}
+      locale={locale}
+      flip={r.bands[0].flip}
+      align={r.bands[0].align}
+      emphasisFrom={r.bands[0].emphasisFrom}
+    />
+  )}
+
+  {/* Centred statement between the two bands. Dark ground for the same reason
+      the homepage options band is dark: the page otherwise runs sand-on-sand. */}
+  <section class="section statement" aria-labelledby="statement-heading">
+    <div class="shell shell--narrow statement__inner">
+      <h2 class="subheading statement__lede" id="statement-heading" data-reveal>
+        {r.statementLines.map((line) => <span class="statement__line">{line}</span>)}
+      </h2>
+    </div>
+  </section>
+
+  <section class="fullbleed" aria-label={r.fullBleedAlt}>
+    <Image
+      class="fullbleed__img"
+      src={balconyBleed}
+      alt={r.fullBleedAlt}
+      layout="full-width"
+      widths={[640, 1024, 1600, 1920]}
+      sizes="100vw"
+      loading="lazy"
+    />
+  </section>
+
+  {r.bands[1] && (
+    <FeatureBand
+      id={r.bands[1].id}
+      lines={r.bands[1].lines}
+      images={slidesFor(r.bands[1])}
+      locale={locale}
+      flip={r.bands[1].flip}
+      align={r.bands[1].align}
+      emphasisFrom={r.bands[1].emphasisFrom}
+    />
+  )}
+
+  <section class="section section--alt" id="inquire" aria-labelledby="residences-inquire">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="compact" headingId="residences-inquire" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* --- Page band ------------------------------------------------------------
+     The header is fixed and transparent here, so the band carries its clearance
+     itself rather than relying on a global offset. */
+  .band {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: clamp(420px, 62svh, 720px);
+    padding-block: calc(var(--header-h) + var(--s-7)) clamp(var(--s-7), 6vh, var(--s-9));
+    overflow: clip;
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    isolation: isolate;
+  }
+
+  .band__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .band__veil {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      rgba(8, 35, 65, 0.88) 0%,
+      rgba(8, 35, 65, 0.42) 52%,
+      rgba(8, 35, 65, 0.58) 100%
+    );
+  }
+
+  .band__inner { display: grid; justify-items: start; gap: var(--s-4); max-width: 1180px; }
+
+  .band__eyebrow { color: var(--gold-light); }
+
+  .band__title { color: var(--off-white); }
+
+  .band__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .band__lede {
+    max-width: 46ch;
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    text-transform: uppercase;
+    color: var(--ink-on-dark-muted);
+  }
+
+  /* --- Discover -------------------------------------------------------------- */
+
+  .discover { background: var(--ground); }
+
+  .discover__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    text-align: center;
+  }
+
+  .discover__rule { max-width: 120px; background: var(--gold); }
+
+  /* --- Features -------------------------------------------------------------- */
+
+  .features { background: var(--ground); }
+
+  .features__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(var(--s-6), 5vw, var(--s-9));
+    align-items: center;
+  }
+
+  .features__figure { margin: 0; }
+
+  .features__image { width: 100%; height: auto; }
+
+  .features__body { display: grid; gap: var(--s-5); }
+
+  .features__rule { max-width: 120px; background: var(--gold); }
+
+  .features__list {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .features__item {
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    color: var(--ink);
+  }
+
+  @media (max-width: 900px) {
+    .features__inner { grid-template-columns: 1fr; }
+  }
+
+  /* --- Statement band ------------------------------------------------------ */
+
+  .statement {
+    background: var(--ground-dark);
+    color: var(--ink-on-dark);
+  }
+
+  .statement__inner { display: grid; justify-items: center; text-align: center; }
+
+  .statement__lede {
+    display: grid;
+    gap: 0.15em;
+    color: var(--off-white);
+  }
+
+  /* --- Closing frame ------------------------------------------------------- */
+
+  .fullbleed { background: var(--navy); font-size: 0; }
+  .fullbleed__img { width: 100%; height: auto; }
+</style>

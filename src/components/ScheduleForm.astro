@@ -1,0 +1,536 @@
+---
+import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { getCopy } from '../content/copy';
+
+interface Props {
+  locale: Locale;
+  headingId?: string;
+  title?: string;
+  lede?: string;
+}
+
+const { locale, headingId = 'schedule-heading', title, lede } = Astro.props;
+
+const t = useTranslations(locale);
+const c = getCopy(locale);
+const L = (p: string) => localizePath(p, locale);
+const id = `sched-${Math.random().toString(36).slice(2, 8)}`;
+
+/* The sales gallery runs presentations at six fixed hours. The value that
+   reaches the CRM is always the English clock string, so the sales team reads
+   one format regardless of the visitor's language. */
+const TIMES = [
+  { value: '8:00 AM', clock: '08:00' },
+  { value: '9:00 AM', clock: '09:00' },
+  { value: '11:00 AM', clock: '11:00' },
+  { value: '1:00 PM', clock: '13:00' },
+  { value: '3:00 PM', clock: '15:00' },
+  { value: '5:00 PM', clock: '17:00' },
+];
+
+const methods = [c.forms.methodGallery, c.forms.methodVirtual];
+---
+
+<div class="form-block" data-reveal>
+  <header class="form-block__head">
+    <h2 class="heading" id={headingId}>{title ?? c.forms.scheduleTitle}</h2>
+    {lede && <p class="form-block__lede">{lede}</p>}
+  </header>
+
+  <form
+    class="form"
+    id={id}
+    novalidate
+    data-schedule-form
+    data-locale={locale}
+  >
+    <fieldset class="form__fieldset">
+      <legend class="form__legend">
+        {c.forms.methodLabel} <span class="req" aria-hidden="true">*</span>
+      </legend>
+      <div class="opts opts--method">
+        {methods.map((m, i) => (
+          <label class="opt">
+            <input type="radio" name="presentationMethod" value={m} required checked={i === 0} />
+            <span class="opt__face">{m}</span>
+          </label>
+        ))}
+      </div>
+      <span class="field__error" data-error-for="presentationMethod" hidden></span>
+    </fieldset>
+
+    <fieldset class="form__fieldset">
+      <legend class="form__legend">
+        {c.forms.timeLabel} <span class="req" aria-hidden="true">*</span>
+      </legend>
+      <div class="opts opts--time">
+        {TIMES.map((time) => (
+          <label class="opt">
+            <input type="radio" name="preferredTime" value={time.value} required />
+            <span class="opt__face">{locale === 'en' ? time.value : time.clock}</span>
+          </label>
+        ))}
+      </div>
+      <span class="field__error" data-error-for="preferredTime" hidden></span>
+    </fieldset>
+
+    <div class="form__grid">
+      <p class="field">
+        <label for={`${id}-date`}>{c.forms.dateLabel} <span class="req" aria-hidden="true">*</span></label>
+        {/* `min` is set at runtime — a build-time value would go stale. */}
+        <input id={`${id}-date`} name="preferredDate" type="date" required data-min-today />
+        <span class="field__error" data-error-for="preferredDate" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-name`}>{c.forms.fullName} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-name`} name="fullName" type="text" autocomplete="name" required />
+        <span class="field__error" data-error-for="fullName" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-email`}>{c.forms.email} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+        <span class="field__error" data-error-for="email" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-phone`}>{c.forms.phone} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" required />
+        <span class="field__error" data-error-for="phone" hidden></span>
+      </p>
+
+      <p class="field field--wide">
+        <label for={`${id}-comments`}>{c.forms.comments}</label>
+        <textarea id={`${id}-comments`} name="comments" rows="3"></textarea>
+      </p>
+    </div>
+
+    {/* Bot trap. Hidden from people and assistive tech alike; a filled value
+        means a script, and the submission is dropped silently. */}
+    <p class="hp" aria-hidden="true">
+      <label for={`${id}-hp`}>Do not fill this in</label>
+      <input id={`${id}-hp`} name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+    </p>
+
+    <label class="consent">
+      <input type="checkbox" name="consent" required />
+      <span>
+        {c.forms.consent}
+        <a href={L('privacy-policy')}>{c.forms.privacyLink}</a> &amp;
+        <a href={L('terms-of-use')}>{c.forms.termsLink}</a>.
+      </span>
+    </label>
+    <span class="field__error consent__error" data-error-for="consent" hidden></span>
+
+    <div class="form__foot">
+      <p class="form__required">* {t('required')}</p>
+      <button class="btn btn--solid" type="submit" data-submit>
+        <span data-submit-label>{t('schedule')}</span>
+      </button>
+    </div>
+
+    <p class="form__status" role="alert" aria-live="assertive" data-form-error hidden></p>
+  </form>
+
+  {/* Replaces the incumbent modal: success is revealed in place, no dialog. */}
+  <div class="form-success" role="status" aria-live="polite" data-form-success hidden>
+    <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true" fill="none"
+         stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="24" cy="24" r="21" />
+      <path d="m15 24.5 6.5 6.5L33 19" />
+    </svg>
+    <h3 class="subheading">{c.forms.successTitle}</h3>
+    <p class="prose">{c.forms.successBody}</p>
+  </div>
+</div>
+
+<style>
+  /* `hidden` is only the UA's non-important display:none, so any author
+     `display` below would win and reveal the success panel and the empty
+     error slots on load. Re-assert it, as InventoryGrid does. */
+  [hidden] { display: none !important; }
+
+  .form-block {
+    display: grid;
+    gap: var(--s-6);
+    max-width: 880px;
+    margin-inline: auto;
+
+    /* On the sand grounds this form sits on, --ink-muted is 2.5:1 and --gold
+       2.4:1 — both short of AA for text this small. Darkened mixes of the
+       same tokens hold the hierarchy and the accent hue while clearing
+       4.5:1; a global token takes over if tokens.css ever grows one. */
+    --muted-aa: var(--ink-muted-aa, color-mix(in srgb, var(--ink) 78%, var(--ground-alt)));
+    --gold-aa: var(--gold-ink, color-mix(in srgb, var(--gold) 52%, var(--navy-deep)));
+  }
+
+  .form-block__head { display: grid; gap: var(--s-3); text-align: center; justify-items: center; }
+  .form-block__lede { color: var(--ink-muted-aa); font-size: var(--t-small); }
+
+  .form { display: grid; gap: var(--s-6); }
+
+  .form__fieldset { border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+
+  .form__legend,
+  .field label {
+    display: block;
+    margin-bottom: var(--s-3);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted-aa);
+  }
+
+  .req { color: var(--gold-ink); }
+
+  /* --- Choice pills -------------------------------------------------------
+     The radio itself covers the pill: it stays a real, focusable, labelled
+     control, while the visible face carries the brand's tracked caps.        */
+  .opts { display: grid; gap: var(--s-3); }
+  .opts--method { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .opts--time { grid-template-columns: repeat(auto-fit, minmax(94px, 1fr)); }
+
+  .opt { position: relative; display: block; }
+
+  .opt input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .opt__face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--rule);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+  }
+
+  .opt input:hover + .opt__face { border-color: var(--gold); }
+
+  .opt input:checked + .opt__face {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--off-white);
+  }
+
+  .opt input:focus-visible + .opt__face {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-5);
+  }
+
+  .field { margin: 0; }
+  .field--wide { grid-column: 1 / -1; }
+
+  .field input,
+  .field textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: var(--s-3) 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    font-size: var(--t-body);
+    font-weight: var(--w-light);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .field textarea { resize: vertical; }
+
+  .field input:hover,
+  .field textarea:hover { border-bottom-color: var(--gold-muted); }
+
+  .field input:focus-visible,
+  .field textarea:focus-visible {
+    outline: none;
+    border-bottom-color: var(--gold);
+    box-shadow: 0 1px 0 var(--gold);
+  }
+
+  .field input[aria-invalid='true'] { border-bottom-color: #b3261e; }
+
+  .field__error {
+    display: block;
+    margin-top: var(--s-2);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: #b3261e;
+  }
+
+  .consent { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
+  .consent input {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    margin-top: 3px;
+    accent-color: var(--gold);
+  }
+  .consent span { font-size: var(--t-micro); line-height: 1.7; color: var(--ink-muted-aa); }
+  .consent a { color: var(--ink); border-bottom: 1px solid var(--rule); }
+  .consent a:hover { color: var(--gold-ink); }
+
+  /* Off-screen rather than display:none, so bots still see a real field. */
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+  }
+
+  .form__required { font-size: var(--t-micro); color: var(--ink-muted-aa); }
+
+  .btn--solid {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-7);
+    background: var(--navy);
+    color: var(--off-white);
+    border: 1px solid var(--navy);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    transition: background var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out);
+  }
+  .btn--solid:hover { background: var(--gold); border-color: var(--gold); }
+  .btn--solid[disabled] { opacity: 0.55; cursor: progress; }
+
+  .form__status {
+    padding: var(--s-3) var(--s-4);
+    border-left: 2px solid #b3261e;
+    background: rgba(179, 38, 30, 0.06);
+    font-size: var(--t-small);
+    color: #b3261e;
+  }
+
+  .form-success {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-4);
+    padding: clamp(var(--s-6), 5vw, var(--s-8));
+    text-align: center;
+    border: 1px solid var(--gold);
+    color: var(--ink);
+  }
+  .form-success svg { color: var(--gold-ink); }
+
+  @media (max-width: 640px) {
+    .form__grid { grid-template-columns: 1fr; }
+    .form__foot { flex-direction: column; align-items: stretch; }
+    .btn--solid { justify-content: center; }
+  }
+</style>
+
+<script>
+  import { submitLead, payloadFromForm } from '../scripts/leads';
+
+  const MESSAGES: Record<string, Record<string, string>> = {
+    en: {
+      required: 'This field is required',
+      choose: 'Please choose an option',
+      email: 'Please enter a valid email address',
+      phone: 'Please enter a valid phone number',
+      past: 'Please choose today or a later date',
+      consent: 'Please agree to be contacted so we can confirm your appointment',
+      sending: 'Sending…',
+      failed: 'Something went wrong. Please try again, or call us at (305) 458-1100.',
+    },
+    es: {
+      required: 'Este campo es obligatorio',
+      choose: 'Seleccione una opción',
+      email: 'Introduzca un correo electrónico válido',
+      phone: 'Introduzca un número de teléfono válido',
+      past: 'Elija hoy o una fecha posterior',
+      consent: 'Acepte ser contactado para que podamos confirmar su cita',
+      sending: 'Enviando…',
+      failed: 'Algo salió mal. Inténtelo de nuevo o llámenos al (305) 458-1100.',
+    },
+    'pt-br': {
+      required: 'Este campo é obrigatório',
+      choose: 'Selecione uma opção',
+      email: 'Informe um e-mail válido',
+      phone: 'Informe um telefone válido',
+      past: 'Escolha hoje ou uma data posterior',
+      consent: 'Aceite ser contatado para que possamos confirmar seu agendamento',
+      sending: 'Enviando…',
+      failed: 'Algo deu errado. Tente novamente ou ligue para (305) 458-1100.',
+    },
+  };
+
+  /** Local calendar day as YYYY-MM-DD — toISOString would shift by timezone. */
+  function today(): string {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }
+
+  document.querySelectorAll<HTMLFormElement>('[data-schedule-form]').forEach((form) => {
+    const locale = form.dataset.locale ?? 'en';
+    const m = MESSAGES[locale] ?? MESSAGES.en;
+
+    const button = form.querySelector<HTMLButtonElement>('[data-submit]');
+    const label = form.querySelector<HTMLElement>('[data-submit-label]');
+    const errorBox = form.querySelector<HTMLElement>('[data-form-error]');
+    const success = form.parentElement?.querySelector<HTMLElement>('[data-form-success]');
+    const originalLabel = label?.textContent ?? 'Submit';
+
+    // No back-dated appointments; the floor moves with the visitor's clock.
+    form.querySelectorAll<HTMLInputElement>('[data-min-today]').forEach((el) => {
+      el.min = today();
+    });
+
+    const showError = (name: string, message: string) => {
+      const slot = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      const input = form.querySelector<HTMLElement>(`[name="${name}"]`);
+      if (slot) {
+        slot.textContent = message;
+        slot.hidden = false;
+      }
+      input?.setAttribute('aria-invalid', 'true');
+    };
+
+    const clearErrors = () => {
+      form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+        el.hidden = true;
+        el.textContent = '';
+      });
+      form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+      if (errorBox) errorBox.hidden = true;
+    };
+
+    /** Returns the first invalid field name, or null. */
+    function validate(): string | null {
+      let firstBad: string | null = null;
+
+      form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[required]').forEach((el) => {
+        const name = el.name;
+        if (!name) return;
+
+        if (el.type === 'checkbox') {
+          if (!(el as HTMLInputElement).checked) {
+            showError(name, m.consent);
+            firstBad ??= name;
+          }
+          return;
+        }
+
+        if (el.type === 'radio') {
+          const group = form.querySelectorAll<HTMLInputElement>(`[name="${name}"]`);
+          if (![...group].some((r) => r.checked)) {
+            showError(name, m.choose);
+            firstBad ??= name;
+          }
+          return;
+        }
+
+        const value = el.value.trim();
+        if (!value) {
+          showError(name, m.required);
+          firstBad ??= name;
+          return;
+        }
+        if (el.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+          showError(name, m.email);
+          firstBad ??= name;
+          return;
+        }
+        if (el.type === 'tel' && value.replace(/\D/g, '').length < 7) {
+          showError(name, m.phone);
+          firstBad ??= name;
+          return;
+        }
+        if (el.type === 'date' && value < today()) {
+          showError(name, m.past);
+          firstBad ??= name;
+        }
+      });
+
+      return firstBad;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      // Silently drop bots — never reveal why.
+      const trap = form.querySelector<HTMLInputElement>('[name="_gotcha"]');
+      if (trap?.value) return;
+
+      const bad = validate();
+      if (bad) {
+        form.querySelector<HTMLElement>(`[name="${bad}"]`)?.focus();
+        return;
+      }
+
+      if (button) button.disabled = true;
+      if (label) label.textContent = m.sending;
+
+      const result = await submitLead(payloadFromForm(form, 'schedule-presentation', locale));
+
+      if (result.ok) {
+        form.hidden = true;
+        if (success) {
+          success.hidden = false;
+          success.setAttribute('tabindex', '-1');
+          success.focus();
+          // An explicit `behavior` beats the CSS reduced-motion guard, so ask
+          // for the animated scroll only when motion is welcome.
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          success.scrollIntoView(reduced ? { block: 'center' } : { behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+
+      if (button) button.disabled = false;
+      if (label) label.textContent = originalLabel;
+      if (errorBox) {
+        errorBox.textContent = result.error?.startsWith('Form relay is not configured')
+          ? result.error
+          : m.failed;
+        errorBox.hidden = false;
+      }
+    });
+
+    // Clear a field's error as soon as the visitor starts fixing it.
+    form.addEventListener('input', (e) => {
+      const el = e.target as HTMLElement & { name?: string };
+      if (!el?.name) return;
+      const slot = form.querySelector<HTMLElement>(`[data-error-for="${el.name}"]`);
+      if (slot && !slot.hidden) {
+        slot.hidden = true;
+        el.removeAttribute('aria-invalid');
+      }
+    });
+  });
+</script>

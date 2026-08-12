@@ -1,0 +1,68 @@
+---
+import type { Locale } from '../i18n/ui';
+import { getCopy } from '../content/copy';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const c = getCopy(locale);
+---
+
+<section class="presentation section section--dark" aria-labelledby="presentation-heading">
+  <div class="shell shell--narrow presentation__inner">
+    <h2 class="heading presentation__title" id="presentation-heading" data-reveal>
+      {c.home.presentationTitle}
+    </h2>
+    <hr class="presentation__rule" data-reveal="fade" />
+    <p class="prose presentation__body" data-reveal data-reveal-delay="0.08">
+      {c.home.presentationBody}
+    </p>
+    <a class="btn btn--gold" href="#inquire" data-reveal data-reveal-delay="0.14">
+      <span>{c.home.presentationCta}</span>
+      <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none"
+           stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 7h10v10" /><path d="M7 17 17 7" />
+      </svg>
+    </a>
+  </div>
+</section>
+
+<style>
+  .presentation__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    text-align: center;
+  }
+
+  .presentation__title { color: var(--off-white); }
+
+  .presentation__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .presentation__body { color: var(--ink-on-dark-muted); }
+
+  .btn--gold {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-top: var(--s-3);
+    padding: var(--s-4) var(--s-7);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    transition: background var(--dur-base) var(--ease-out),
+                color var(--dur-base) var(--ease-out);
+  }
+  .btn--gold:hover { background: var(--gold); color: var(--navy); }
+  .btn--gold svg { transition: transform var(--dur-base) var(--ease-out); }
+  .btn--gold:hover svg { transform: translate(3px, -3px); }
+</style>

@@ -1,0 +1,160 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import ScheduleForm from '../../components/ScheduleForm.astro';
+import { useTranslations, localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { getCopy } from '../../content/copy';
+import { scheduleCopy } from '../../content/pages/schedule-virtual-tour';
+import facade from '../../assets/schedule/origin-waterfront-facade-dusk.jpg';
+import { ADDRESS, MAP_HREF, PHONE, PHONE_HREF } from '../../data/contact';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const t = useTranslations(locale);
+const c = getCopy(locale);
+const s = scheduleCopy[locale];
+
+const EMAIL = 'germanr.realty@gmail.com';
+---
+
+<Base
+  title={s.metaTitle}
+  description={c.home.presentationBody}
+  locale={locale}
+  path="schedule-virtual-tour"
+  darkHeader
+>
+  <section class="page-hero" aria-labelledby="schedule-hero-heading">
+    <Image
+      class="page-hero__media"
+      src={facade}
+      alt={s.heroAlt}
+      widths={[720, 1200, 1920]}
+      sizes="100vw"
+      layout="none"
+      loading="eager"
+      decoding="async"
+    />
+    <div class="page-hero__veil" aria-hidden="true"></div>
+
+    <div class="shell page-hero__content">
+      <h1 class="display page-hero__title" id="schedule-hero-heading">
+        {c.home.presentationTitle}
+      </h1>
+      <hr class="page-hero__rule" />
+      <p class="prose page-hero__lede">{c.home.presentationBody}</p>
+    </div>
+  </section>
+
+  <section class="section section--alt" aria-labelledby="schedule-heading">
+    <div class="shell">
+      <ul class="facts" data-reveal-group>
+        <li class="fact">
+          <h2 class="fact__label">{s.salesGallery}</h2>
+          <a class="fact__value" href={MAP_HREF} target="_blank" rel="noopener noreferrer">{ADDRESS}</a>
+        </li>
+        <li class="fact">
+          <h2 class="fact__label">{t('call')}</h2>
+          <a class="fact__value" href={PHONE_HREF}>{PHONE}</a>
+        </li>
+        <li class="fact">
+          <h2 class="fact__label">{t('email')}</h2>
+          <a class="fact__value" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+        </li>
+      </ul>
+
+      <hr class="rule facts__rule" />
+
+      <ScheduleForm locale={locale} headingId="schedule-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: clamp(420px, 72svh, 720px);
+    padding-block: calc(var(--header-h) + var(--s-7)) clamp(var(--s-7), 7vh, var(--s-9));
+    overflow: clip;
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    isolation: isolate;
+  }
+
+  .page-hero .page-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Navy-weighted scrim, same recipe as the home hero — legible headline,
+     footage that still reads as photography rather than grey. */
+  .page-hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      rgba(8, 35, 65, 0.88) 0%,
+      rgba(8, 35, 65, 0.4) 52%,
+      rgba(8, 35, 65, 0.52) 100%
+    );
+  }
+
+  .page-hero__content {
+    display: grid;
+    justify-items: start;
+    gap: var(--s-5);
+  }
+
+  .page-hero__title {
+    max-width: 18ch;
+    font-size: var(--t-h1);
+    color: var(--off-white);
+  }
+
+  .page-hero__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .page-hero__lede { color: var(--ink-on-dark-muted); }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--s-6);
+  }
+
+  .fact { display: grid; gap: var(--s-2); align-content: start; }
+
+  .fact__label {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    /* Gold is a rule-and-border colour on light grounds: as text it is 2.4:1
+       here. Darkened against --navy-deep it keeps the accent and clears AA. */
+    color: var(--gold-ink, color-mix(in srgb, var(--gold) 52%, var(--navy-deep)));
+  }
+
+  .fact__value {
+    font-size: var(--t-small);
+    line-height: 1.8;
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .fact__value:hover { color: var(--gold-ink); }
+
+  .facts__rule { margin-block: clamp(var(--s-7), 5vw, var(--s-8)); }
+</style>

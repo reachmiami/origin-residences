@@ -1,0 +1,241 @@
+---
+import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import SalesContact from './SalesContact.astro';
+
+import developer from '../assets/brand/partner-Grupo-914.svg?raw';
+import interiors from '../assets/brand/partner-Grupo-915.svg?raw';
+import design from '../assets/brand/partner-Logo_Carla.svg?raw';
+import architecture from '../assets/brand/partner-Grupo-916.svg?raw';
+import construction from '../assets/brand/partner-thornton.svg?raw';
+import sales from '../assets/brand/partner-Grupo-917.svg?raw';
+import { ADDRESS, MAP_HREF, PHONE, PHONE_HREF } from '../data/contact';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
+/* Credit order is the incumbent site's own. Marks are supplied as artwork
+   without embedded names, so the heading carries the meaning. */
+const credits = [
+  { key: 'developed', svg: developer, label: { en: 'Developed by', es: 'Desarrollado por', 'pt-br': 'Desenvolvido por' } },
+  { key: 'interiors', svg: interiors, label: { en: 'Interiors by', es: 'Interiores por', 'pt-br': 'Interiores por' } },
+  { key: 'design', svg: design, label: { en: 'Design by', es: 'Diseño por', 'pt-br': 'Design por' } },
+  { key: 'architecture', svg: architecture, label: { en: 'Architecture by', es: 'Arquitectura por', 'pt-br': 'Arquitetura por' } },
+  { key: 'construction', svg: construction, label: { en: 'Construction by', es: 'Construcción por', 'pt-br': 'Construção por' } },
+  { key: 'sales', svg: sales, label: { en: 'Sales by', es: 'Ventas por', 'pt-br': 'Vendas por' } },
+];
+
+const year = new Date().getFullYear();
+
+/* The site's own Terms of Use notice, as supplied by the owner. Legal wording
+   is served in English in every locale — see TRANSLATION-REVIEW.md for why
+   that is deliberate. */
+const DISCLAIMER =
+  'YOUR USE OF THIS WEBSITE (the “Site”) CONSTITUTES ACCEPTANCE OF THE TERMS AND CONDITIONS PROVIDED BELOW (the “Terms”). These Website Terms of Use (“Terms of Use”) describe the terms pursuant to which Bay Harbour Investment, Inc and/or an affiliated entity (referred to in these Terms of Use as the “Company,” “we,” “us” and “our”) provides the website located at www.originresidences.com (the “Site”). We prepared these Terms of Use to help explain the terms that apply to your use of the Site. We may modify the Terms of Use as well as discontinue, withdraw, replace or change any content or services offered via the Site at any time and your continued access and use of the Site thereafter constitutes your acceptance of such changes. You may view the most up-to-date version of the Terms at any time at https://www.originresidences.com. By using this Site, you agree to these Terms of Use. If you do not agree to these Terms of Use, please do not use this Site.';
+
+const disclaimerHeading: Record<Locale, string> = {
+  en: 'Disclaimer',
+  es: 'Aviso legal',
+  'pt-br': 'Aviso legal',
+};
+---
+
+<footer class="footer">
+  <div class="shell">
+    <section class="credits" aria-label="Project partners">
+      <ul class="credits__grid" data-reveal-group>
+        {credits.map((c) => (
+          <li class="credit">
+            <h2 class="credit__label">{c.label[locale]}</h2>
+            <div class="credit__mark" role="img" aria-label={c.label[locale]}>
+              <Fragment set:html={c.svg} />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <div class="footer__meta">
+      <div class="footer__block">
+        <h2 class="footer__heading">{t('address')}</h2>
+        <a class="footer__value" href={MAP_HREF} target="_blank" rel="noopener noreferrer">{ADDRESS}</a>
+      </div>
+
+      <div class="footer__block">
+        <h2 class="footer__heading">{t('call')}</h2>
+        <a class="footer__value" href={PHONE_HREF}>{PHONE}</a>
+        <SalesContact locale={locale} tone="dark" class="footer__sales" />
+
+        {/* The icons sit under the named contact rather than under a label of
+            their own — the aria-labels already say where each one goes. */}
+        <ul class="footer__social">
+          <li>
+            <a href="https://www.facebook.com/originresidences" target="_blank" rel="noopener noreferrer" aria-label="Origin Residences on Facebook">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M14 8.5V6.9c0-.7.2-1.1 1.2-1.1H16V3.1A17 17 0 0 0 14.2 3C12 3 10.6 4.3 10.6 6.6v1.9H8.5V11h2.1v8h3v-8h2.2l.3-2.5H14Z" />
+              </svg>
+            </a>
+          </li>
+          <li>
+            <a href="https://www.instagram.com/originresidences" target="_blank" rel="noopener noreferrer" aria-label="Origin Residences on Instagram">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect x="3.5" y="3.5" width="17" height="17" rx="4.6" />
+                <circle cx="12" cy="12" r="3.6" />
+                <circle cx="16.9" cy="7.1" r="1" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__disclaimer">
+      <p class="footer__disclaimer-body">{DISCLAIMER}</p>
+    </div>
+
+    <div class="footer__legal">
+      <nav class="footer__legal-links" aria-label="Legal">
+        <a href={L('terms-of-use')}>{t('terms')}</a>
+        <a href={L('privacy-policy')}>{t('privacy')}</a>
+        <a href={L('accessibility')}>{t('accessibility')}</a>
+      </nav>
+      <p class="footer__copy">&copy; {year} Origin Residences. {t('rights')}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    padding-block: var(--s-7);
+  }
+
+  .credits__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: clamp(var(--s-5), 3vw, var(--s-8));
+    align-items: start;
+  }
+
+  .credit {
+    display: grid;
+    gap: var(--s-4);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .credit__label {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* Partner marks arrive in mixed fills; normalise them to the footer's
+     warm white so the row reads as one system. */
+  .credit__mark :global(svg) {
+    width: auto;
+    max-width: 100%;
+    height: clamp(30px, 3.4vw, 42px);
+  }
+  .credit__mark :global(svg *) {
+    fill: var(--off-white);
+    stroke: none;
+  }
+
+  /* The three bands below the credits share one rhythm: equal margin and
+     padding above, separated by the same hairline. */
+  .footer__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(var(--s-5), 4vw, var(--s-8));
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--rule-on-dark);
+  }
+
+  .footer__block { display: grid; gap: var(--s-2); align-content: start; }
+
+  .footer__heading {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: var(--s-1);
+  }
+
+  .footer__value {
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    line-height: 1.8;
+    color: var(--ink-on-dark-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .footer__value:hover { color: var(--off-white); }
+
+  .footer__social { display: flex; gap: var(--s-4); margin-top: var(--s-4); }
+  .footer__social a {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--rule-on-dark);
+    border-radius: 50%;
+    color: var(--ink-on-dark-muted);
+    transition: color var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out);
+  }
+  .footer__social a:hover { color: var(--gold); border-color: var(--gold); }
+
+  /* Separated from the meta row by the same hairline the legal row uses, so
+     the three bands read as one system. */
+  .footer__disclaimer {
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--rule-on-dark);
+  }
+
+  .footer__disclaimer-body {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    line-height: 1.85;
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+  }
+
+  .footer__sales { margin-top: var(--s-1); }
+
+  .footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--rule-on-dark);
+  }
+
+  .footer__legal-links { display: flex; flex-wrap: wrap; gap: var(--s-5); }
+
+  .footer__legal-links a,
+  .footer__copy {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+  }
+  .footer__legal-links a:hover { color: var(--gold); }
+
+  @media (max-width: 640px) {
+    .credits__grid { grid-template-columns: repeat(2, 1fr); }
+    .footer__meta { grid-template-columns: 1fr; }
+    .footer__legal { justify-content: flex-start; }
+  }
+</style>

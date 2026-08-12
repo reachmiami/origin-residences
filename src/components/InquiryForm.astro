@@ -1,0 +1,455 @@
+---
+import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { getCopy } from '../content/copy';
+
+interface Props {
+  locale: Locale;
+  /** full = the long inventory form; compact = name/email/phone/comments. */
+  variant?: 'full' | 'compact';
+  /** Slug of the residence this form sits on, attached to the lead. */
+  unit?: string;
+  headingId?: string;
+  title?: string;
+  lede?: string;
+}
+
+const {
+  locale,
+  variant = 'compact',
+  unit,
+  headingId = 'inquiry-heading',
+  title,
+  lede,
+} = Astro.props;
+
+const t = useTranslations(locale);
+const c = getCopy(locale);
+const L = (p: string) => localizePath(p, locale);
+const isFull = variant === 'full';
+const id = `form-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class="form-block" data-reveal>
+  <header class="form-block__head">
+    <h2 class="heading" id={headingId}>{title ?? (isFull ? c.forms.getInfoTitle : c.forms.requestInfoTitle)}</h2>
+    {(lede ?? (!isFull ? c.forms.requestInfoLede : null)) && (
+      <p class="form-block__lede">{lede ?? c.forms.requestInfoLede}</p>
+    )}
+  </header>
+
+  <form
+    class="form"
+    id={id}
+    novalidate
+    data-lead-form
+    data-source={isFull ? 'inquiry' : 'request-info'}
+    data-locale={locale}
+    data-unit={unit}
+  >
+    <fieldset class="form__fieldset">
+      <legend class="form__legend">{c.forms.typeLabel} <span class="req" aria-hidden="true">*</span></legend>
+      <div class="form__radios">
+        <label class="radio">
+          <input type="radio" name="contactType" value={c.forms.typeBuyer} required checked />
+          <span>{c.forms.typeBuyer}</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="contactType" value={c.forms.typeAgent} required />
+          <span>{c.forms.typeAgent}</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="form__grid">
+      <p class="field">
+        <label for={`${id}-first`}>{c.forms.firstName} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-first`} name="firstName" type="text" autocomplete="given-name" required />
+        <span class="field__error" data-error-for="firstName" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-last`}>{c.forms.lastName} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-last`} name="lastName" type="text" autocomplete="family-name" required />
+        <span class="field__error" data-error-for="lastName" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-email`}>{c.forms.email} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+        <span class="field__error" data-error-for="email" hidden></span>
+      </p>
+
+      <p class="field">
+        <label for={`${id}-phone`}>{c.forms.phone} <span class="req" aria-hidden="true">*</span></label>
+        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" required />
+        <span class="field__error" data-error-for="phone" hidden></span>
+      </p>
+
+    </div>
+
+    {/* Bot trap. Hidden from people and assistive tech alike; a filled value
+        means a script, and the submission is dropped silently. */}
+    <p class="hp" aria-hidden="true">
+      <label for={`${id}-hp`}>Do not fill this in</label>
+      <input id={`${id}-hp`} name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+    </p>
+
+    <label class="consent">
+      <input type="checkbox" name="consent" required />
+      <span>
+        {c.forms.consent}
+        <a href={L('privacy-policy')}>{c.forms.privacyLink}</a> &amp;
+        <a href={L('terms-of-use')}>{c.forms.termsLink}</a>.
+      </span>
+    </label>
+    <span class="field__error consent__error" data-error-for="consent" hidden></span>
+
+    <div class="form__foot">
+      <p class="form__required">* {t('required')}</p>
+      <button class="btn btn--solid" type="submit" data-submit>
+        <span data-submit-label>{isFull ? t('submit') : t('requestInfo')}</span>
+      </button>
+    </div>
+
+    <p class="form__status" role="alert" aria-live="assertive" data-form-error hidden></p>
+  </form>
+
+  {/* Replaces the incumbent modal: success is revealed in place, no dialog. */}
+  <div class="form-success" role="status" aria-live="polite" data-form-success hidden>
+    <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true" fill="none"
+         stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="24" cy="24" r="21" />
+      <path d="m15 24.5 6.5 6.5L33 19" />
+    </svg>
+    <h3 class="subheading">{c.forms.successTitle}</h3>
+    <p class="prose">{c.forms.successBody}</p>
+  </div>
+</div>
+
+<style>
+  .form-block {
+    display: grid;
+    gap: var(--s-6);
+    max-width: 880px;
+    margin-inline: auto;
+  }
+
+  .form-block__head { display: grid; gap: var(--s-3); text-align: center; justify-items: center; }
+  .form-block__lede { color: var(--ink-muted); font-size: var(--t-small); }
+
+  .form { display: grid; gap: var(--s-5); }
+
+  .form__fieldset { border: 0; padding: 0; margin: 0; }
+
+  .form__legend,
+  .field label {
+    display: block;
+    margin-bottom: var(--s-2);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .req { color: var(--gold-ink); }
+
+  .form__radios { display: flex; flex-wrap: wrap; gap: var(--s-5); }
+
+  .radio, .consent { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
+  .radio span { font-size: var(--t-small); }
+
+  .radio input, .consent input {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    margin-top: 3px;
+    accent-color: var(--gold);
+  }
+
+  .form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-5) var(--s-5);
+  }
+
+  .field { margin: 0; }
+  .field--wide { grid-column: 1 / -1; }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: var(--s-3) 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-radius: 0;
+    font-size: var(--t-body);
+    font-weight: var(--w-light);
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .field textarea { resize: vertical; }
+
+  .field input:hover,
+  .field select:hover,
+  .field textarea:hover { border-bottom-color: var(--gold-muted); }
+
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    outline: none;
+    border-bottom-color: var(--gold);
+    box-shadow: 0 1px 0 var(--gold);
+  }
+
+  .field input[aria-invalid='true'],
+  .field select[aria-invalid='true'] { border-bottom-color: #b3261e; }
+
+  .field__error {
+    display: block;
+    margin-top: var(--s-2);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: #b3261e;
+  }
+
+  .consent { margin-top: var(--s-2); }
+  .consent span { font-size: var(--t-micro); line-height: 1.7; color: var(--ink-muted); }
+  .consent a { color: var(--ink); border-bottom: 1px solid var(--rule); }
+  .consent a:hover { color: var(--gold-ink); }
+
+  /* Off-screen rather than display:none, so bots still see a real field. */
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    margin-top: var(--s-2);
+  }
+
+  .form__required { font-size: var(--t-micro); color: var(--ink-muted); }
+
+  .btn--solid {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-7);
+    background: var(--navy);
+    color: var(--off-white);
+    border: 1px solid var(--navy);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    transition: background var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out);
+  }
+  .btn--solid:hover { background: var(--gold); border-color: var(--gold); }
+  .btn--solid[disabled] { opacity: 0.55; cursor: progress; }
+
+  .form__status {
+    padding: var(--s-3) var(--s-4);
+    border-left: 2px solid #b3261e;
+    background: rgba(179, 38, 30, 0.06);
+    font-size: var(--t-small);
+    color: #8c1d18;
+  }
+
+  .form-success {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-4);
+    padding: clamp(var(--s-6), 5vw, var(--s-8));
+    text-align: center;
+    border: 1px solid var(--gold);
+    color: var(--ink);
+  }
+  .form-success svg { color: var(--gold-ink); }
+
+  @media (max-width: 640px) {
+    .form__grid { grid-template-columns: 1fr; }
+    .form__foot { flex-direction: column; align-items: stretch; }
+    .btn--solid { justify-content: center; }
+  }
+</style>
+
+<script>
+  import { submitLead, payloadFromForm, primeForPixel, type LeadSource } from '../scripts/leads';
+
+  const MESSAGES: Record<string, Record<string, string>> = {
+    en: {
+      required: 'This field is required',
+      email: 'Please enter a valid email address',
+      phone: 'Please enter a valid phone number',
+      consent: 'Please agree to be contacted so we can respond',
+      sending: 'Sending…',
+      failed: 'Something went wrong. Please try again, or call us at (305) 458-1100.',
+    },
+    es: {
+      required: 'Este campo es obligatorio',
+      email: 'Introduzca un correo electrónico válido',
+      phone: 'Introduzca un número de teléfono válido',
+      consent: 'Acepte ser contactado para que podamos responderle',
+      sending: 'Enviando…',
+      failed: 'Algo salió mal. Inténtelo de nuevo o llámenos al (305) 458-1100.',
+    },
+    'pt-br': {
+      required: 'Este campo é obrigatório',
+      email: 'Informe um e-mail válido',
+      phone: 'Informe um telefone válido',
+      consent: 'Aceite ser contatado para que possamos responder',
+      sending: 'Enviando…',
+      failed: 'Algo deu errado. Tente novamente ou ligue para (305) 458-1100.',
+    },
+  };
+
+  document.querySelectorAll<HTMLFormElement>('[data-lead-form]').forEach((form) => {
+    const locale = form.dataset.locale ?? 'en';
+    const m = MESSAGES[locale] ?? MESSAGES.en;
+    const source = (form.dataset.source ?? 'inquiry') as LeadSource;
+
+    const button = form.querySelector<HTMLButtonElement>('[data-submit]');
+    const label = form.querySelector<HTMLElement>('[data-submit-label]');
+    const errorBox = form.querySelector<HTMLElement>('[data-form-error]');
+    const success = form.parentElement?.querySelector<HTMLElement>('[data-form-success]');
+    const originalLabel = label?.textContent ?? 'Submit';
+
+    const showError = (name: string, message: string) => {
+      const slot = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      const input = form.querySelector<HTMLElement>(`[name="${name}"]`);
+      if (slot) {
+        slot.textContent = message;
+        slot.hidden = false;
+      }
+      input?.setAttribute('aria-invalid', 'true');
+    };
+
+    const clearErrors = () => {
+      form.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+        el.hidden = true;
+        el.textContent = '';
+      });
+      form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+      if (errorBox) errorBox.hidden = true;
+    };
+
+    /** Returns the first invalid field name, or null. */
+    function validate(): string | null {
+      let firstBad: string | null = null;
+
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+        '[required]',
+      ).forEach((el) => {
+        const name = el.name;
+        if (!name) return;
+
+        if (el.type === 'checkbox') {
+          if (!(el as HTMLInputElement).checked) {
+            showError(name, m.consent);
+            firstBad ??= name;
+          }
+          return;
+        }
+
+        if (el.type === 'radio') {
+          const group = form.querySelectorAll<HTMLInputElement>(`[name="${name}"]`);
+          if (![...group].some((r) => r.checked)) {
+            showError(name, m.required);
+            firstBad ??= name;
+          }
+          return;
+        }
+
+        const value = el.value.trim();
+        if (!value) {
+          showError(name, m.required);
+          firstBad ??= name;
+          return;
+        }
+        if (el.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+          showError(name, m.email);
+          firstBad ??= name;
+          return;
+        }
+        if (el.type === 'tel' && value.replace(/\D/g, '').length < 7) {
+          showError(name, m.phone);
+          firstBad ??= name;
+        }
+      });
+
+      return firstBad;
+    }
+
+    const prime = () => primeForPixel(form, payloadFromForm(form, source, locale));
+    form.addEventListener('input', prime);
+    form.addEventListener('change', prime);
+    prime();
+
+    form.addEventListener('submit', async (e) => {
+      // Keep the Pixel's view of the form current before anything else runs.
+      prime();
+      e.preventDefault();
+      clearErrors();
+
+      // Silently drop bots — never reveal why.
+      const trap = form.querySelector<HTMLInputElement>('[name="_gotcha"]');
+      if (trap?.value) return;
+
+      const bad = validate();
+      if (bad) {
+        form.querySelector<HTMLElement>(`[name="${bad}"]`)?.focus();
+        return;
+      }
+
+      if (button) button.disabled = true;
+      if (label) label.textContent = m.sending;
+
+      const result = await submitLead(payloadFromForm(form, source, locale));
+
+      if (result.ok) {
+        form.hidden = true;
+        if (success) {
+          success.hidden = false;
+          success.setAttribute('tabindex', '-1');
+          success.focus();
+          // An explicit behavior:'smooth' overrides the CSS reduced-motion
+          // guard, so the preference has to be checked here directly.
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          success.scrollIntoView(
+            reduced ? { block: 'center' } : { behavior: 'smooth', block: 'center' },
+          );
+        }
+        return;
+      }
+
+      if (button) button.disabled = false;
+      if (label) label.textContent = originalLabel;
+      if (errorBox) {
+        errorBox.textContent = result.error?.startsWith('Form relay is not configured')
+          ? result.error
+          : m.failed;
+        errorBox.hidden = false;
+      }
+    });
+
+    // Clear a field's error as soon as the visitor starts fixing it.
+    form.addEventListener('input', (e) => {
+      const el = e.target as HTMLElement & { name?: string };
+      if (!el?.name) return;
+      const slot = form.querySelector<HTMLElement>(`[data-error-for="${el.name}"]`);
+      if (slot && !slot.hidden) {
+        slot.hidden = true;
+        el.removeAttribute('aria-invalid');
+      }
+    });
+  });
+</script>

@@ -1,0 +1,119 @@
+---
+import '../styles/tokens.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FubPixel from '../components/FubPixel.astro';
+import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+
+interface Props {
+  title: string;
+  description: string;
+  locale?: Locale;
+  /** Page path without locale prefix, e.g. "residences/" — drives hreflang. */
+  path?: string;
+  /** Dark page chrome for photography-led pages (home, gallery). */
+  darkHeader?: boolean;
+  /** Keep the page out of search results — used by unreleased residences. */
+  noindex?: boolean;
+  /** 'v2' swaps in the alternate homepage header. Every other page keeps
+      the default, so this cannot affect them. */
+  headerVariant?: 'default' | 'v2';
+  ogImage?: string;
+}
+
+const {
+  title,
+  description,
+  locale = 'en',
+  path = '',
+  darkHeader = false,
+  noindex = false,
+  headerVariant = 'default',
+  ogImage = '/og-default.jpg',
+} = Astro.props;
+
+const t = useTranslations(locale);
+const site = Astro.site?.toString().replace(/\/$/, '') ?? 'https://originresidences.com';
+const canonical = `${site}${localizePath(path, locale)}`;
+const locales: Locale[] = ['en', 'es', 'pt-br'];
+const hreflangFor: Record<Locale, string> = { en: 'en-US', es: 'es-ES', 'pt-br': 'pt-BR' };
+---
+
+<!doctype html>
+<html lang={hreflangFor[locale]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {locales.map((l) => (
+      <link rel="alternate" hreflang={hreflangFor[l]} href={`${site}${localizePath(path, l)}`} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={`${site}${localizePath(path, 'en')}`} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Origin Residences" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={`${site}${ogImage}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#082341" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {/* The brand face carries every glyph on the page — preload the two
+        weights that appear above the fold, not the whole kit. */}
+    <link rel="preload" href="/fonts/Montserrat-Thin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Montserrat-Light.woff2" as="font" type="font/woff2" crossorigin />
+
+    {/* Lead delivery. Must load in <head> so it is listening before the
+        visitor can reach a form. */}
+    <FubPixel />
+
+    <slot name="head" />
+  </head>
+
+  <body data-locale={locale}>
+    <!--
+      DIRECTION CONTRACT — Origin Residences · seed key 82394146
+      THESIS: The incumbent brand, rebuilt as a fast static site. A replacement
+        visual world (Chart Datum) was rolled, presented and DECLINED by the
+        owner on brand-standards grounds; the standing exit was taken, so the
+        commitment is fidelity. This refuses the rebuild-as-reinvention reflex.
+      OWN-WORLD: Navy #082341, warm sand #e6dfd5, antique gold #ba935b.
+        Montserrat Thin/ExtraLight/Light ONLY, uppercase, widely tracked.
+        Hierarchy from scale, case and tracking — never from weight. Full-bleed
+        photography on sand and navy grounds, hairline gold rules.
+      STORY: A buyer or broker understands this is a boutique 27-residence
+        waterfront building with Artefacto interiors, and acts by inquiring or
+        booking a private presentation.
+      FIRST VIEWPORT: Full-bleed brand video under a thin fixed bar; wordmark
+        left, hover-swap pill right. The 27-residence headline in tracked
+        Thin caps, gold rule beneath, VIEW AVAILABLE UNITS as primary action.
+      FORM: Refinement of the incumbent world (the standing exit), not
+        candidate 4 of the grounded list. Identity fixed; execution rebuilt.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with
+        the finish review, the verdict, and DESIGN.md
+    -->
+
+    <a class="skip-link" href="#main">{t('skip')}</a>
+
+    <Header locale={locale} dark={darkHeader} variant={headerVariant} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+
+    <script>
+      import { initMotion } from '../scripts/motion';
+      initMotion();
+    </script>
+  </body>
+</html>

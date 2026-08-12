@@ -1,0 +1,486 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import {
+  useTranslations,
+  localizePath,
+  localeFromParam,
+  locales,
+  defaultLocale,
+} from '../../i18n/ui';
+import { getCopy } from '../../content/copy';
+import { unitCopy } from '../../content/pages/residences';
+/* `allUnits` builds the routes — every residence gets a page. `units` is the
+   released-only set and is what anything that renders a LINK must use, so a
+   hidden page never exposes its hidden neighbours. */
+import { allUnits, units, unitNeighbours, formatSqft, type Unit } from '../../data/units';
+
+/* Floor-plate keyplans, as published on the incumbent Floor Plans page. There
+   is one drawing per level per bedroom collection — the residences belonging
+   to that collection are filled in gold. No per-residence plan drawing exists
+   on the origin server, so a level is all that can honestly be shown. */
+import keyplanL3Four from '../../assets/units/keyplan-level-3-four-bedroom.png';
+import keyplanL3Three from '../../assets/units/keyplan-level-3-three-bedroom.png';
+import keyplanL4Four from '../../assets/units/keyplan-level-4-four-bedroom.png';
+import keyplanL4Three from '../../assets/units/keyplan-level-4-three-bedroom.png';
+import keyplanL4Two from '../../assets/units/keyplan-level-4-two-bedroom.png';
+import keyplanL5Three from '../../assets/units/keyplan-level-5-three-bedroom.png';
+import keyplanL5Two from '../../assets/units/keyplan-level-5-two-bedroom.png';
+import keyplanL6Four from '../../assets/units/keyplan-level-6-four-bedroom.png';
+import keyplanL6Two from '../../assets/units/keyplan-level-6-two-bedroom.png';
+import keyplanL7Four from '../../assets/units/keyplan-ph-level-7-four-bedroom.png';
+import keyplanL7Two from '../../assets/units/keyplan-ph-level-7-two-bedroom.png';
+
+/** Keyed `${level}-${beds}` — exactly the grouping the drawings are cut on. */
+const keyplans: Record<string, ImageMetadata> = {
+  '3-4': keyplanL3Four,
+  '3-3': keyplanL3Three,
+  '4-4': keyplanL4Four,
+  '4-3': keyplanL4Three,
+  '4-2': keyplanL4Two,
+  '5-3': keyplanL5Three,
+  '5-2': keyplanL5Two,
+  '6-4': keyplanL6Four,
+  '6-2': keyplanL6Two,
+  '7-4': keyplanL7Four,
+  '7-2': keyplanL7Two,
+};
+
+/* Every residence in every locale — 27 x 3. English is the default locale and
+   `prefixDefaultLocale` is false, so its `lang` param is undefined and the
+   rest segment collapses, keeping the incumbent URL (/level-3-unit-301/)
+   exactly as it was. Declared, not assigned to a const: a typed arrow breaks
+   Astro's static analysis and Astro.params comes back undefined. */
+/* Every residence gets a page, released or not. Unreleased ones are simply
+   unlinked: nothing on the site points at them, they are kept out of the
+   sitemap, and they carry a noindex robots tag so search engines do not
+   surface them. Restoring a number in src/data/released.ts puts it back into
+   the navigation and listings without rebuilding anything else. */
+export function getStaticPaths() {
+  return locales.flatMap((l) =>
+    allUnits.map((unit) => ({
+      params: { lang: l === defaultLocale ? undefined : l, unit: unit.slug },
+      props: { unit },
+    })),
+  );
+}
+
+interface Props {
+  unit: Unit;
+}
+
+const { unit } = Astro.props;
+
+const locale = localeFromParam(Astro.params?.lang);
+const t = useTranslations(locale);
+const c = getCopy(locale);
+const u = unitCopy[locale];
+const L = (p: string) => localizePath(p, locale);
+
+const neighbours = unitNeighbours(unit.slug);
+
+/* The residences the drawing fills in gold: the same level, the same bedroom
+   collection. Derived rather than transcribed, so the caption cannot drift
+   from the data. */
+const plate = units.filter((r) => r.level === unit.level && r.beds === unit.beds);
+const collection = u.collection(unit.beds);
+const keyplan = keyplans[`${unit.level}-${unit.beds}`];
+
+/* Penthouse is a material claim, so it is taken from what the incumbent
+   actually prints: every residence page on levels 3–6 heads "LEVEL n", and the
+   Floor Plans page lists exactly one penthouse plate, "PH LEVEL 7". The
+   `levelLabel` on the unit record is derived from the slug, which carries a
+   stray `ph-` prefix on six level 5–6 residences — not used here. */
+const levelLabel = (r: Unit) =>
+  r.level === 7 ? `PH ${t('level')} ${r.level}` : `${t('level')} ${r.level}`;
+
+const plateNumbers = u.joinNumbers(plate.map((r) => r.number));
+const keyplanAlt = u.keyplanAlt(levelLabel(unit), plateNumbers, plate.length > 1);
+
+/* Bed/bath wording is a label and is translated; the counts behind it are
+   data and are read straight off the record. */
+const bedBath = u.bedBath({
+  beds: unit.beds,
+  hasDen: unit.hasDen,
+  baths: unit.baths,
+  label: unit.bedBathLabel,
+});
+
+const areaRows = [
+  { label: t('interior'), sqft: unit.interiorSqft, m2: unit.interiorM2 },
+  { label: t('exterior'), sqft: unit.exteriorSqft, m2: unit.exteriorM2 },
+  { label: t('total'), sqft: unit.totalSqft, m2: unit.totalM2, emphasis: true },
+];
+
+const heading = `${levelLabel(unit)} · ${t('unit')} ${unit.number}`;
+---
+
+<Base
+  title={`${heading} | Origin Residences`}
+  description={u.metaDescription(bedBath, {
+    interior: formatSqft(unit.interiorSqft),
+    exterior: formatSqft(unit.exteriorSqft),
+    total: formatSqft(unit.totalSqft),
+  })}
+  locale={locale}
+  noindex={!unit.isReleased}
+  path={unit.slug}
+>
+  <section class="masthead section" aria-labelledby="unit-heading">
+    <div class="shell masthead__inner">
+      <a class="masthead__back" href={L('residences')}>
+        <span aria-hidden="true">&larr;</span> {t('backToInventory')}
+      </a>
+
+      <h1 class="masthead__title" id="unit-heading" data-reveal>
+        <span class="eyebrow masthead__level">{levelLabel(unit)}</span>
+        <span class="display masthead__no">{t('unit')} {unit.number}</span>
+      </h1>
+
+      <hr class="rule masthead__rule" data-reveal="fade" />
+
+      <p class="masthead__spec" data-reveal data-reveal-delay="0.08">{bedBath}</p>
+    </div>
+  </section>
+
+  <section class="plan section" aria-labelledby="area-heading">
+    <div class="shell plan__grid">
+      <figure class="plan__figure" data-reveal>
+        <div class="plan__sheet">
+          <Image
+            src={keyplan}
+            alt={keyplanAlt}
+            widths={[560, 840, 1120]}
+            sizes="(max-width: 900px) 88vw, 640px"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+        <figcaption class="plan__caption">
+          {levelLabel(unit)} &middot; {collection}
+        </figcaption>
+      </figure>
+
+      <div class="plan__specs">
+        <h2 class="heading plan__title" id="area-heading" data-reveal>{t('area')}</h2>
+
+        <div class="plan__tablewrap" data-reveal data-reveal-delay="0.08">
+          <table class="area">
+            <caption class="visually-hidden">
+              {u.areaTableCaption(heading)}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{t('area')}</th>
+                <th scope="col">{u.sqftHeader}</th>
+                <th scope="col">m&sup2;</th>
+              </tr>
+            </thead>
+            <tbody>
+              {areaRows.map((row) => (
+                <tr class:list={['area__row', { 'area__row--total': row.emphasis }]}>
+                  <th scope="row">{row.label}</th>
+                  <td>{formatSqft(row.sqft)}</td>
+                  <td>{formatSqft(row.m2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Only 702 has a plan sheet on the origin server; the rest are not on
+            hand, so no download is offered for them. */}
+        {unit.pdf && (
+          <a
+            class="btn btn--outline plan__pdf"
+            href={unit.pdf}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-reveal
+            data-reveal-delay="0.12"
+          >
+            <span>{t('downloadPdf')}</span>
+            <span class="visually-hidden">{u.pdfNewTab}</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none"
+                 stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4v12" /><path d="m7 11 5 5 5-5" /><path d="M5 20h14" />
+            </svg>
+          </a>
+        )}
+
+        {plate.length > 1 && (
+          <nav class="plate" aria-label={u.plateNavLabel(collection)}>
+            <h3 class="plate__title">{collection}</h3>
+            <ul class="plate__list">
+              {plate.map((r) => (
+                <li>
+                  <a
+                    class:list={['plate__item', { 'is-current': r.slug === unit.slug }]}
+                    href={L(r.slug)}
+                    aria-current={r.slug === unit.slug ? 'page' : undefined}
+                  >{r.number}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+      </div>
+    </div>
+  </section>
+
+  {neighbours && (
+    <nav class="pager" aria-label={t('residences')}>
+      <div class="shell pager__inner">
+        <a class="pager__link pager__link--prev" href={L(neighbours.prev.slug)} rel="prev">
+          <span class="pager__label"><span aria-hidden="true">&larr;</span> {t('prevUnit')}</span>
+          <span class="pager__name">
+            {levelLabel(neighbours.prev)} &middot; {t('unit')} {neighbours.prev.number}
+          </span>
+        </a>
+        <a class="pager__link pager__link--next" href={L(neighbours.next.slug)} rel="next">
+          <span class="pager__label">{t('nextUnit')} <span aria-hidden="true">&rarr;</span></span>
+          <span class="pager__name">
+            {levelLabel(neighbours.next)} &middot; {t('unit')} {neighbours.next.number}
+          </span>
+        </a>
+      </div>
+    </nav>
+  )}
+
+  <PresentationCTA locale={locale} />
+
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm
+        locale={locale}
+        variant="compact"
+        unit={unit.slug}
+        headingId="inquire-heading"
+        title={`${c.forms.requestInfoTitle} · ${t('unit')} ${unit.number}`}
+      />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* --- Masthead ---------------------------------------------------------- */
+
+  .masthead { background: var(--ground); }
+
+  .masthead__inner { display: grid; justify-items: start; gap: var(--s-5); }
+
+  .masthead__back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: 40px;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .masthead__back:hover { color: var(--gold-ink); }
+
+  .masthead__title { display: grid; gap: var(--s-4); }
+
+  .masthead__level { display: block; }
+
+  .masthead__no { display: block; color: var(--ink); }
+
+  .masthead__rule { max-width: 120px; background: var(--gold); }
+
+  .masthead__spec {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  /* --- Plan + area ------------------------------------------------------- */
+
+  .plan { background: var(--ground-alt); }
+
+  .plan__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(var(--s-6), 5vw, var(--s-9));
+    align-items: start;
+  }
+
+  .plan__figure { display: grid; gap: var(--s-4); }
+
+  /* The drawings ship with a transparent ground; a warm sheet keeps the
+     hairlines legible on the sand palette. */
+  .plan__sheet {
+    padding: clamp(var(--s-4), 3vw, var(--s-7));
+    background: var(--off-white);
+  }
+
+  .plan__caption {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .plan__specs { display: grid; gap: var(--s-6); justify-items: start; }
+
+  .plan__title { color: var(--ink); }
+
+  .plan__tablewrap { width: 100%; overflow-x: auto; }
+
+  .area {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .area th,
+  .area td {
+    padding: var(--s-4) var(--s-4) var(--s-4) 0;
+    border-bottom: 1px solid var(--rule);
+    font-weight: var(--w-light);
+    white-space: nowrap;
+  }
+
+  .area thead th {
+    padding-top: 0;
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .area tbody th {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .area tbody td {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-body);
+  }
+
+  .area__row--total th { color: var(--ink); }
+
+  .area__row--total td {
+    font-size: var(--t-h3);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    color: var(--gold-ink);
+  }
+
+  .area__row--total th,
+  .area__row--total td { border-bottom-color: var(--gold); }
+
+  .btn--outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-6);
+    border: 1px solid var(--navy);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    transition: background var(--dur-base) var(--ease-out),
+                color var(--dur-base) var(--ease-out);
+  }
+  .btn--outline:hover { background: var(--navy); color: var(--off-white); }
+
+  /* --- Sibling residences on the same drawing ---------------------------- */
+
+  .plate { display: grid; gap: var(--s-3); }
+
+  .plate__title {
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .plate__list { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+  .plate__item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    min-height: 44px;
+    padding-inline: var(--s-4);
+    border: 1px solid var(--rule);
+    font-size: var(--t-small);
+    letter-spacing: var(--track-heading);
+    transition: border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+  }
+  .plate__item:hover { border-color: var(--gold); color: var(--gold-ink); }
+  .plate__item.is-current { border-color: var(--gold); background: var(--gold); color: var(--navy); }
+
+  /* --- Previous / next residence ----------------------------------------- */
+
+  .pager { background: var(--ground); border-block: 1px solid var(--rule); }
+
+  .pager__inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-4);
+  }
+
+  .pager__link {
+    display: grid;
+    gap: var(--s-2);
+    min-height: 44px;
+    padding-block: var(--s-6);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .pager__link:hover { color: var(--gold-ink); }
+
+  .pager__link--next { text-align: right; }
+
+  .pager__link--prev { padding-right: var(--s-4); }
+  .pager__link--next { padding-left: var(--s-4); border-left: 1px solid var(--rule); }
+
+  .pager__label {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .pager__name {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .plan__grid { grid-template-columns: 1fr; }
+    .plan__specs { justify-items: stretch; }
+  }
+
+  @media (max-width: 560px) {
+    .area th,
+    .area td { padding-right: var(--s-3); }
+
+    .pager__inner { grid-template-columns: 1fr; gap: 0; }
+    .pager__link--prev { padding-right: 0; padding-bottom: var(--s-5); }
+    .pager__link--next {
+      padding-left: 0;
+      padding-top: var(--s-5);
+      text-align: left;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+  }
+</style>

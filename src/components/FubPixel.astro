@@ -1,0 +1,49 @@
+---
+/**
+ * FOLLOW UP BOSS PIXEL — the site's only lead-delivery mechanism.
+ * ============================================================================
+ * Tracker ID: WT-FBRKNWTI
+ *
+ * With form capture enabled (Follow Up Boss → Pixel → Tracking) this script
+ * reads form submissions straight off the page, creates the person record,
+ * runs lead-flow rules and starts action plans. It detects name, email, phone
+ * and message automatically, which is why src/scripts/leads.ts keeps hidden
+ * `name` and `message` inputs current as the visitor types.
+ *
+ * ─── REMAINING SETUP STEP ──────────────────────────────────────────────────
+ * Enable FORM CAPTURE under Pixel → Tracking. Without it this tracks visits
+ * but creates no leads.
+ *
+ * ─── DO NOT ALSO ENABLE EMAIL PARSING ──────────────────────────────────────
+ * The account's lead address (origin.admin@followupboss.me) is deliberately
+ * NOT wired up. Follow Up Boss's guidance is to use exactly one ingestion
+ * method; running the Pixel and email parsing together creates a duplicate
+ * person for every submission. The address is kept in FOLLOW-UP-BOSS.md as the
+ * documented fallback, not as a second live path.
+ *
+ * ─── NO API KEY ────────────────────────────────────────────────────────────
+ * This snippet is public by design. A Follow Up Boss API key is not, and must
+ * never appear in this project — scripts/check-env.mjs blocks the build if one
+ * is found in a PUBLIC_* variable.
+ */
+---
+
+{/* begin Widget Tracker Code */}
+<script is:inline>
+  (function (w, i, d, g, e, t) {
+    w['WidgetTrackerObject'] = g;
+    (w[g] =
+      w[g] ||
+      function () {
+        (w[g].q = w[g].q || []).push(arguments);
+      }),
+      (w[g].ds = 1 * new Date());
+    (e = 'script'), (t = d.createElement(e)), (e = d.getElementsByTagName(e)[0]);
+    t.async = 1;
+    t.src = i;
+    e.parentNode.insertBefore(t, e);
+  })(window, 'https://widgetbe.com/agent', document, 'widgetTracker');
+  window.widgetTracker('create', 'WT-FBRKNWTI');
+  window.widgetTracker('send', 'pageview');
+</script>
+{/* end Widget Tracker Code */}

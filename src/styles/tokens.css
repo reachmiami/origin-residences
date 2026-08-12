@@ -1,0 +1,398 @@
+/* ==========================================================================
+   ORIGIN RESIDENCES — DESIGN TOKENS
+   Extracted from the live originresidences.com, not invented. The user
+   pinned the incumbent brand: palette, typeface and register are fixed.
+   Modernization lives in execution, never in identity.
+   ========================================================================== */
+
+/* --- Self-hosted brand typeface -------------------------------------------
+   The brand kit ships Thin/ExtraLight/Light only. The lightness and the
+   tracking ARE the brand signal — heavier weights break it. There is no
+   Regular on the origin server; do not add one.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Medium sits OUTSIDE the incumbent brand kit, which ships Thin/ExtraLight/
+   Light only. It exists solely for the v2 header, where light weights were
+   illegible over the sunset photograph. Do not use it elsewhere without
+   deciding that the brand's weight range has genuinely changed. */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Typed so it can be transitioned. A plain custom property would jump, taking
+   the v2 header's background and accent with it. */
+@property --header-bg {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* The open menu fills the bar too, independently of the logo's arrival. */
+@property --menu-open {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  /* --- Brand palette (verbatim from the incumbent site) ------------------ */
+  --navy: #082341;        /* primary — headers, dark grounds, footer      */
+  --navy-deep: #05192f;   /* derived, for layered depth on navy grounds   */
+  --sand: #e6dfd5;        /* the warm ground the brand sits on            */
+  --sand-pale: #eeeae7;   /* secondary ground, section alternation        */
+  --gold: #ba935b;        /* accent — rules, CTAs, active states          */
+  --gold-light: #cbae87;  /* hover / lighter accent                       */
+  --gold-muted: #a19076;  /* de-emphasized accent                         */
+  --off-white: #fffdf9;   /* warm white, never pure #fff                  */
+  --warm-gray: #98948f;   /* secondary text on light grounds              */
+
+  /* --- Semantic roles ---------------------------------------------------- */
+  --ground: var(--sand);
+  --ground-alt: var(--sand-pale);
+  --ground-dark: var(--navy);
+  --ink: var(--navy);
+  /* Was --warm-gray (#98948f), which measures 2.28:1 on sand — a site-wide AA
+     failure on every piece of secondary text. --ink-muted is a TEXT role, so it
+     now resolves to the AA-safe value; --warm-gray remains for decorative use. */
+  --ink-muted: var(--ink-muted-aa);
+
+  /* AA-safe text colours.
+     The brand's own --warm-gray and --gold are decorative values: on the sand
+     grounds they measure 2.28:1 and 2.37:1, well under the 4.5:1 WCAG AA needs
+     for body text. These two darkened variants keep the same hue family and
+     clear AA on every light ground in the palette (verified):
+       --ink-muted-aa  5.16:1 on sand · 5.70:1 on sand-pale · 6.71:1 on off-white
+       --gold-ink      4.88:1 on sand · 5.40:1 on sand-pale · 6.35:1 on off-white
+     Use these whenever gold or muted grey carries TEXT on a light ground.
+     Keep --gold and --warm-gray for rules, borders and large display only. */
+  --ink-muted-aa: #5f5a55;
+  --gold-ink: #755a2b;
+  --ink-on-dark: var(--off-white);
+  --ink-on-dark-muted: rgba(255, 253, 249, 0.72);
+  --accent: var(--gold);
+  --accent-hover: var(--gold-light);
+  --rule: rgba(8, 35, 65, 0.16);
+  --rule-on-dark: rgba(255, 253, 249, 0.22);
+
+  --focus-ring: var(--gold);
+
+  /* --- Typography --------------------------------------------------------
+     One family. Hierarchy comes from scale, tracking and case — not weight.  */
+  --font-brand: 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+
+  --w-thin: 100;
+  --w-xlight: 200;
+  --w-light: 300;
+  --w-medium: 500; /* v2 header only — see the @font-face note above */
+
+  /* Fluid scale, 360px → 1600px viewport */
+  --t-display: clamp(2.25rem, 1.15rem + 4.9vw, 5.5rem);
+  --t-h1: clamp(1.9rem, 1.05rem + 3.8vw, 4rem);
+  --t-h2: clamp(1.5rem, 1.05rem + 2vw, 2.5rem);
+  --t-h3: clamp(1.185rem, 1rem + 0.82vw, 1.75rem);
+  --t-h4: clamp(1rem, 0.93rem + 0.31vw, 1.185rem);
+  --t-body: clamp(0.95rem, 0.91rem + 0.18vw, 1.06rem);
+  --t-small: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
+  --t-micro: 0.72rem;
+
+  /* Tracking — wide uppercase is the brand's core gesture */
+  --track-display: 0.14em;
+  --track-heading: 0.18em;
+  --track-label: 0.26em;
+  --track-body: 0.02em;
+
+  --leading-display: 1.16;
+  --leading-heading: 1.3;
+  --leading-body: 1.75;
+
+  /* --- Spacing — 8px base, geometric ------------------------------------- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+  --s-9: 6rem;
+  --s-10: 8rem;
+
+  /* Section rhythm — more space above a heading than below it */
+  --section-y: clamp(4rem, 2.4rem + 7vw, 9rem);
+  --gutter: clamp(1.25rem, 0.6rem + 2.9vw, 4rem);
+  --measure: 68ch;
+  --max-w: 1440px;
+  --max-w-narrow: 1080px;
+
+  /* --- Motion ------------------------------------------------------------
+     Slow, settled easing. Luxury reads as unhurried, never bouncy.          */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 220ms;
+  --dur-base: 420ms;
+  --dur-slow: 720ms;
+
+  /* The bar is generous at rest so the stacked lockup reads, then condenses
+     once the hero is behind it. */
+  --header-h: 118px;
+  --header-h-condensed: 82px;
+  --z-header: 100;
+  --z-panel: 200;
+}
+
+@media (max-width: 860px) {
+  :root {
+    --header-h: 88px;
+    --header-h-condensed: 66px;
+  }
+}
+
+/* --- Reset ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+/* Lenis drives scrolling; native smooth would fight it. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-brand);
+  font-weight: var(--w-light);
+  font-size: var(--t-body);
+  line-height: var(--leading-body);
+  letter-spacing: var(--track-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* The UA applies `hidden` as a non-important display:none, so any author rule
+   setting `display` silently defeats it — which shipped success panels visible
+   on page load. This restores the attribute's meaning everywhere. */
+[hidden] {
+  display: none !important;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--w-thin);
+  line-height: var(--leading-heading);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+ul, ol {
+  list-style: none;
+  padding: 0;
+}
+
+/* --- Accessibility -------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: var(--s-3);
+  left: var(--s-3);
+  z-index: 1000;
+  padding: var(--s-3) var(--s-5);
+  background: var(--navy);
+  color: var(--off-white);
+  font-size: var(--t-small);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  transform: translateY(-160%);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* Every motion behaviour in this build is gated on this query. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Anchor targets sit under a fixed bar, so every jump clears it. */
+[id] { scroll-margin-top: calc(var(--header-h) + var(--s-5)); }
+
+/* --- Shared primitives ---------------------------------------------------- */
+
+.shell {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.shell--narrow {
+  max-width: var(--max-w-narrow);
+}
+
+.section {
+  padding-block: var(--section-y);
+}
+
+.section--dark {
+  background: var(--ground-dark);
+  color: var(--ink-on-dark);
+}
+
+.section--alt {
+  background: var(--ground-alt);
+}
+
+/* The brand's core typographic gesture: light, uppercase, widely tracked. */
+.eyebrow {
+  font-size: var(--t-micro);
+  font-weight: var(--w-light);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.display {
+  font-size: var(--t-display);
+  font-weight: var(--w-thin);
+  letter-spacing: var(--track-display);
+  line-height: var(--leading-display);
+  text-transform: uppercase;
+}
+
+.heading {
+  font-size: var(--t-h2);
+  font-weight: var(--w-thin);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+}
+
+.subheading {
+  font-size: var(--t-h3);
+  font-weight: var(--w-xlight);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+}
+
+.prose {
+  max-width: var(--measure);
+  font-weight: var(--w-light);
+  line-height: var(--leading-body);
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+  border: 0;
+}
+
+.section--dark .rule {
+  background: var(--rule-on-dark);
+}

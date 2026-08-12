@@ -1,0 +1,42 @@
+---
+import type { Locale } from '../i18n/ui';
+
+/**
+ * The sales contact address. Rendered in the footer and in the navigation
+ * panel, so it lives in one component and changes in one place.
+ */
+interface Props {
+  locale?: Locale;
+  /** `dark` on navy grounds, `light` on sand. */
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { tone = 'light', class: className } = Astro.props;
+
+/** The address shown to visitors. Not the form's delivery destination —
+    lead routing is configured at the relay, see src/scripts/leads.ts. */
+const EMAIL = 'germanr.realty@gmail.com';
+---
+
+<a
+  class:list={['sales-contact', `sales-contact--${tone}`, className]}
+  href={`mailto:${EMAIL}`}
+>{EMAIL}</a>
+
+<style>
+  .sales-contact {
+    display: inline-block;
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    line-height: 1.8;
+    letter-spacing: var(--track-body);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .sales-contact--light { color: var(--ink-muted); }
+  .sales-contact--light:hover { color: var(--gold-ink); }
+
+  .sales-contact--dark { color: var(--ink-on-dark-muted); }
+  .sales-contact--dark:hover { color: var(--gold); }
+</style>

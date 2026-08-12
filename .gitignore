@@ -1,0 +1,11 @@
+.env
+.env.production
+.env.local
+
+dist/
+.astro/
+node_modules/
+
+.DS_Store
+*.log
+npm-debug.log*

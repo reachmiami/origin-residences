@@ -1,0 +1,255 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { neighborhoodCopy, pointsOfInterest } from '../../content/pages/neighborhood';
+
+import canalView from '../../assets/neighborhood/canal-view-from-terraces.jpg';
+import streetApproach from '../../assets/neighborhood/origin-street-approach.jpg';
+import fromTheWater from '../../assets/neighborhood/origin-from-the-water.jpg';
+import { ADDRESS, MAP_HREF, PHONE, PHONE_HREF } from '../../data/contact';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const c = neighborhoodCopy[locale];
+
+/* Place names, the address and the phone number are locale-independent — they
+   are reproduced exactly as published in every language. */
+const MAP_HREF =
+  'https://maps.google.com/?q=9760+West+Bay+Harbor+Dr,+Bay+Harbor+Islands,+FL+33154';
+---
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="neighborhood"
+  darkHeader
+>
+  <section class="titleband" aria-labelledby="page-heading">
+    <div class="shell titleband__inner">
+      <p class="eyebrow">{c.eyebrow}</p>
+      <h1 class="display titleband__headline" id="page-heading">{c.headline}</h1>
+      <hr class="titleband__rule" />
+    </div>
+  </section>
+
+  <figure class="band band--wide">
+    <Image
+      src={canalView}
+      alt={c.alt.canal}
+      widths={[640, 960, 1280, 1500]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      data-parallax="8"
+    />
+  </figure>
+
+  <section class="section intro">
+    <div class="shell shell--narrow intro__inner">
+      <p class="prose intro__body" data-reveal>{c.intro}</p>
+    </div>
+  </section>
+
+  <section class="section section--alt locate" aria-labelledby="locate-heading">
+    <div class="shell locate__grid">
+      <div class="locate__text" data-reveal>
+        <h2 class="heading" id="locate-heading">{c.salesGalleryTitle}</h2>
+        <hr class="locate__rule" />
+        <a class="locate__address" href={MAP_HREF} target="_blank" rel="noopener noreferrer">
+          {ADDRESS}
+        </a>
+        <a class="locate__phone" href={PHONE_HREF}>{PHONE}</a>
+      </div>
+
+      <figure class="locate__figure" data-reveal="fade">
+        <Image
+          src={streetApproach}
+          alt={c.alt.street}
+          widths={[480, 720, 1080]}
+          sizes="(max-width: 880px) 100vw, 46vw"
+        />
+      </figure>
+    </div>
+  </section>
+
+  <section class="section poi" aria-labelledby="poi-heading">
+    <div class="shell">
+      <header class="poi__head">
+        <h2 class="heading" id="poi-heading" data-reveal>{c.poiTitle}</h2>
+        <p class="poi__kicker" data-reveal data-reveal-delay="0.06">{c.poiKicker}</p>
+      </header>
+
+      <ol class="poi__list" data-reveal>
+        {pointsOfInterest.map((name, i) => (
+          <li class="poi__item">
+            <span class="poi__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <span class="poi__name">{name}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <figure class="band band--tall">
+    <Image
+      src={fromTheWater}
+      alt={c.alt.water}
+      widths={[640, 960, 1280, 1500]}
+      sizes="100vw"
+      data-parallax="8"
+    />
+  </figure>
+
+  <PresentationCTA locale={locale} />
+
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* --- Page title band ---------------------------------------------------
+     Navy under the fixed bar, so the heading reads at full contrast before
+     any photography arrives. */
+  .titleband {
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
+  }
+
+  .titleband__inner { display: grid; gap: var(--s-5); }
+
+  .titleband__headline { max-width: 18ch; color: var(--off-white); }
+
+  .titleband__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  /* --- Full-bleed photography bands --------------------------------------
+     The wrapper owns the crop; the image fills it and drifts slowly inside
+     the clip. Specificity here deliberately beats Astro's responsive styles. */
+  .band {
+    position: relative;
+    overflow: clip;
+    background: var(--navy-deep);
+  }
+
+  .band--wide { aspect-ratio: 16 / 7; }
+  .band--tall { aspect-ratio: 16 / 6; }
+
+  .band :global(img) {
+    position: absolute;
+    inset: -6% 0;
+    width: 100%;
+    max-width: none;
+    height: 112%;
+    object-fit: cover;
+  }
+
+  .intro__inner { text-align: center; justify-items: center; display: grid; }
+
+  .intro__body {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    color: var(--ink);
+  }
+
+  /* --- Sales gallery ------------------------------------------------------ */
+  .locate__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(var(--s-6), 5vw, var(--s-9));
+    align-items: center;
+  }
+
+  .locate__text { display: grid; gap: var(--s-4); align-content: start; }
+
+  .locate__rule {
+    width: clamp(48px, 6vw, 90px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+    margin-block: var(--s-2);
+  }
+
+  .locate__address,
+  .locate__phone {
+    display: inline-block;
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-body);
+    color: var(--ink);
+    padding-block: var(--s-2);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .locate__address:hover,
+  .locate__phone:hover { color: var(--gold-ink); }
+
+  .locate__figure { margin: 0; }
+
+  /* --- Points of interest ------------------------------------------------- */
+  .poi__head {
+    display: grid;
+    gap: var(--s-2);
+    padding-bottom: var(--s-5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .poi__kicker {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+
+  .poi__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    column-gap: clamp(var(--s-5), 4vw, var(--s-8));
+    margin-top: var(--s-6);
+  }
+
+  .poi__item {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: var(--s-3);
+    align-items: baseline;
+    padding-block: var(--s-3);
+    border-top: 1px solid var(--rule);
+  }
+
+  .poi__no {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    color: var(--gold-ink);
+  }
+
+  .poi__name {
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    color: var(--ink);
+  }
+
+  @media (max-width: 880px) {
+    .locate__grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .band--wide { aspect-ratio: 4 / 3; }
+    .band--tall { aspect-ratio: 4 / 3; }
+    .titleband { padding-block: calc(var(--header-h) + var(--s-6)) var(--s-7); }
+  }
+</style>

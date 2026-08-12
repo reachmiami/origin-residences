@@ -1,0 +1,481 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { getCopy } from '../../content/copy';
+import { floorPlansCopy } from '../../content/pages/floor-plans';
+import { units, formatSqft, type Unit } from '../../data/units';
+
+import plan2PhLevel7 from '../../assets/floor-plans/key-plan-2-bedroom-ph-level-7.png';
+import plan2PhLevel6 from '../../assets/floor-plans/key-plan-2-bedroom-ph-level-6.png';
+import plan2PhLevel5 from '../../assets/floor-plans/key-plan-2-bedroom-ph-level-5.png';
+import plan2Level4 from '../../assets/floor-plans/key-plan-2-bedroom-level-4.png';
+import plan3Level5 from '../../assets/floor-plans/key-plan-3-bedroom-level-5.png';
+import plan3Level4 from '../../assets/floor-plans/key-plan-3-bedroom-level-4.png';
+import plan3Level3 from '../../assets/floor-plans/key-plan-3-bedroom-level-3.png';
+import plan4PhLevel7 from '../../assets/floor-plans/key-plan-4-bedroom-ph-level-7.png';
+import plan4Level6 from '../../assets/floor-plans/key-plan-4-bedroom-level-6.png';
+import plan4Level4 from '../../assets/floor-plans/key-plan-4-bedroom-level-4.png';
+import plan4Level3 from '../../assets/floor-plans/key-plan-4-bedroom-level-3.png';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const t = useTranslations(locale);
+const site = getCopy(locale);
+const c = floorPlansCopy[locale];
+const L = (p: string) => localizePath(p, locale);
+
+/** Fill the `{token}` placeholders a translated template carries. */
+const fill = (tpl: string, vars: Record<string, string | number>) =>
+  Object.entries(vars).reduce((out, [k, v]) => out.split(`{${k}}`).join(String(v)), tpl);
+
+/* Bath counts print with the reader's own decimal mark: 2.5 / 2,5. */
+const num = (n: number) => (locale === 'en' ? String(n) : String(n).replace('.', ','));
+
+/* The developer's key plans, exactly as drawn: one plate per bedroom
+   collection per floor, with that collection's residences filled in gold.
+   Keyed by `bedrooms-level` because that pair is precisely what a given
+   plate highlights — level 4 alone carries three different plates.
+   The drawings are locale-independent; only the alt text is translated. */
+const keyPlans: Record<string, ImageMetadata> = {
+  '2-7': plan2PhLevel7,
+  '2-6': plan2PhLevel6,
+  '2-5': plan2PhLevel5,
+  '2-4': plan2Level4,
+  '3-5': plan3Level5,
+  '3-4': plan3Level4,
+  '3-3': plan3Level3,
+  '4-7': plan4PhLevel7,
+  '4-6': plan4Level6,
+  '4-4': plan4Level4,
+  '4-3': plan4Level3,
+};
+
+interface PlanGroup {
+  level: number;
+  label: string;
+  plan: ImageMetadata;
+  units: Unit[];
+}
+
+interface Collection {
+  beds: number;
+  id: string;
+  title: string;
+  groups: PlanGroup[];
+}
+
+const bedCounts = [...new Set(units.map((u) => u.beds))].sort((a, b) => a - b);
+
+/* Descending floors inside each collection — the incumbent leads with the
+   penthouse level and works down, and buyers read exposure the same way. */
+const collections: Collection[] = bedCounts.map((beds) => {
+  const inCollection = units.filter((u) => u.beds === beds);
+  const levels = [...new Set(inCollection.map((u) => u.level))].sort((a, b) => b - a);
+
+  return {
+    beds,
+    id: `collection-${beds}`,
+    title: fill(c.collectionTitle, { beds }),
+    groups: levels.map((level) => {
+      const group = inCollection.filter((u) => u.level === level);
+      return {
+        level,
+        label: fill(group[0].isPenthouse ? c.penthouseLabel : c.levelLabel, { n: level }),
+        plan: keyPlans[`${beds}-${level}`],
+        units: group,
+      };
+    }),
+  };
+});
+
+/* Plan families are the buyer's own comparison axis — bedrooms, with or
+   without the den. Each one sits wholly inside a single collection. */
+interface Family {
+  title: string;
+  collectionId: string;
+  count: number;
+  baths: string;
+  interior: string;
+  total: string;
+}
+
+function areaRange(list: Unit[], pick: (u: Unit) => number): string {
+  const values = list.map(pick);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return min === max
+    ? `${formatSqft(min)} sq. ft.`
+    : `${formatSqft(min)}–${formatSqft(max)} sq. ft.`;
+}
+
+const families: Family[] = bedCounts.flatMap((beds) =>
+  [false, true]
+    .map((hasDen) => units.filter((u) => u.beds === beds && u.hasDen === hasDen))
+    .filter((list) => list.length > 0)
+    .map((list) => ({
+      title: fill(c.familyTitle, { beds, den: list[0].hasDen ? c.den : '' }),
+      collectionId: `collection-${beds}`,
+      count: list.length,
+      baths: [...new Set(list.map((u) => u.baths))]
+        .sort((a, b) => a - b)
+        .map(num)
+        .join(' / '),
+      interior: areaRange(list, (u) => u.interiorSqft),
+      total: areaRange(list, (u) => u.totalSqft),
+    })),
+);
+
+/** The residence sub-line, rebuilt per locale from the same parsed facts. */
+function bedBath(u: Unit): string {
+  return fill(c.bedBath, { beds: u.beds, den: u.hasDen ? c.den : '', baths: num(u.baths) });
+}
+
+/** Read the drawing out loud: which residences are shaded, and which way is up. */
+function planAlt(label: string, group: Unit[]): string {
+  const numbers = group.map((u) => u.number);
+  const list =
+    numbers.length === 1
+      ? numbers[0]
+      : `${numbers.slice(0, -1).join(', ')} ${c.listAnd} ${numbers[numbers.length - 1]}`;
+  return fill(numbers.length === 1 ? c.planAltOne : c.planAltMany, { label, list });
+}
+---
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="floor-plans"
+>
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{t('explore')}</p>
+      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.title}</h1>
+      <hr class="page-head__rule" data-reveal="fade" />
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">
+        {site.home.inventoryLede}
+      </p>
+      <a class="page-head__all" href={L('residences')} data-reveal="fade">
+        {t('backToInventory')} &rarr;
+      </a>
+    </div>
+  </section>
+
+  {/* The comparison table buyers actually build in their heads: bedrooms,
+      den, bath count and the area each family spans. */}
+  <section class="section families" aria-labelledby="families-heading">
+    <div class="shell">
+      <h2 class="heading families__title" id="families-heading" data-reveal>{c.familiesTitle}</h2>
+
+      <ul class="families__grid" data-reveal-group>
+        {families.map((f) => (
+          <li>
+            <a class="family" href={`#${f.collectionId}`}>
+              <h3 class="family__title">{f.title}</h3>
+              <p class="family__count">
+                {f.count} {f.count === 1 ? c.residenceOne : c.residenceMany} · {f.baths} {c.bathWord}
+              </p>
+              <dl class="family__specs">
+                <div class="family__spec">
+                  <dt>{t('interior')}</dt>
+                  <dd>{f.interior}</dd>
+                </div>
+                <div class="family__spec">
+                  <dt>{t('total')}</dt>
+                  <dd>{f.total}</dd>
+                </div>
+              </dl>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {collections.map((collection, i) => (
+    <section
+      class:list={['section', 'collection', i % 2 === 0 && 'section--alt']}
+      id={collection.id}
+      aria-labelledby={`${collection.id}-heading`}
+    >
+      <div class="shell">
+        <h2 class="heading collection__title" id={`${collection.id}-heading`} data-reveal>
+          {collection.title}
+        </h2>
+
+        {collection.groups.map((group) => (
+          <article class="plan">
+            <figure class="plan__figure" data-reveal="fade">
+              <Image
+                class="plan__drawing"
+                src={group.plan}
+                alt={planAlt(group.label, group.units)}
+                widths={[480, 760, 1100]}
+                sizes="(max-width: 900px) 92vw, 44vw"
+                loading="lazy"
+              />
+            </figure>
+
+            <div class="plan__body">
+              <h3 class="plan__level" data-reveal>{group.label}</h3>
+
+              <ul class="plan__units" data-reveal-group>
+                {group.units.map((u) => (
+                  <li>
+                    <a class="rcard" href={L(u.slug)}>
+                      <h4 class="rcard__no">
+                        <span class="rcard__unit-word">{t('unit')}</span> {u.number}
+                      </h4>
+                      <p class="rcard__beds">{bedBath(u)}</p>
+                      <dl class="rcard__specs">
+                        <div class="rcard__spec">
+                          <dt>{t('interior')}</dt>
+                          <dd>{formatSqft(u.interiorSqft)} sq. ft. / {u.interiorM2} m²</dd>
+                        </div>
+                        <div class="rcard__spec">
+                          <dt>{t('exterior')}</dt>
+                          <dd>{formatSqft(u.exteriorSqft)} sq. ft. / {u.exteriorM2} m²</dd>
+                        </div>
+                        <div class="rcard__spec rcard__spec--total">
+                          <dt>{t('total')}</dt>
+                          <dd>{formatSqft(u.totalSqft)} sq. ft. / {u.totalM2} m²</dd>
+                        </div>
+                      </dl>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <PresentationCTA locale={locale} />
+
+  {/* Every page carries the form at its foot so the Inquire and Schedule
+      Private Presentation controls always have somewhere on-page to land. */}
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="compact" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* The bar is fixed and transparent at rest, so the first band pays for it. */
+  .page-head {
+    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
+    background: var(--ground);
+  }
+
+  .page-head__inner {
+    display: grid;
+    justify-items: start;
+    gap: var(--s-4);
+  }
+
+  .page-head__title { color: var(--ink); }
+
+  .page-head__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    margin-block: var(--s-2);
+    border: 0;
+    background: var(--gold);
+  }
+
+  .page-head__lede {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-body);
+    text-transform: uppercase;
+  }
+
+  .page-head__all {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+  .page-head__all:hover { color: var(--ink); }
+
+  /* --- Plan families ----------------------------------------------------- */
+
+  /* Tag-qualified so it beats .section's own padding regardless of bundle
+     order — the families block reads as one band with the page head. */
+  section.families {
+    background: var(--ground);
+    padding-block: 0 var(--section-y);
+  }
+
+  .families__title { margin-bottom: var(--s-6); }
+
+  .families__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  /* The li has to be a grid itself for the card inside it to fill the row. */
+  .families__grid > li { display: grid; }
+
+  .family {
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    height: 100%;
+    padding: var(--s-5);
+    background: var(--off-white);
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+  .family:hover { background: var(--ground-alt); }
+
+  .family__title {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  .family__count {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+
+  .family__specs { display: grid; gap: var(--s-2); }
+
+  .family__spec {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s-2);
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--rule);
+  }
+
+  .family__spec dt {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .family__spec dd {
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+  }
+
+  /* --- Collections ------------------------------------------------------- */
+
+  .collection { scroll-margin-top: var(--header-h); }
+
+  .collection__title {
+    padding-bottom: var(--s-5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .plan {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(var(--s-5), 4vw, var(--s-8));
+    align-items: start;
+    padding-block: var(--s-8);
+    border-bottom: 1px solid var(--rule);
+  }
+  .plan:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  /* The drawings are line art on white — the pale ground keeps them from
+     floating off the sand page. */
+  .plan__figure {
+    padding: clamp(var(--s-4), 3vw, var(--s-6));
+    background: var(--off-white);
+    border: 1px solid var(--rule);
+  }
+
+  .plan__drawing { width: 100%; height: auto; }
+
+  .plan__level {
+    font-size: var(--t-h3);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+    padding-bottom: var(--s-4);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .plan__units { display: grid; gap: var(--s-4); margin-top: var(--s-5); }
+
+  .rcard {
+    display: grid;
+    gap: var(--s-2);
+    padding: var(--s-5);
+    background: var(--off-white);
+    border: 1px solid transparent;
+    transition: border-color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .rcard:hover { border-color: var(--gold); transform: translateY(-3px); }
+
+  .rcard__no {
+    font-size: var(--t-h3);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  .rcard__unit-word {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    color: var(--ink-muted);
+    vertical-align: middle;
+  }
+
+  .rcard__beds {
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+
+  .rcard__specs { display: grid; gap: var(--s-1); margin-top: var(--s-2); }
+
+  .rcard__spec {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--s-2);
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--rule);
+    font-size: var(--t-small);
+    line-height: 1.6;
+  }
+
+  .rcard__spec dt {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .rcard__spec--total dd { color: var(--ink); }
+
+  @media (max-width: 900px) {
+    .plan { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,463 @@
+---
+import { Image } from 'astro:assets';
+import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { getCopy } from '../content/copy';
+import sunset from '../assets/home/origin-sunset.jpg';
+
+/**
+ * Alternate homepage hero.
+ *
+ * The logo starts life here — oversized, centred above the headline — and
+ * travels up into the header bar as the page scrolls, while the bar's centre
+ * track opens to receive it. Only the v2 page mounts this; the original hero
+ * is untouched.
+ */
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const c = getCopy(locale);
+const L = (p: string) => localizePath(p, locale);
+const t = useTranslations(locale);
+---
+
+{/* The travelling logo sits OUTSIDE the hero: the section clips its overflow,
+    which would crop a fixed child the moment the hero scrolled away. */}
+<a class="hero2__logo" href={L(HOME_PATH)} data-flying-logo aria-label="Origin Residences — home">
+  <img src="/logo-origin.svg" alt="" width="300" height="91" decoding="async" />
+</a>
+
+{/* Full-viewport trailer viewer. Outside the hero for the same reason the
+    logo is: the section clips its overflow. */}
+<div class="trailer" data-trailer hidden role="dialog" aria-modal="true" aria-label={t('viewTrailer')}>
+  <button class="trailer__close" type="button" data-trailer-close aria-label={t('closeVideo')}>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none"
+         stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+
+  <video class="trailer__video" data-trailer-video playsinline controls preload="none">
+    <source src="/video/origin-hero.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<section class="hero2" aria-labelledby="hero2-heading" data-hero2>
+  <Image
+    class="hero2__media"
+    src={sunset}
+    alt=""
+    widths={[1024, 1600, 2400, 3200]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
+    aria-hidden="true"
+  />
+
+  <div class="hero2__content shell">
+    <h1 class="display hero2__headline" id="hero2-heading" data-h2-copy>{c.home.heroHeadline}</h1>
+    <hr class="hero2__rule" data-h2-copy />
+    <button class="btn2" type="button" data-h2-btn data-trailer-open>
+      <span>{t('viewTrailer')}</span>
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor">
+        <path d="M8 5.5v13l11-6.5z" />
+      </svg>
+    </button>
+  </div>
+
+  <span class="hero2__scroll" data-h2-scroll aria-hidden="true">
+    <span class="hero2__scroll-line"></span>
+  </span>
+</section>
+
+<style>
+  .hero2 {
+    --logo-end-h: 58px;      /* height once parked in the bar   */
+    --logo-start-h: 116px;   /* twice that, out in the hero     */
+
+    position: relative;
+    display: grid;
+    /* Content sits low, where the photograph is dark enough to seat type. */
+    align-content: end;
+    justify-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--s-8)) clamp(5rem, 14vh, 9rem);
+    overflow: clip;
+    background: var(--navy);
+    isolation: isolate;
+  }
+
+  /* Not the full blue wash that was removed: an elliptical pool of shade
+     centred on the copy, fading out well before the frame edges. */
+  .hero2::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        ellipse 88% 76% at 50% 52%,
+        rgba(5, 20, 38, 0.66) 0%,
+        rgba(5, 20, 38, 0.55) 34%,
+        rgba(5, 20, 38, 0.34) 60%,
+        rgba(5, 20, 38, 0.08) 84%,
+        rgba(5, 20, 38, 0) 100%
+      );
+  }
+
+  .hero2__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero2__logo {
+    position: fixed;
+    left: 50%;
+    z-index: calc(var(--z-header) + 1);
+    display: block;
+    /* No transform here on purpose. GSAP owns this element's transform — a
+       CSS translateX(-50%) would be overwritten the moment GSAP animates `y`,
+       which pinned the logo's left edge to 50% and made it scale off-centre. */
+    will-change: top, transform;
+  }
+
+  .hero2__logo img {
+    height: var(--logo-start-h);
+    width: auto;
+  }
+
+  /* The panel is a child of the header and therefore painted inside the
+     header's stacking context, so no z-index on this fixed logo can slot it
+     *between* the bar and the panel — it is either above the whole header or
+     hidden behind its background. So it retires while the menu is open.
+     !important because GSAP writes opacity inline on this element. */
+  .hero2__logo {
+    transition: opacity 260ms var(--ease-out);
+  }
+
+  :global(body:has(.header.is-open)) .hero2__logo:not([data-landed]) {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  .hero2__content {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--s-5);
+    max-width: 1100px;
+  }
+
+  .hero2__headline {
+    max-width: 29ch;
+    font-size: clamp(1.6rem, 0.9rem + 2.6vw, 3rem);
+    color: var(--off-white);
+    text-shadow: 0 2px 26px rgba(5, 25, 47, 0.45);
+  }
+
+  .hero2__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .btn2 {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-top: var(--s-2);
+    padding: var(--s-4) var(--s-7);
+    border: 1px solid rgba(255, 253, 249, 0.7);
+    color: var(--off-white);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    transition: background var(--dur-base) var(--ease-out),
+                border-color var(--dur-base) var(--ease-out),
+                color var(--dur-base) var(--ease-out);
+  }
+  .btn2:hover { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+  /* No hover nudge on the icon. The 3px lift was written for the diagonal
+     "go" arrow this button used to carry; on a play triangle it just reads as
+     the glyph drifting out of place. */
+
+  .hero2__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: var(--s-6);
+    translate: -50% 0;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 56px;
+  }
+
+  .hero2__scroll-line {
+    width: 1px;
+    height: 46px;
+    background: linear-gradient(to bottom, transparent, var(--gold));
+    transform-origin: top;
+    animation: drop2 2.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes drop2 {
+    0%   { transform: scaleY(0); opacity: 0; }
+    40%  { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+  }
+
+  /* --- Trailer viewer ------------------------------------------------------ */
+
+  .trailer {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-panel) + 10);
+    display: grid;
+    place-items: center;
+    padding: clamp(var(--s-4), 4vw, var(--s-8));
+    background: rgba(4, 14, 28, 0.94);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .trailer.is-visible { opacity: 1; }
+
+  .trailer__video {
+    width: min(100%, 1600px);
+    max-height: 84vh;
+    background: #000;
+  }
+
+  .trailer__close {
+    position: absolute;
+    top: clamp(var(--s-4), 2.6vw, var(--s-6));
+    right: clamp(var(--s-4), 2.6vw, var(--s-6));
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(255, 253, 249, 0.5);
+    border-radius: 50%;
+    color: var(--off-white);
+    transition: background var(--dur-fast) var(--ease-out),
+                border-color var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+  }
+  .trailer__close:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--navy);
+  }
+
+  @media (max-width: 860px) {
+    .hero2 { --logo-end-h: 44px; --logo-start-h: 84px; }
+    .trailer__close { width: 42px; height: 42px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero2__scroll-line { animation: none; opacity: 1; transform: none; }
+  }
+</style>
+
+<script>
+  /* --- Trailer viewer -----------------------------------------------------
+     Opens on the hero button, plays on open, stops and rewinds on close.
+     Closes on the X, on Escape, and on a click outside the video.          */
+  {
+    const box = document.querySelector<HTMLElement>('[data-trailer]');
+    const openBtn = document.querySelector<HTMLButtonElement>('[data-trailer-open]');
+    const closeBtn = document.querySelector<HTMLButtonElement>('[data-trailer-close]');
+    const video = document.querySelector<HTMLVideoElement>('[data-trailer-video]');
+
+    if (box && openBtn && closeBtn && video) {
+      let lastFocused: HTMLElement | null = null;
+
+      const open = () => {
+        lastFocused = document.activeElement as HTMLElement;
+        box.hidden = false;
+        // A frame between unhiding and the class, or the fade never runs.
+        requestAnimationFrame(() => box.classList.add('is-visible'));
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+        // Started by a real click, so sound is allowed; if the browser still
+        // refuses, the controls are there.
+        void video.play().catch(() => {});
+      };
+
+      const close = () => {
+        box.classList.remove('is-visible');
+        document.body.style.overflow = '';
+        video.pause();
+        video.currentTime = 0;
+        // Stay mounted until the fade finishes, then leave the tab order.
+        window.setTimeout(() => {
+          if (!box.classList.contains('is-visible')) box.hidden = true;
+        }, 420);
+        (lastFocused ?? openBtn).focus();
+      };
+
+      openBtn.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+
+      // Clicking the surround closes; clicking the video itself does not.
+      box.addEventListener('click', (e) => { if (e.target === box) close(); });
+
+      document.addEventListener('keydown', (e) => {
+        if (box.hidden) return;
+        if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+        // Only two focusable things in here, so the trap is simple.
+        if (e.key === 'Tab') { e.preventDefault(); closeBtn.focus(); }
+      });
+    }
+  }
+
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  const hero = document.querySelector<HTMLElement>('[data-hero2]');
+  const logo = document.querySelector<HTMLElement>('[data-flying-logo]');
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const logoImg = logo?.querySelector('img');
+
+  if (hero && logo && header && logoImg) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cs = () => getComputedStyle(hero);
+    const px = (v: string) => parseFloat(cs().getPropertyValue(v));
+
+    /* Where the logo rests in each state. `start` is measured from the hero's
+       own layout so the logo sits directly above the headline whatever the
+       viewport; `end` is the vertical centre of the header bar. */
+    const geometry = () => {
+      const startH = px('--logo-start-h');
+      const endH = px('--logo-end-h');
+      const ratio = logoImg.naturalWidth / logoImg.naturalHeight || 3.3;
+      const headerH = header.getBoundingClientRect().height;
+      const content = hero.querySelector<HTMLElement>('.hero2__content');
+      const contentTop = content ? content.getBoundingClientRect().top + window.scrollY : 0;
+      return {
+        startH,
+        endH,
+        startTop: Math.max(contentTop - startH - 40, headerH + 16),
+        endTop: (headerH - endH) / 2,
+        endW: endH * ratio,
+      };
+    };
+
+    /* Phones do not run the flight: 375px cannot hold a centred logo between
+       the phone number and the menu, so the bar carries a static logo instead
+       (see .header__brand--static). The travelling logo is removed entirely,
+       and the header's shade and ink switch on the ordinary condense
+       threshold rather than on the logo's arrival. */
+    const phone = window.matchMedia('(max-width: 640px)');
+
+    const runStatic = () => {
+      logo.style.display = 'none';
+      header.style.setProperty('--logo-slot', '0px');
+      header.style.setProperty('--flank-close', '0');
+      const sync = () =>
+        header.style.setProperty('--header-bg', window.scrollY > 40 ? '1' : '0');
+      sync();
+      window.addEventListener('scroll', sync, { passive: true });
+    };
+
+    if (phone.matches) {
+      runStatic();
+      // Crossing the breakpoint changes which mechanism applies; a reload is
+      // the honest way to swap them rather than half-initialising both.
+      phone.addEventListener('change', () => window.location.reload());
+    } else {
+      phone.addEventListener('change', () => window.location.reload());
+
+    /* Horizontal centring lives in GSAP's transform from the very first frame,
+       so nothing it writes later can drop it. */
+    gsap.set(logo, { xPercent: -50 });
+
+    let g = geometry();
+
+    const content = hero.querySelector<HTMLElement>('.hero2__content');
+    const cue = hero.querySelector<HTMLElement>('[data-h2-scroll]');
+
+    const place = (progress: number) => {
+      const h = gsap.utils.interpolate(g.startH, g.endH, progress);
+      const top = gsap.utils.interpolate(g.startTop, g.endTop, progress);
+      logoImg.style.height = `${h}px`;
+      logo.style.top = `${top}px`;
+      // The bar's centre track opens exactly as fast as the logo shrinks into
+      // it, and the flanks release outward over the same progress.
+      header.style.setProperty('--logo-slot', `${g.endW * progress}px`);
+      header.style.setProperty('--flank-close', String(1 - progress));
+      /* Binary, not continuous: the bar stays fully transparent for the whole
+         flight and only fills once the logo has actually arrived. The CSS
+         transition does the fading, in both directions. */
+      const landed = progress >= 0.995;
+      header.style.setProperty('--header-bg', landed ? '1' : '0');
+
+      /* Once parked in the bar the logo sits inside the header's own height
+         and clears the panel entirely, so it must stay put when the menu
+         opens — it IS the header logo at that point. It only needs to retire
+         while it is still out in the hero, oversized, where the panel would
+         otherwise cut across it. */
+      if (landed) logo.setAttribute('data-landed', '');
+      else logo.removeAttribute('data-landed');
+
+      /* The logo is fixed and the copy is not, so without this the headline
+         scrolls straight through the mark. Retire the copy over the first
+         half of the travel, well before the logo reaches the bar. */
+      if (content) {
+        const fade = 1 - Math.min(progress / 0.55, 1);
+        content.style.opacity = String(fade);
+        content.style.transform = `translateY(${-28 * (1 - fade)}px)`;
+      }
+      if (cue) cue.style.opacity = String(1 - Math.min(progress / 0.3, 1));
+    };
+
+    place(0);
+
+    ScrollTrigger.create({
+      trigger: hero,
+      start: 'top top',
+      /* Half a viewport: long enough to read as a journey, short enough that
+         the logo visibly rises rather than creeping while the page runs past. */
+      end: () => `+=${Math.max(window.innerHeight * 0.5, 340)}`,
+      scrub: reduced ? false : 0.4,
+      onUpdate: (self) => place(self.progress),
+      onRefresh: () => { g = geometry(); },
+      invalidateOnRefresh: true,
+    });
+
+    /* Arrival sequence. Content is visible in the markup and only hidden here,
+       so a failed script or a reduced-motion visitor still sees a full hero. */
+    if (!reduced) {
+      const bar = header.querySelectorAll('.header__side > *');
+      const copy = hero.querySelectorAll('[data-h2-copy]');
+      const btn = hero.querySelector('[data-h2-btn]');
+      const cue = hero.querySelector('[data-h2-scroll]');
+
+      gsap.set([...bar], { opacity: 0, y: -12 });
+      gsap.set(logo, { opacity: 0, y: 18 });
+      gsap.set([...copy], { opacity: 0, y: 20 });
+      gsap.set(btn, { opacity: 0, y: 16 });
+      gsap.set(cue, { opacity: 0 });
+
+      gsap
+        .timeline({ defaults: { ease: 'power3.out' }, delay: 0.15 })
+        .to([...bar], { opacity: 1, y: 0, duration: 0.7, stagger: 0.07 })
+        .to(logo, { opacity: 1, y: 0, duration: 0.9 }, '-=0.35')
+        .to([...copy], { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, '-=0.45')
+        .to(btn, { opacity: 1, y: 0, duration: 0.7 }, '-=0.35')
+        .to(cue, { opacity: 1, duration: 0.6 }, '-=0.25');
+    }
+
+    window.addEventListener('resize', () => { g = geometry(); place(ScrollTrigger.getAll()[0]?.progress ?? 0); });
+    }
+  }
+</script>

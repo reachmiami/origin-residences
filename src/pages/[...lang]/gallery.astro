@@ -1,0 +1,80 @@
+---
+import Base from '../../layouts/Base.astro';
+import GalleryGrid from '../../components/GalleryGrid.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { getCopy } from '../../content/copy';
+import { galleryCopy } from '../../content/pages/gallery';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const site = getCopy(locale);
+const c = galleryCopy[locale];
+---
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="gallery"
+>
+  <section class="lede section" aria-labelledby="gallery-heading">
+    <div class="shell lede__inner">
+      <h1 class="display" id="gallery-heading">{c.title}</h1>
+      <hr class="rule lede__rule" data-reveal="fade" />
+      <p class="lede__note" data-reveal data-reveal-delay="0.08">
+        {site.home.collabLine1} {site.home.collabLine2} {site.home.collabLine3}
+      </p>
+    </div>
+  </section>
+
+  {/* Captions and alt text are translated copy and come from the page; the
+      photographs are locale-independent and stay in the grid, matched by id. */}
+  <GalleryGrid
+    locale={locale}
+    headingId="gallery-heading"
+    prevLabel={c.prevImage}
+    nextLabel={c.nextImage}
+    photos={c.photos}
+  />
+
+  <PresentationCTA locale={locale} />
+
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="compact" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* The gallery carries itself; the page opening stays to one line of type. */
+  .lede {
+    background: var(--ground);
+    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-7);
+  }
+
+  .lede__inner {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+
+  .lede__rule {
+    max-width: 120px;
+    background: var(--gold);
+  }
+
+  .lede__note {
+    max-width: 42ch;
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+</style>

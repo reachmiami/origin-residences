@@ -1,0 +1,121 @@
+---
+import { useTranslations, localizePath, localeNames, locales, type Locale } from '../i18n/ui';
+
+/**
+ * Language switcher. Lives in the header bar on desktop and tablet, and moves
+ * into the navigation panel on phones where the bar has no room for it.
+ */
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+
+/* Strip any existing locale prefix so each link points at the same page in
+   its own language rather than nesting prefixes. */
+const bare = Astro.url.pathname
+  .replace(/^\/(es|pt-br)(?=\/|$)/, '')
+  .replace(/^\/+|\/+$/g, '');
+
+const t = useTranslations(locale);
+---
+
+<nav class:list={['langs', className]} aria-label={t('language')}>
+  {locales.map((l) => (
+    <a
+      href={localizePath(bare, l)}
+      class:list={['langs__item', { 'is-active': l === locale }]}
+      hreflang={l}
+      aria-current={l === locale ? 'true' : undefined}
+    >{localeNames[l]}</a>
+  ))}
+</nav>
+
+<style>
+  .langs {
+    display: flex;
+    gap: var(--s-2);
+  }
+
+  .langs__item {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    opacity: 0.55;
+    transition: opacity var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out);
+  }
+
+  .langs__item:hover { opacity: 1; }
+
+  /* In the bar the switcher sits beside the phone number and is sized to it.
+     Font size only — the label's tracking and weight are unchanged. */
+  .langs--bar .langs__item { font-size: clamp(0.95rem, 0.86rem + 0.4vw, 1.15rem); }
+
+  .langs__item.is-active {
+    opacity: 1;
+    color: var(--accent);
+  }
+
+  /* v2 sits over a bright photograph. Medium weight for legibility, and the
+     active locale carries full-strength ink rather than gold, which was
+     dissolving into the sunset behind it. */
+  :global(.header--v2) .langs__item { font-weight: var(--w-medium); opacity: 0.62; }
+  /* White over the photograph, gold once the bar fills — see --v2-accent. */
+  :global(.header--v2) .langs__item:hover,
+  :global(.header--v2) .langs__item.is-active {
+    color: var(--v2-accent);
+    opacity: 1;
+  }
+
+  /* Once the bar turns off-white the gold accent drops to 2.79:1, so the
+     active locale darkens with it. */
+  :global(.header.is-condensed) .langs__item.is-active,
+  :global(.header.is-open) .langs__item.is-active {
+    color: var(--gold-ink);
+  }
+
+  /* v2 last: hover and active resolve to exactly the same accent, at every
+     scroll position, whatever the condensed rules above say. */
+  :global(.header--v2) .langs__item:hover,
+  :global(.header--v2) .langs__item.is-active,
+  :global(.header--v2.is-condensed) .langs__item:hover,
+  :global(.header--v2.is-condensed) .langs__item.is-active,
+  :global(.header--v2.is-open) .langs__item:hover,
+  :global(.header--v2.is-open) .langs__item.is-active {
+    color: var(--v2-accent);
+    opacity: 1;
+  }
+
+  /* In the navigation panel the switcher sits on off-white at all times. */
+  .langs--mega .langs__item { opacity: 0.7; }
+  .langs--mega .langs__item:hover { opacity: 1; color: var(--gold-ink); }
+  .langs--mega .langs__item.is-active { color: var(--gold-ink); opacity: 1; }
+
+  /* Exactly one instance is ever visible.
+     Above 640px the bar carries it; at or below, the bar has no room and the
+     navigation panel takes over. */
+  .langs--mega { display: none; }
+
+  @media (max-width: 1080px) {
+    .langs--bar { gap: var(--s-2); }
+    .langs--bar .langs__item {
+      font-size: var(--t-micro);
+      letter-spacing: 0.1em;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .langs--bar { display: none; }
+
+    /* In the panel there is room, so it returns to full chrome size. */
+    .langs--mega {
+      display: flex;
+      gap: var(--s-4);
+    }
+    .langs--mega .langs__item {
+      font-size: var(--t-micro);
+      letter-spacing: var(--track-label);
+    }
+  }
+</style>

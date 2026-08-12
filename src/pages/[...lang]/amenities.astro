@@ -1,0 +1,226 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { amenitiesCopy } from '../../content/pages/amenities';
+
+import residenceInterior from '../../assets/amenities/residence-living-dining-bay-view.jpg';
+import aquaClub from '../../assets/amenities/aqua-club-kayaking.jpg';
+import rooftopPool from '../../assets/amenities/rooftop-pool-terrace.jpg';
+import fitness from '../../assets/amenities/fitness-centre.jpg';
+import petPark from '../../assets/amenities/pet-park-dogs.jpg';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+const c = amenitiesCopy[locale];
+
+/* Artwork is locale-independent, so it is matched to translated copy by id. */
+const artwork: Record<string, ImageMetadata> = {
+  'aqua-club': aquaClub,
+  'rooftop-pool': rooftopPool,
+  gym: fitness,
+  'pet-park': petPark,
+};
+
+const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
+---
+
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="amenities"
+>
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
+      <h1 class="display page-head__title" id="page-heading" data-reveal>
+        {c.title}
+      </h1>
+      <hr class="page-head__rule" data-reveal="fade" />
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.lede}</p>
+      <a class="page-head__all" href={L('residences')} data-reveal="fade">
+        {t('viewAvailable')} &rarr;
+      </a>
+    </div>
+  </section>
+
+  <div class="band" data-reveal="fade">
+    <Image
+      class="band__img"
+      src={residenceInterior}
+      alt={c.bandAlt}
+      layout="full-width"
+      widths={[640, 1024, 1600, 1920]}
+      sizes="100vw"
+      loading="eager"
+    />
+  </div>
+
+  {/* The full schedule, set as a spec sheet rather than a bulleted brochure —
+      these are the facts a broker reads down before calling. */}
+  <section class="section schedule" aria-labelledby="schedule-heading">
+    <div class="shell">
+      <h2 class="heading schedule__title" id="schedule-heading" data-reveal>
+        {c.scheduleTitle}
+      </h2>
+      <ul class="schedule__list" data-reveal>
+        {c.schedule.map((item) => <li class="schedule__item">{item}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  {features.map((feature, i) => (
+    <section
+      class:list={['section', 'feature', i % 2 === 0 ? 'feature--alt' : 'feature--flip']}
+      id={feature.id}
+      aria-labelledby={`${feature.id}-heading`}
+    >
+      <div class="shell feature__inner">
+        <figure class="feature__figure" data-reveal="fade">
+          <Image
+            class="feature__img"
+            src={feature.image}
+            alt={feature.alt}
+            widths={[420, 720, 960]}
+            sizes="(max-width: 860px) 92vw, 46vw"
+            loading="lazy"
+          />
+        </figure>
+
+        <div class="feature__body">
+          <h2 class="heading feature__title" id={`${feature.id}-heading`} data-reveal>
+            {feature.title}
+          </h2>
+          <hr class="rule feature__rule" data-reveal="fade" />
+          {feature.lines.map((line, n) => (
+            <p class="prose feature__line" data-reveal data-reveal-delay={0.06 * (n + 1)}>
+              {line}
+            </p>
+          ))}
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <PresentationCTA locale={locale} />
+
+  {/* Every page carries the form at its foot so the Inquire and Schedule
+      Private Presentation controls always have somewhere on-page to land. */}
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="compact" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* The bar is fixed and transparent at rest, so the first band pays for it. */
+  .page-head {
+    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
+    background: var(--ground);
+    text-align: center;
+  }
+
+  .page-head__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-4);
+  }
+
+  .page-head__title { color: var(--ink); }
+
+  .page-head__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    margin-block: var(--s-2);
+    border: 0;
+    background: var(--gold);
+  }
+
+  .page-head__lede { color: var(--ink); }
+
+  .page-head__all {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+  .page-head__all:hover { color: var(--ink); }
+
+  /* --- Full-bleed lead render -------------------------------------------- */
+
+  .band { background: var(--navy); }
+  .band__img { width: 100%; height: auto; }
+
+  /* --- Schedule of amenities --------------------------------------------- */
+
+  .schedule { background: var(--ground); }
+
+  .schedule__title { margin-bottom: var(--s-6); }
+
+  /* Multi-column so the list still reads top-to-bottom in each column. */
+  .schedule__list {
+    columns: 3;
+    column-gap: clamp(var(--s-5), 4vw, var(--s-8));
+    border-top: 1px solid var(--rule);
+  }
+
+  .schedule__item {
+    break-inside: avoid;
+    padding-block: var(--s-3);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    line-height: 1.6;
+    text-transform: uppercase;
+  }
+
+  /* --- Featured amenities ------------------------------------------------- */
+
+  .feature { scroll-margin-top: var(--header-h); }
+  .feature--alt { background: var(--ground-alt); }
+
+  .feature__inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(var(--s-5), 5vw, var(--s-9));
+    align-items: center;
+  }
+
+  .feature--flip .feature__figure { order: 2; }
+
+  .feature__img { width: 100%; height: auto; }
+
+  .feature__body { display: grid; justify-items: start; gap: var(--s-4); }
+
+  .feature__rule { max-width: 120px; background: var(--gold); }
+
+  .feature__line { color: var(--ink); }
+
+  @media (max-width: 1024px) {
+    .schedule__list { columns: 2; }
+  }
+
+  @media (max-width: 860px) {
+    .feature__inner { grid-template-columns: 1fr; }
+    /* Image first on every row once stacked — alternation only reads wide. */
+    .feature--flip .feature__figure { order: 0; }
+  }
+
+  @media (max-width: 560px) {
+    .schedule__list { columns: 1; }
+  }
+</style>

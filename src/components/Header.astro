@@ -1,0 +1,968 @@
+---
+import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { unitsByLevel, unitCount } from '../data/units';
+import SalesContact from './SalesContact.astro';
+import LangSwitch from './LangSwitch.astro';
+import { ADDRESS, ADDRESS_LINES, PHONE, PHONE_HREF } from '../data/contact';
+
+interface Props {
+  locale: Locale;
+  dark?: boolean;
+  /** 'v2' hands the logo to the page: the bar keeps only a slot for it to fly
+      into, and the flanks sit closer together until it arrives. Every other
+      page uses 'default' and is untouched by this. */
+  variant?: 'default' | 'v2';
+}
+
+const { locale, dark = false, variant = 'default' } = Astro.props;
+const isV2 = variant === 'v2';
+const t = useTranslations(locale);
+const L = (p: string) => localizePath(p, locale);
+
+const current = Astro.url.pathname;
+const isCurrent = (p: string) => current === L(p);
+
+const exploreLinks = [
+  { path: 'residences', label: { en: 'Residences', es: 'Residencias', 'pt-br': 'Residências' } },
+  { path: 'floor-plans', label: { en: 'Floor Plans', es: 'Planos', 'pt-br': 'Plantas' } },
+  { path: 'gallery', label: { en: 'Gallery', es: 'Galería', 'pt-br': 'Galeria' } },
+  { path: 'amenities', label: { en: 'Amenities', es: 'Amenidades', 'pt-br': 'Comodidades' } },
+  { path: 'neighborhood', label: { en: 'Neighborhood', es: 'Vecindario', 'pt-br': 'Vizinhança' } },
+  { path: 'artefacto', label: { en: 'Artefacto', es: 'Artefacto', 'pt-br': 'Artefacto' } },
+  { path: 'the-team', label: { en: 'The Team', es: 'El Equipo', 'pt-br': 'A Equipe' } },
+];
+
+---
+
+<header class:list={['header', { 'header--dark': dark, 'header--v2': isV2 }]} data-header>
+  <div class="header__bar">
+    {/* Three columns: the outer two are equal-width so the logo sits on the
+        true centre of the bar regardless of what flanks it. */}
+    <div class="header__side header__side--start">
+      <a class="header__phone" href={PHONE_HREF} aria-label={`Call ${PHONE}`}>
+        <span class="header__phone-text">{PHONE}</span>
+        <svg class="header__phone-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"
+             fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6.6 3.5h3l1.5 3.7-1.9 1.2a12 12 0 0 0 5.4 5.4l1.2-1.9 3.7 1.5v3a1.6 1.6 0 0 1-1.7 1.6A15.6 15.6 0 0 1 5 5.2 1.6 1.6 0 0 1 6.6 3.5Z" />
+        </svg>
+      </a>
+
+      <LangSwitch locale={locale} class="langs--bar" />
+    </div>
+
+    {isV2 ? (
+      <>
+        {/* Desktop and tablet: the space the flying logo lands in. */}
+        <div class="header__slot" data-logo-slot aria-hidden="true"></div>
+        {/* Phones: no flight — 375px cannot hold a centred logo between the
+            controls, so it simply sits in the bar as it does on v1. */}
+        <a class="header__brand header__brand--static" href={L(HOME_PATH)} aria-label="Origin Residences — home">
+          <img src="/logo-origin.svg" alt="" width="300" height="91" decoding="async" />
+        </a>
+      </>
+    ) : (
+    <a class="header__brand" href={L(HOME_PATH)} aria-label="Origin Residences — home">
+      <img
+        src="/logo-origin.svg"
+        alt="Origin Residences · Bay Harbor, by Artefacto"
+        width="300"
+        height="91"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </a>
+    )}
+
+    <div class="header__side header__side--end">
+      <a class="pill pill--solid" href="#inquire">
+        <span class="pill__stack">
+          <span class="pill__face">{t('inquire')}</span>
+          <span class="pill__face pill__face--alt">
+            {t('inquire')}
+            <svg class="pill__arrow" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"
+                 fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 7h10v10" /><path d="M7 17 17 7" />
+            </svg>
+          </span>
+        </span>
+      </a>
+
+      {/* Replaces the incumbent hamburger on every breakpoint. */}
+      <button
+        type="button"
+        class="pill pill--menu"
+        aria-expanded="false"
+        aria-controls="mega-panel"
+        data-menu-trigger
+      >
+        {/* Small screens get an icon: the worded pill ate the bar. */}
+        <span class="burger" aria-hidden="true">
+          <span class="burger__bar"></span>
+          <span class="burger__bar"></span>
+          <span class="burger__bar"></span>
+        </span>
+
+        <span class="pill__stack">
+          <span class="pill__face">
+            {/* The label has to follow the panel's state, not just aria — a
+                button reading "Menu" over an open menu is a dead end. */}
+            <span class="pill__label pill__label--closed">{t('menu')}</span>
+            <span class="pill__label pill__label--open">{t('close')}</span>
+          </span>
+          <span class="pill__face pill__face--alt">
+            <span class="pill__label pill__label--closed">{t('menu')}</span>
+            <span class="pill__label pill__label--open">{t('close')}</span>
+            <svg class="pill__arrow" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"
+                 fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 7h10v10" /><path d="M7 17 17 7" />
+            </svg>
+          </span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mega" id="mega-panel" data-mega hidden>
+    <div class="mega__inner shell">
+      <section class="mega__col" aria-labelledby="mega-explore">
+        {/* The bar has no room for the switcher on phones, so it lives here
+            instead — paired with the section label on one rule. */}
+        <div class="mega__title mega__title--split">
+          <h2 class="eyebrow" id="mega-explore">{t('explore')}</h2>
+          <LangSwitch locale={locale} class="langs--mega" />
+        </div>
+        <ul class="mega__links">
+          {exploreLinks.map((link, i) => (
+            <li style={`--i:${i}`}>
+              <a
+                href={L(link.path)}
+                class:list={['mega__link', { 'is-current': isCurrent(link.path) }]}
+                aria-current={isCurrent(link.path) ? 'page' : undefined}
+              >{link.label[locale]}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="mega__col mega__col--wide" aria-labelledby="mega-residences">
+        <h2 class="mega__title eyebrow" id="mega-residences">
+          {t('residences')} <span class="mega__count">{unitCount}</span>
+        </h2>
+        <ul class="mega__levels">
+          {unitsByLevel.map((group, i) => (
+            <li class="mega__level" style={`--i:${i}`}>
+              <span class="mega__level-label">{group.label}</span>
+              <ul class="mega__units">
+                {group.units.map((u) => (
+                  <li>
+                    <a
+                      href={L(u.slug)}
+                      class:list={['mega__unit', { 'is-current': isCurrent(u.slug) }]}
+                      aria-current={isCurrent(u.slug) ? 'page' : undefined}
+                    >
+                      <span class="mega__unit-no">{u.number}</span>
+                      <span class="mega__unit-spec">{u.beds}{u.hasDen ? '+D' : ''} / {u.baths}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <a class="mega__all" href={L('residences')}>{t('viewAvailable')} &rarr;</a>
+      </section>
+
+      <section class="mega__col" aria-labelledby="mega-connect">
+        <h2 class="mega__title eyebrow" id="mega-connect">{t('connect')}</h2>
+        <ul class="mega__contact">
+          <li>
+            {/* Same pill as the header's Inquire control, hover-swap included,
+                so the panel's primary action reads as a button not a link. */}
+            <a class="pill pill--solid mega__cta" href={L('schedule-virtual-tour')}>
+              <span class="pill__stack">
+                <span class="pill__face">{t('schedule')}</span>
+                <span class="pill__face pill__face--alt">
+                  {t('schedule')}
+                  <svg class="pill__arrow" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"
+                       fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 7h10v10" /><path d="M7 17 17 7" />
+                  </svg>
+                </span>
+              </span>
+            </a>
+          </li>
+          <li><a class="mega__contact-line" href={PHONE_HREF}>{PHONE}</a></li>
+        </ul>
+
+        <SalesContact locale={locale} tone="light" class="mega__sales" />
+        <address class="mega__address">
+          {ADDRESS_LINES[0]}<br />{ADDRESS_LINES[1]}
+        </address>
+      </section>
+    </div>
+  </div>
+</header>
+
+<div class="mega__scrim" data-mega-scrim hidden></div>
+
+<style>
+  .header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: var(--z-header);
+    color: var(--ink);
+    transition: background var(--dur-base) var(--ease-out),
+                box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  /* Photography-led pages start with a transparent bar over the image. */
+  .header--dark { color: var(--ink-on-dark); }
+
+  .header.is-condensed,
+  .header.is-open {
+    background: var(--off-white);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--rule);
+  }
+
+  /* Gold is 5.59:1 on the navy hero but only 2.79:1 once the bar turns
+     off-white, so the accent darkens with the state. */
+  .header.is-condensed .header__phone:hover,
+  .header.is-open .header__phone:hover,
+  .header.is-condensed .langs__item.is-active,
+  .header.is-open .langs__item.is-active {
+    color: var(--gold-ink);
+  }
+
+  /* Equal-width flanks put the logo on the bar's true centre, so it stays
+     centred no matter how wide the phone number or the buttons get. The bar
+     keeps one fixed height at every scroll position and while the panel is
+     open — nothing about it resizes. */
+  .header__bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--s-5);
+    height: var(--header-h);
+    max-width: var(--max-w);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .header__side {
+    display: flex;
+    align-items: center;
+    gap: clamp(var(--s-3), 1.6vw, var(--s-5));
+    min-width: 0;
+  }
+
+  .header__side--start { justify-content: flex-start; }
+  .header__side--end { justify-content: flex-end; }
+
+  /* The phone and the languages are two separate ideas; they were reading as
+     one run of text. */
+  .header__side--start { gap: clamp(var(--s-5), 2.6vw, var(--s-7)); }
+
+  .header__brand { justify-self: center; }
+
+  /* --- v2 -----------------------------------------------------------------
+     The centre track starts collapsed so the flanks read as one close group,
+     then opens to the logo's width as the page scrolls. --logo-slot is driven
+     by the hero's scroll animation.                                        */
+  /* Light weights disappeared against the sunset, so the v2 bar steps up to
+     Medium. Scoped to v2: every other page keeps the brand's light kit. */
+  .header--v2 .header__phone,
+  .header--v2 .pill__face,
+  .header--v2 .pill__label { font-weight: var(--w-medium); }
+
+  /* Both controls read as one pair in v2: Inquire drops its solid gold fill
+     and takes the Menu button's outline treatment. */
+  .header--v2 .pill--solid {
+    background: transparent;
+    border-color: currentColor;
+    color: inherit;
+  }
+
+  /* Accent that tracks the bar's own fill: white while the header is still
+     transparent over the photograph, gold once it has turned white. The mix
+     rides --header-bg, so it crosses over exactly as the bar does. */
+  .header--v2 {
+    /* The bar fills for either reason — the logo landing, or the menu opening
+       over it. An open menu against a transparent bar read as a white panel
+       floating on nothing. */
+    --bar-fill: max(var(--header-bg, 0), var(--menu-open, 0));
+
+    /* Opening, the bar fills alongside the panel and shares its duration.
+       Closing, the drain waits for the panel to finish (see close() below) —
+       the delay is sequenced in script, not baked into this duration. */
+    --dur-menu-fill: var(--dur-slow);
+  }
+
+
+  .header--v2 {
+    --v2-accent: color-mix(
+      in srgb,
+      var(--gold) calc(var(--bar-fill, 0) * 100%),
+      #ffffff
+    );
+  }
+
+
+
+  /* Declared after the condensed-state rules so v2's accent wins at every
+     scroll position; those share this specificity and come earlier. */
+  .header--v2 .header__phone:hover,
+  .header--v2.is-condensed .header__phone:hover,
+  .header--v2.is-open .header__phone:hover { color: var(--v2-accent); }
+
+  /* v2 holds the bar translucent over the photograph and fills it in only as
+     the logo arrives, so the header never turns white around an empty slot. */
+  .header--v2.is-condensed,
+  .header--v2.is-open,
+  .header--v2 {
+    background: rgba(255, 253, 249, var(--bar-fill, 0));
+    box-shadow: 0 1px 0 rgba(8, 35, 65, calc(var(--bar-fill, 0) * 0.16));
+  }
+
+  /* During the flight the bar is transparent, and what sits behind it changes
+     from bright sky to dark water as the photograph scrolls past. A fixed ink
+     colour cannot survive both. So the bar carries its own soft shade while
+     it is transparent, and retires it exactly as the white ground arrives. */
+  .header--v2 { position: fixed; }
+
+  .header--v2::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: calc(1 - var(--bar-fill, 0));
+    background: linear-gradient(
+      to bottom,
+      rgba(5, 20, 38, 0.55) 0%,
+      rgba(5, 20, 38, 0.34) 55%,
+      rgba(5, 20, 38, 0) 100%
+    );
+  }
+
+  /* Ink follows the same one value: warm white against that shade during the
+     flight, navy once the bar is white. The condensed/open rules set colour at
+     the same specificity and are applied from 40px of scroll, so v2 has to
+     name those states explicitly or it loses the moment the page moves. */
+  .header--v2,
+  .header--v2.is-condensed,
+  .header--v2.is-open {
+    color: color-mix(in srgb, var(--navy) calc(var(--bar-fill, 0) * 100%), #fffdf9);
+  }
+
+  /* The flight itself is scroll-scrubbed; this is not. Once the logo has
+     landed, --header-bg is flipped to 1 and everything keyed to it — the
+     background, the shadow, and the white → gold accent — fades over this
+     one transition. Flipping it back to 0 reverses the whole thing. */
+  .header--v2 {
+    transition: --header-bg 1140ms var(--ease-out),
+                /* Same token and easing the panel's clip-path uses, so the bar
+                   and the menu move as one gesture and cannot drift apart if
+                   that duration is ever retuned. */
+                --menu-open var(--dur-menu-fill) var(--ease-out);
+  }
+
+  /* The menu icon is drawn with currentColor, so it follows the ink for free. */
+
+  .header--v2 .header__bar {
+    grid-template-columns: 1fr var(--logo-slot, 0px) 1fr;
+    transition: none;
+  }
+
+  .header--v2 .header__slot {
+    width: var(--logo-slot, 0px);
+    height: 1px;
+  }
+
+  /* The static phone logo is inert until the phone breakpoint. */
+  .header--v2 .header__brand--static { display: none; }
+
+  /* Collapsing the centre track is not enough on its own: each flank is still
+     1fr wide and aligns its content to the OUTER edge, so nothing appears to
+     move. These transforms pull both flanks toward the middle at rest and
+     release them to their normal position as the logo arrives.
+     --flank-close runs 1 → 0 with scroll progress. */
+  /* Padding, not transform. A transform moves the flank's BOX, and each flank
+     is a full 1fr wide — sliding it inward dragged its empty half across the
+     other flank's controls and ate their clicks. Padding moves the content
+     within a box that never leaves its own half, so nothing can overlap. */
+  .header--v2 .header__side--start {
+    padding-inline-start: calc(var(--flank-close, 1) * 34%);
+  }
+  .header--v2 .header__side--end {
+    padding-inline-end: calc(var(--flank-close, 1) * 34%);
+  }
+
+  /* The alt mark is a wide lockup (300 × 90.5), so it is sized by height and
+     the bar no longer needs the depth the stacked version demanded. */
+  .header__brand img {
+    height: clamp(48px, 5.4vw, 66px);
+    width: auto;
+  }
+
+  /* The number is the fastest path to a sale, so it carries more weight than
+     the rest of the bar's chrome — a step up in size without becoming a
+     display element. */
+  .header__phone {
+    font-size: clamp(0.95rem, 0.86rem + 0.4vw, 1.15rem);
+    font-weight: var(--w-light);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .header__phone:hover { color: var(--accent); }
+
+  .header__phone-icon { display: none; }
+
+
+  /* --- Hover-swap pill --------------------------------------------------
+     Two stacked faces inside an overflow-clipped window; the stack slides up
+     one face height on hover/focus. Mechanic borrowed from the reference the
+     client pinned, rendered entirely in Origin's own palette and type.       */
+  .pill {
+    --pill-h: 42px;
+    position: relative;
+    display: inline-block;
+    height: var(--pill-h);
+    padding: 0;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    overflow: clip;
+    color: inherit;
+    background: transparent;
+  }
+
+  .pill--solid {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--off-white);
+  }
+
+  .pill__stack {
+    display: block;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .pill:hover .pill__stack,
+  .pill:focus-visible .pill__stack {
+    transform: translateY(calc(var(--pill-h) * -1));
+  }
+
+  .pill__face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    height: var(--pill-h);
+    padding-inline: clamp(var(--s-4), 1.6vw, var(--s-6));
+    font-size: var(--t-micro);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .pill__face--alt {
+    background: var(--navy);
+    color: var(--off-white);
+  }
+  .pill--solid .pill__face--alt { background: var(--navy); }
+
+  /* Only one of the two labels is ever in the flow, so the pill keeps its
+     width and the swap costs no layout. */
+  .pill__label--open { display: none; }
+  .header.is-open .pill--menu .pill__label--closed { display: none; }
+  .header.is-open .pill--menu .pill__label--open { display: inline; }
+
+  /* With the panel open the pill is a close control, so the arrow — which
+     means "go" — is suppressed. */
+  .header.is-open .pill--menu .pill__arrow { display: none; }
+
+  .pill__arrow {
+    transition: transform var(--dur-base) var(--ease-out) 60ms;
+    transform: translate(-4px, 4px);
+    opacity: 0;
+  }
+  .pill:hover .pill__arrow,
+  .pill:focus-visible .pill__arrow {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+
+  /* --- Hamburger ----------------------------------------------------------
+     The menu is an icon at every width now: two worded buttons side by side
+     competed with each other, and Inquire is the one that should win.       */
+  .pill--menu {
+    border: 0;
+    width: 42px;
+    height: 42px;
+    overflow: visible;
+    flex: none;
+  }
+  .pill--menu .pill__stack { display: none; }
+
+  .burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding-inline: 11px;
+  }
+
+  .burger__bar {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transition: transform var(--dur-base) var(--ease-out),
+                opacity var(--dur-fast) var(--ease-out);
+  }
+
+  /* Open state folds the bars into a cross — the icon carries the same state
+     the worded pill does on wider screens. */
+  .header.is-open .burger__bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .header.is-open .burger__bar:nth-child(2) { opacity: 0; }
+  .header.is-open .burger__bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* --- Mega panel -------------------------------------------------------- */
+  /* The bar keeps one height at all times, so the panel simply hangs off it. */
+  .mega {
+    position: absolute;
+    inset: var(--header-h) 0 auto;
+    background: var(--off-white);
+    color: var(--ink);
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 24px 60px rgba(8, 35, 65, 0.14);
+    overflow-y: auto;
+    max-height: calc(100dvh - var(--header-h));
+    overscroll-behavior: contain;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path var(--dur-slow) var(--ease-out);
+  }
+
+  .header.is-open .mega { clip-path: inset(0 0 0 0); }
+
+  .mega__inner {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: clamp(var(--s-6), 4vw, var(--s-9));
+    padding-block: clamp(var(--s-6), 4vw, var(--s-8));
+  }
+
+  .mega__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    padding-bottom: var(--s-3);
+    margin-bottom: var(--s-5);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* NAVIGATION on the left, the language switcher hard right, equal halves.
+     Declared after .mega__title so its grid beats that rule's flex. */
+  .mega__title--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: baseline;
+    gap: var(--s-3);
+  }
+  .mega__title--split > :global(.langs) { justify-self: end; }
+
+  .mega__count { color: var(--ink-muted); }
+
+  .mega__links { display: grid; gap: var(--s-1); }
+
+  .mega__link {
+    display: inline-block;
+    padding-block: var(--s-2);
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+    transition: color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .mega__link:hover { color: var(--gold-ink); transform: translateX(6px); }
+  .mega__link.is-current { color: var(--gold-ink); }
+
+  /* There are exactly five level groups. At 140px minimum only four fitted,
+     which orphaned PH Level 7 onto its own row under a column of white space;
+     100px lets all five sit in one band. */
+  .mega__levels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--s-5) var(--s-4);
+  }
+
+  .mega__level-label {
+    display: block;
+    margin-bottom: var(--s-3);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .mega__units { display: grid; gap: 2px; }
+
+  .mega__unit {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid transparent;
+    transition: border-color var(--dur-fast) var(--ease-out),
+                background var(--dur-fast) var(--ease-out);
+  }
+  .mega__unit:hover { border-color: var(--accent); background: var(--sand-pale); }
+  .mega__unit.is-current { border-color: var(--accent); background: var(--sand); }
+
+  .mega__unit-no {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-body);
+  }
+
+  /* Narrow five-column tracks were breaking "3+D / 4" across two lines. The
+     spec is one atomic fact and must never wrap. */
+  .mega__unit-spec {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .mega__all {
+    display: inline-block;
+    margin-top: var(--s-6);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+
+  .mega__contact { display: grid; gap: var(--s-3); justify-items: start; }
+
+  /* The pill is hidden on phones in the bar, but here it is the panel's main
+     action and must show at every width. */
+  .mega__cta { display: inline-block; margin-bottom: var(--s-2); }
+
+  .mega__contact-line {
+    font-size: var(--t-small);
+    letter-spacing: var(--track-body);
+    color: var(--ink-muted);
+  }
+  .mega__contact-line:hover { color: var(--gold-ink); }
+
+  .mega__sales { margin-top: var(--s-4); }
+
+  .mega__address {
+    margin-top: var(--s-5);
+    font-size: var(--t-small);
+    font-style: normal;
+    line-height: 1.9;
+    color: var(--ink-muted);
+  }
+
+  .mega__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-header) - 1);
+    background: rgba(8, 35, 65, 0.34);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  .mega__scrim.is-visible { opacity: 1; }
+
+  /* Tablet and phone share one bar: logo alone on the left, controls on the
+     right. Only the language switcher differs — see the 640px block. */
+  @media (max-width: 1080px) {
+    .mega__inner { grid-template-columns: 1fr 1fr; }
+    .mega__col--wide { grid-column: 1 / -1; order: 3; }
+
+    .header__bar {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+      padding-inline: var(--gutter);
+    }
+
+    .header__brand { order: 1; margin-right: auto; min-width: 0; }
+    .header__side--start { order: 2; }
+    .header__side--end { order: 3; }
+
+    /* Within the left flank the phone leads on desktop; here the languages
+       come first, so the flank reorders its own children. */
+    .header__side--start { flex-direction: row; }
+    /* Phone first, then languages — the same reading order as desktop. */
+    .header__side--start > :global(.langs) { order: 2; }
+    .header__phone { order: 1; }
+    .header__side, .header__brand { min-width: 0; }
+
+    /* Inquire is dropped FROM THE BAR; the phone is the action that fits.
+       Scoped to the bar so it never reaches the panel's own pill button. */
+    .header__side--end .pill--solid { display: none; }
+
+    /* The phone becomes a button, styled exactly like the other pills. */
+    .header__phone {
+      display: inline-flex;
+      align-items: center;
+      height: 42px;
+      padding-inline: clamp(var(--s-4), 1.6vw, var(--s-6));
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: var(--t-micro);
+      font-weight: var(--w-light);
+      letter-spacing: var(--track-label);
+      white-space: nowrap;
+      flex: none;
+      transition: background var(--dur-base) var(--ease-out),
+                  color var(--dur-base) var(--ease-out);
+    }
+    .header__phone:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--off-white);
+    }
+
+    .header__brand img { height: clamp(38px, 5vw, 52px); }
+  }
+
+  /* Higher specificity than the shared rule above, so v2 keeps its grid and
+     the logo still has a reserved centre column to fly into. */
+  @media (max-width: 1080px) {
+    .header--v2 .header__bar {
+      display: grid;
+      grid-template-columns: 1fr var(--logo-slot, 0px) 1fr;
+      gap: var(--s-3);
+    }
+    /* Explicit columns. The shared 1080px rules set `order: 2` and `order: 3`
+       on the flanks for the old flex bar, and order reorders GRID
+       auto-placement too — which put the slot in column 1 and the left flank
+       in the collapsed centre. Naming the columns makes placement immune. */
+    .header--v2 .header__side--start {
+      grid-column: 1;
+      order: 0;
+      justify-content: flex-start;
+    }
+    .header--v2 .header__slot { grid-column: 2; order: 0; }
+    .header--v2 .header__side--end {
+      grid-column: 3;
+      order: 0;
+      justify-content: flex-end;
+    }
+  }
+
+  /* Phones: back to v1's compact bar — logo left, controls right, no flight. */
+  @media (max-width: 640px) {
+    .header--v2 .header__bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header--v2 .header__slot { display: none; }
+    /* The mark's gold is baked into the SVG and it ships as an <img>, so CSS
+       cannot recolour it. Masking flips that around: the artwork becomes the
+       stencil and the colour comes from background-color, which can then
+       interpolate. Gold clashes with the sunset, so it reads warm white over
+       the photograph and crosses to gold exactly as the bar fills — the same
+       --bar-fill the ink and accent already follow.
+       It also carries the same colour transition the phone number does — the
+       phone has one and this did not, so the two crossed over at visibly
+       different rates even though both read the same value. */
+    .header--v2 .header__brand--static {
+      display: block;
+      order: 1;
+      margin-right: auto;
+      min-width: 0;
+      /* 300 × 90.5 artwork, so 38px tall is 126px wide. */
+      width: 126px;
+      height: 38px;
+      background-color: color-mix(
+        in srgb,
+        var(--gold) calc(var(--bar-fill, 0) * 100%),
+        #fffdf9
+      );
+      -webkit-mask: url('/logo-origin.svg') no-repeat center / contain;
+      mask: url('/logo-origin.svg') no-repeat center / contain;
+      transition: background-color var(--dur-base) var(--ease-out);
+    }
+
+    /* The stencil carries the shape; the <img> would only double it. The link
+       keeps its aria-label, so the name is still announced. */
+    .header--v2 .header__brand--static img { display: none; }
+    .header--v2 .header__side--start { order: 2; padding-inline-start: 0; }
+    .header--v2 .header__side--end { order: 3; padding-inline-end: 0; }
+  }
+
+  /* Tablet only: the number becomes a glyph so the bar stops crowding the
+     logo. Phones keep the full number — it is the primary action there, and
+     the bounded range below leaves the 640px rules untouched. */
+  @media (min-width: 641px) and (max-width: 1080px) {
+    .header__phone {
+      width: auto;
+      height: auto;
+      padding-inline: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      justify-content: center;
+      /* Still a comfortable target without the pill drawn around it. */
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .header__phone:hover { background: none; }
+    .header__phone-text { display: none; }
+    .header__phone-icon { display: block; width: 22px; height: 22px; }
+  }
+
+  @media (max-width: 860px) {
+    .mega__inner { grid-template-columns: 1fr; gap: var(--s-6); }
+    .mega__col--wide { order: 0; }
+    .mega__levels { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); }
+  }
+
+  /* Phones: the bar has no room for the switcher, so it moves into the panel
+     (see LangSwitch) and the remaining controls tighten to fit 375px. */
+  @media (max-width: 640px) {
+    .header__bar { gap: 8px; padding-inline: var(--s-4); }
+
+    .header__brand img { height: 38px; }
+
+    .header__phone {
+      height: 38px;
+      padding-inline: var(--s-4);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+    }
+
+    .pill--menu { width: 38px; height: 38px; }
+    .burger { width: 38px; height: 38px; padding-inline: 9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill__stack, .pill__arrow, .mega, .mega__scrim { transition: none; }
+    .mega { clip-path: none; }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const trigger = document.querySelector<HTMLButtonElement>('[data-menu-trigger]');
+  const panel = document.querySelector<HTMLElement>('[data-mega]');
+  const scrim = document.querySelector<HTMLElement>('[data-mega-scrim]');
+
+  if (header && trigger && panel && scrim) {
+    const FOCUSABLE =
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    let lastFocused: HTMLElement | null = null;
+
+    const isOpen = () => header.classList.contains('is-open');
+
+    /* Opening, the bar and the panel move together. Closing, the panel goes
+       first and the bar drains only once it is out of the way — a staged
+       entrance read as a lag, but a staged exit reads as the bar following the
+       menu out. v1 has no bar fill of its own and is unaffected. */
+    const isV2 = header.classList.contains('header--v2');
+    const PANEL_MS = 720;  // must match --dur-slow
+
+    /* `is-open` marks the PANEL, which now lags the click on the way in — so
+       intent is tracked separately or a fast second click reads the wrong
+       state and re-opens instead of closing. */
+    let wantOpen = false;
+    let timer: number | undefined;
+
+    const clearPending = () => {
+      if (timer !== undefined) { window.clearTimeout(timer); timer = undefined; }
+    };
+
+    function revealPanel() {
+      panel!.hidden = false;
+      scrim!.hidden = false;
+      // Force a frame so the clip-path transition actually runs.
+      requestAnimationFrame(() => {
+        header!.classList.add('is-open');
+        scrim!.classList.add('is-visible');
+      });
+      panel!.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    }
+
+    function open() {
+      clearPending();
+      wantOpen = true;
+      lastFocused = document.activeElement as HTMLElement;
+      trigger!.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+
+      if (isV2) header!.style.setProperty('--menu-open', '1');
+      revealPanel();
+    }
+
+    function close({ restoreFocus = true } = {}) {
+      clearPending();
+      wantOpen = false;
+      header!.classList.remove('is-open');
+      scrim!.classList.remove('is-visible');
+      trigger!.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+
+      timer = window.setTimeout(() => {
+        if (wantOpen) return;
+        panel!.hidden = true;
+        scrim!.hidden = true;
+        // The bar drains only once the panel is fully out of the way.
+        if (isV2) header!.style.setProperty('--menu-open', '0');
+      }, PANEL_MS);
+
+      if (restoreFocus) (lastFocused ?? trigger)!.focus();
+    }
+
+    trigger.addEventListener('click', () => (wantOpen ? close() : open()));
+    scrim.addEventListener('click', () => close());
+
+    document.addEventListener('keydown', (e) => {
+      if (!wantOpen) return;
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        // Trap focus across the trigger and the panel together.
+        const nodes = [
+          trigger,
+          ...Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)),
+        ].filter((el) => el.offsetParent !== null || el === trigger);
+        if (!nodes.length) return;
+
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
+        const active = document.activeElement as HTMLElement;
+
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
+    // A resize to desktop while open would otherwise leave the body locked.
+    window.addEventListener('resize', () => {
+      if (wantOpen) close({ restoreFocus: false });
+    });
+  }
+</script>

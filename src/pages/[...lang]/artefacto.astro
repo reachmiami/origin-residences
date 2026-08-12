@@ -1,0 +1,323 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PresentationCTA from '../../components/PresentationCTA.astro';
+import InquiryForm from '../../components/InquiryForm.astro';
+import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { artefactoCopy } from '../../content/pages/artefacto';
+
+import terrace from '../../assets/artefacto/terrace-lounge.jpg';
+import livingRoom from '../../assets/artefacto/living-room-curved-sofa.jpg';
+import lobby from '../../assets/artefacto/lobby-double-height.jpg';
+import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
+import kitchen from '../../assets/artefacto/kitchen-and-dining.jpg';
+import openPlan from '../../assets/artefacto/open-plan-living.jpg';
+import furniture from '../../assets/artefacto/furniture-studies.jpg';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+const locale = localeFromParam(Astro.params?.lang);
+const c = artefactoCopy[locale];
+---
+
+<Base
+  title={c.metaTitle}
+  description={c.metaDescription}
+  locale={locale}
+  path="artefacto"
+  darkHeader
+>
+  <section class="titleband" aria-labelledby="page-heading">
+    <div class="shell titleband__inner">
+      <p class="eyebrow">{c.eyebrow}</p>
+      <h1 class="display titleband__headline" id="page-heading">{c.headline}</h1>
+      <hr class="titleband__rule" />
+    </div>
+  </section>
+
+  <figure class="band band--hero">
+    <Image
+      src={terrace}
+      alt={c.alt.terrace}
+      widths={[640, 960, 1280, 1445]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      data-parallax="8"
+    />
+  </figure>
+
+  <section class="section editorial" aria-labelledby="editorial-heading">
+    <div class="shell editorial__grid">
+      <h2 class="heading editorial__title" id="editorial-heading" data-reveal>
+        {c.editorialTitle}
+      </h2>
+      <div class="editorial__copy">
+        <p class="prose editorial__lede" data-reveal>{c.lede}</p>
+        <hr class="rule editorial__rule" data-reveal="fade" />
+        <p class="prose" data-reveal data-reveal-delay="0.08">{c.body}</p>
+      </div>
+    </div>
+  </section>
+
+  {/* Asymmetric pair — the wider room sits low, the lobby rides above it, so
+      the eye travels rather than scanning a tidy row. */}
+  <div class="section section--alt pair">
+    <div class="shell pair__grid" data-reveal-group>
+      <figure class="pair__major">
+        <Image
+          src={livingRoom}
+          alt={c.alt.livingRoom}
+          widths={[640, 960, 1280, 1445]}
+          sizes="(max-width: 900px) 100vw, 62vw"
+        />
+      </figure>
+      <figure class="pair__minor">
+        <Image
+          src={lobby}
+          alt={c.alt.lobby}
+          widths={[480, 720, 961]}
+          sizes="(max-width: 900px) 100vw, 34vw"
+        />
+      </figure>
+    </div>
+  </div>
+
+  <div class="section section--dark quoteband">
+    <div class="shell shell--narrow">
+      <figure class="quote" data-reveal>
+        <blockquote class="quote__text">
+          <p>{c.bacchiQuote}</p>
+        </blockquote>
+        <figcaption class="quote__by">Paulo Bacchi</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section class="section guilhem" aria-labelledby="guilhem-heading">
+    <div class="shell guilhem__grid">
+      <figure class="guilhem__figure" data-reveal="fade">
+        <Image
+          src={bedroom}
+          alt={c.alt.bedroom}
+          widths={[480, 720, 1080, 1445]}
+          sizes="(max-width: 900px) 100vw, 48vw"
+        />
+      </figure>
+      <div class="guilhem__copy">
+        <h2 class="heading" id="guilhem-heading" data-reveal>Carla Guilhem</h2>
+        <hr class="guilhem__rule" data-reveal="fade" />
+        <p class="prose" data-reveal data-reveal-delay="0.08">{c.guilhemBody}</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section section--alt quoteband quoteband--light">
+    <div class="shell shell--narrow">
+      <figure class="quote" data-reveal>
+        <blockquote class="quote__text">
+          <p>{c.guilhemQuote}</p>
+        </blockquote>
+        <figcaption class="quote__by">Carla Guilhem</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="section duo">
+    <div class="shell duo__grid" data-reveal-group>
+      <figure class="duo__item">
+        <Image
+          src={kitchen}
+          alt={c.alt.kitchen}
+          widths={[480, 720, 1080, 1445]}
+          sizes="(max-width: 760px) 100vw, 48vw"
+        />
+      </figure>
+      <figure class="duo__item">
+        <Image
+          src={openPlan}
+          alt={c.alt.openPlan}
+          widths={[480, 720, 899]}
+          sizes="(max-width: 760px) 100vw, 48vw"
+        />
+      </figure>
+    </div>
+  </div>
+
+  <figure class="band band--strip">
+    <Image
+      src={furniture}
+      alt={c.alt.furniture}
+      widths={[960, 1280, 1917]}
+      sizes="100vw"
+      data-parallax="6"
+    />
+  </figure>
+
+  <PresentationCTA locale={locale} />
+
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* --- Page title band ---------------------------------------------------- */
+  .titleband {
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
+  }
+
+  .titleband__inner { display: grid; gap: var(--s-5); }
+
+  .titleband__headline { max-width: 20ch; color: var(--off-white); }
+
+  .titleband__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  /* --- Full-bleed bands ---------------------------------------------------
+     The wrapper owns the crop; the image overfills it and drifts inside the
+     clip. Specificity here deliberately beats Astro's responsive styles. */
+  .band {
+    position: relative;
+    overflow: clip;
+    background: var(--navy-deep);
+  }
+
+  .band--hero { aspect-ratio: 16 / 7; }
+  .band--strip { aspect-ratio: 21 / 5; }
+
+  .band :global(img) {
+    position: absolute;
+    inset: -6% 0;
+    width: 100%;
+    max-width: none;
+    height: 112%;
+    object-fit: cover;
+  }
+
+  /* --- Editorial opening --------------------------------------------------- */
+  .editorial__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(var(--s-6), 5vw, var(--s-9));
+    align-items: start;
+  }
+
+  .editorial__title { max-width: 12ch; }
+
+  .editorial__copy { display: grid; gap: var(--s-5); }
+
+  .editorial__lede {
+    font-size: var(--t-h4);
+    font-weight: var(--w-xlight);
+    color: var(--ink);
+  }
+
+  .editorial__rule { max-width: 90px; background: var(--gold); }
+
+  /* --- Asymmetric image pair ----------------------------------------------- */
+  .pair__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: clamp(var(--s-5), 4vw, var(--s-7));
+    align-items: start;
+  }
+
+  .pair__major,
+  .pair__minor { margin: 0; }
+
+  .pair__minor { margin-top: clamp(var(--s-6), 8vw, var(--s-10)); }
+
+  /* --- Quote bands ---------------------------------------------------------
+     The claim itself, set at heading scale. A gold hairline stands in for the
+     opening mark so the type is never decorated. */
+  .quote {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: center;
+    margin: 0;
+    text-align: center;
+  }
+
+  .quote::before {
+    content: '';
+    width: clamp(48px, 6vw, 90px);
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .quote__text {
+    margin: 0;
+    max-width: 26ch;
+    font-size: var(--t-h3);
+    font-weight: var(--w-xlight);
+    letter-spacing: var(--track-body);
+    line-height: 1.55;
+    text-wrap: balance;
+  }
+
+  .quoteband .quote__text { color: var(--off-white); }
+  .quoteband--light .quote__text { color: var(--ink); }
+
+  .quote__by {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    font-style: normal;
+    color: var(--gold-ink);
+  }
+
+  /* --- Carla Guilhem ------------------------------------------------------- */
+  .guilhem__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(var(--s-6), 5vw, var(--s-9));
+    align-items: center;
+  }
+
+  .guilhem__figure { margin: 0; }
+
+  .guilhem__copy { display: grid; gap: var(--s-4); align-content: start; }
+
+  .guilhem__rule {
+    width: clamp(48px, 6vw, 90px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+    margin-block: var(--s-1);
+  }
+
+  /* --- Closing pair --------------------------------------------------------- */
+  .duo__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(var(--s-5), 4vw, var(--s-7));
+    align-items: start;
+  }
+
+  .duo__item { margin: 0; }
+
+  @media (max-width: 900px) {
+    .editorial__grid,
+    .guilhem__grid,
+    .pair__grid { grid-template-columns: 1fr; }
+    .editorial__title { max-width: none; }
+    .pair__minor { margin-top: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .band--hero { aspect-ratio: 4 / 3; }
+    .band--strip { aspect-ratio: 3 / 2; }
+    .titleband { padding-block: calc(var(--header-h) + var(--s-6)) var(--s-7); }
+  }
+</style>
