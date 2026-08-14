@@ -2,15 +2,16 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Hero from '../../components/Hero.astro';
+import HomeStack from '../../components/HomeStack.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam, localizePath } from '../../i18n/ui';
 import { getCopy } from '../../content/copy';
 import { homeCopy } from '../../content/pages/home';
 
-import bespokeDesign from '../../assets/home/bespoke-design-living-dining.jpg';
-import livingConcept from '../../assets/home/living-concept-building-waterfront.jpg';
-import naturalBeauty from '../../assets/home/natural-beauty-artefacto-lounge.jpg';
+import bespokeDesign from '../../assets/gallery/residence-living-dining-bay-view.jpg';
+import livingConcept from '../../assets/gallery/residence-terrace-to-living.jpg';
+import naturalBeauty from '../../assets/gallery/rooftop-deck-skyline.jpg';
 import greatRoom from '../../assets/home/great-room-full-bleed.jpg';
 
 export function getStaticPaths() {
@@ -30,14 +31,9 @@ const artwork: Record<string, ImageMetadata> = {
   'natural-beauty': naturalBeauty,
 };
 
-/* The incumbent alternates a solid colour panel against a full-bleed image:
-   sand/image, image/grey, sand/image. `flip` puts the image on the left. */
-const bands = c.home.features.map((f, i) => ({
-  ...f,
-  image: artwork[f.id],
-  flip: i % 2 === 1,
-  tone: i % 2 === 1 ? 'grey' : 'sand',
-}));
+/* These three read as edge-to-edge cards that shuffle over one another, so
+   there is no longer a colour panel to alternate or an image side to flip. */
+const bands = c.home.features.map((f) => ({ ...f, image: artwork[f.id] }));
 ---
 
 <Base
@@ -81,40 +77,7 @@ const bands = c.home.features.map((f, i) => ({
     </div>
   </section>
 
-  {bands.map((band) => (
-    <section
-      class:list={[
-        'feature',
-        band.tone === 'sand' ? 'feature--alt' : 'feature--grey',
-        { 'feature--flip': band.flip },
-      ]}
-      id={band.id}
-      aria-labelledby={`${band.id}-heading`}
-    >
-      <div class="feature__inner">
-        <figure class="feature__figure" data-reveal="fade">
-          <Image
-            class="feature__img"
-            src={band.image}
-            alt={band.alt}
-            widths={[640, 1024, 1440]}
-            sizes="(max-width: 860px) 100vw, 50vw"
-            loading="lazy"
-          />
-        </figure>
-
-        <div class="feature__panel">
-          <div class="feature__body">
-            <h2 class="feature__title" id={`${band.id}-heading`} data-reveal>
-              {band.lines.map((line) => <span class="feature__line">{line}</span>)}
-              {band.sub && <span class="feature__sub">{band.sub}</span>}
-            </h2>
-            <hr class="feature__rule" data-reveal="fade" />
-          </div>
-        </div>
-      </div>
-    </section>
-  ))}
+  <HomeStack bands={bands} />
 
   <PresentationCTA locale={locale} />
 
@@ -194,103 +157,10 @@ const bands = c.home.features.map((f, i) => ({
   .btn--outline svg { transition: transform var(--dur-base) var(--ease-out); }
   .btn--outline:hover svg { transform: translate(3px, -3px); }
 
-  /* --- Alternating bands --------------------------------------------------
-     Edge to edge, half colour panel and half photograph, mirroring the
-     incumbent. Same alt/flip vocabulary as the amenities page.              */
-
-  .feature { scroll-margin-top: var(--header-h); }
-
-  .feature__inner {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    min-height: clamp(360px, 42vw, 560px);
-  }
-
-  /* Default is panel-left, image-right; flip swaps them. */
-  .feature__figure { order: 2; margin: 0; }
-  .feature__panel { order: 1; }
-  .feature--flip .feature__figure { order: 1; }
-  .feature--flip .feature__panel { order: 2; }
-
-  .feature__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .feature--alt .feature__panel { background: var(--ground); }
-  .feature--grey .feature__panel { background: var(--warm-gray); }
-
-  .feature__panel {
-    display: grid;
-    align-items: center;
-    padding: clamp(var(--s-6), 6vw, var(--s-10));
-  }
-
-  /* The panel's own column is indented from the outer edge so the type sits
-     off the page margin rather than against it. */
-  .feature__body {
-    display: grid;
-    justify-items: start;
-    gap: var(--s-5);
-    margin-inline: auto;
-  }
-
-  .feature--flip .feature__body { margin-inline: auto; }
-
-  .feature__title {
-    display: grid;
-    gap: 0.1em;
-    font-size: clamp(1.5rem, 1rem + 1.9vw, 2.6rem);
-    font-weight: var(--w-thin);
-    letter-spacing: var(--track-heading);
-    line-height: 1.22;
-    text-transform: uppercase;
-    color: var(--ink);
-  }
-
-  .feature__line { white-space: nowrap; }
-
-  /* The second line carries the weight the incumbent gives it. */
-  .feature__line:nth-child(2) { font-weight: var(--w-light); }
-
-  .feature__sub {
-    justify-self: end;
-    margin-top: 0.15em;
-    font-size: 0.5em;
-    letter-spacing: 0.02em;
-    text-transform: none;
-    color: var(--ink-muted);
-  }
-
-  .feature__rule {
-    width: min(100%, 320px);
-    height: 1px;
-    border: 0;
-    background: var(--rule);
-  }
-
-  /* On the grey panel the ink lightens to keep contrast. */
-  .feature--grey .feature__title { color: var(--off-white); }
-  .feature--grey .feature__sub { color: rgba(255, 253, 249, 0.8); }
-  .feature--grey .feature__rule { background: rgba(255, 253, 249, 0.5); }
+  /* The three feature bands live in HomeStack.astro, shared with /v2/. */
 
   /* --- Closing frame ------------------------------------------------------ */
 
   .fullbleed { background: var(--navy); font-size: 0; }
   .fullbleed__img { width: 100%; height: auto; }
-
-  @media (max-width: 860px) {
-    /* Stacked: image first on every band, so the rhythm stays predictable. */
-    .feature__inner { grid-template-columns: 1fr; min-height: 0; }
-    .feature__figure,
-    .feature--flip .feature__figure { order: 1; }
-    .feature__panel,
-    .feature--flip .feature__panel { order: 2; }
-
-    .feature__img { height: auto; aspect-ratio: 16 / 10; }
-    .feature__body { margin-inline: 0; }
-    .feature__line { white-space: normal; }
-  }
 </style>

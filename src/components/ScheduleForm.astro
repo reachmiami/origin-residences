@@ -44,37 +44,61 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     data-schedule-form
     data-locale={locale}
   >
+    {/* The legend sits inline with its options, on their baseline.
+
+        Getting there needs the real <legend> OUT of flow: a fieldset's first
+        legend is given special "rendered legend" treatment — and is therefore
+        not a flex item — unless it is floated or absolutely positioned.
+        Absolutely positioning it (which is what .visually-hidden does) takes it
+        out of flow entirely, so the visible caption can be a plain span, and a
+        plain span can be a flex item that baseline-aligns with the pills.
+
+        The <legend> still names the group for assistive tech; the visible span
+        is aria-hidden so the caption is not announced twice. */}
     <fieldset class="form__fieldset">
-      <legend class="form__legend">
-        {c.forms.methodLabel} <span class="req" aria-hidden="true">*</span>
-      </legend>
-      <div class="opts opts--method">
-        {methods.map((m, i) => (
-          <label class="opt">
-            <input type="radio" name="presentationMethod" value={m} required checked={i === 0} />
-            <span class="opt__face">{m}</span>
-          </label>
-        ))}
+      <legend class="visually-hidden">{c.forms.methodLabel}</legend>
+      <span class="form__legend" aria-hidden="true">
+        {c.forms.methodLabel} <span class="req">*</span>
+      </span>
+      <div class="form__fieldset-body">
+        <div class="opts opts--method">
+          {methods.map((m, i) => (
+            <label class="opt">
+              <input type="radio" name="presentationMethod" value={m} required checked={i === 0} />
+              <span class="opt__face">{m}</span>
+            </label>
+          ))}
+        </div>
+        <span class="field__error" data-error-for="presentationMethod" hidden></span>
       </div>
-      <span class="field__error" data-error-for="presentationMethod" hidden></span>
     </fieldset>
 
     <fieldset class="form__fieldset">
-      <legend class="form__legend">
-        {c.forms.timeLabel} <span class="req" aria-hidden="true">*</span>
-      </legend>
-      <div class="opts opts--time">
-        {TIMES.map((time) => (
-          <label class="opt">
-            <input type="radio" name="preferredTime" value={time.value} required />
-            <span class="opt__face">{locale === 'en' ? time.value : time.clock}</span>
-          </label>
-        ))}
+      <legend class="visually-hidden">{c.forms.timeLabel}</legend>
+      <span class="form__legend" aria-hidden="true">
+        {c.forms.timeLabel} <span class="req">*</span>
+      </span>
+      <div class="form__fieldset-body">
+        <div class="opts opts--time">
+          {TIMES.map((time) => (
+            <label class="opt">
+              <input type="radio" name="preferredTime" value={time.value} required />
+              <span class="opt__face">{locale === 'en' ? time.value : time.clock}</span>
+            </label>
+          ))}
+        </div>
+        <span class="field__error" data-error-for="preferredTime" hidden></span>
       </div>
-      <span class="field__error" data-error-for="preferredTime" hidden></span>
     </fieldset>
 
+    {/* As on the inquiry form, the placeholder is the visible label and the
+        <label> stays in the DOM visually hidden, because a placeholder is not
+        an accessible name — it vanishes the moment anyone types. */}
     <div class="form__grid">
+      {/* The one field that keeps a VISIBLE label. `type="date"` ignores
+          `placeholder` entirely — the control paints its own `mm/dd/yyyy`
+          instead — so hiding the label here would leave a date box with no
+          indication of what date is being asked for. */}
       <p class="field">
         <label for={`${id}-date`}>{c.forms.dateLabel} <span class="req" aria-hidden="true">*</span></label>
         {/* `min` is set at runtime — a build-time value would go stale. */}
@@ -83,26 +107,30 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       </p>
 
       <p class="field">
-        <label for={`${id}-name`}>{c.forms.fullName} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-name`} name="fullName" type="text" autocomplete="name" required />
+        <label class="visually-hidden" for={`${id}-name`}>{c.forms.fullName}</label>
+        <input id={`${id}-name`} name="fullName" type="text" autocomplete="name"
+               placeholder={`${c.forms.fullName.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="fullName" hidden></span>
       </p>
 
       <p class="field">
-        <label for={`${id}-email`}>{c.forms.email} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+        <label class="visually-hidden" for={`${id}-email`}>{c.forms.email}</label>
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email"
+               placeholder={`${c.forms.email.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="email" hidden></span>
       </p>
 
       <p class="field">
-        <label for={`${id}-phone`}>{c.forms.phone} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" required />
+        <label class="visually-hidden" for={`${id}-phone`}>{c.forms.phone}</label>
+        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel"
+               placeholder={`${c.forms.phone.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="phone" hidden></span>
       </p>
 
       <p class="field field--wide">
-        <label for={`${id}-comments`}>{c.forms.comments}</label>
-        <textarea id={`${id}-comments`} name="comments" rows="3"></textarea>
+        <label class="visually-hidden" for={`${id}-comments`}>{c.forms.comments}</label>
+        <textarea id={`${id}-comments`} name="comments" rows="3"
+                  placeholder={c.forms.comments.toUpperCase()}></textarea>
       </p>
     </div>
 
@@ -124,7 +152,6 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     <span class="field__error consent__error" data-error-for="consent" hidden></span>
 
     <div class="form__foot">
-      <p class="form__required">* {t('required')}</p>
       <button class="btn btn--solid" type="submit" data-submit>
         <span data-submit-label>{t('schedule')}</span>
       </button>
@@ -157,6 +184,10 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     max-width: 880px;
     margin-inline: auto;
 
+    /* Matches the inquiry form. NOTE: 500 is Montserrat Medium, outside the
+       brand kit's Thin/ExtraLight/Light — see HANDOFF open item 5. */
+    font-weight: var(--w-medium);
+
     /* On the sand grounds this form sits on, --ink-muted is 2.5:1 and --gold
        2.4:1 — both short of AA for text this small. Darkened mixes of the
        same tokens hold the hierarchy and the accent hue while clearing
@@ -170,10 +201,41 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
 
   .form { display: grid; gap: var(--s-6); }
 
-  .form__fieldset { border: 0; padding: 0; margin: 0; min-inline-size: 0; }
+  /* Real flex alignment here, unlike the inquiry form's floated legend: because
+     the caption is a plain span it CAN be a flex item, so the browser computes
+     the baseline instead of the stylesheet approximating it with line-height.
+     That is the whole reason for the extra span — a float can never take part
+     in `align-items: baseline`, and against these 46px pills the arithmetic
+     version would have to be re-derived from the pill's box rather than from
+     the type alone. */
+  .form__fieldset {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-5);
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-inline-size: 0;
+  }
 
-  .form__legend,
-  .field label {
+  .form__legend {
+    flex: none;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-muted-aa);
+  }
+
+  /* min-width: 0 is what lets the pill grid actually shrink. Without it a flex
+     item floors at its min-content width and the pills overflow — which is the
+     failure the floated version could not escape. */
+  .form__fieldset-body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* The date field is the only one still showing a visible label. */
+  .field label:not(.visually-hidden) {
     display: block;
     margin-bottom: var(--s-3);
     font-size: var(--t-micro);
@@ -252,8 +314,20 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     border-bottom: 1px solid var(--rule);
     border-radius: 0;
     font-size: var(--t-body);
-    font-weight: var(--w-light);
+    font-weight: var(--w-medium);
     transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  /* The placeholder carries what the label used to say, so it takes the label's
+     register. Uppercasing is done in the markup — text-transform on
+     ::placeholder is unevenly supported. */
+  .field input::placeholder,
+  .field textarea::placeholder {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-label);
+    color: var(--ink-muted-aa);
+    opacity: 1; /* Firefox dims placeholders by default; that would fail AA. */
   }
 
   .field textarea { resize: vertical; }
@@ -299,15 +373,15 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     overflow: hidden;
   }
 
+  /* The required-fields note that sat opposite the button is gone, so the
+     button is now the only child and takes the right-hand edge on its own. */
   .form__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: var(--s-4);
   }
-
-  .form__required { font-size: var(--t-micro); color: var(--ink-muted-aa); }
 
   .btn--solid {
     display: inline-flex;
@@ -349,6 +423,13 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
     .form__grid { grid-template-columns: 1fr; }
     .form__foot { flex-direction: column; align-items: stretch; }
     .btn--solid { justify-content: center; }
+
+    /* Back to stacked. The caption does not shrink and the method pills carry a
+       200px floor, so side by side there is simply not enough room at phone
+       widths — measured, it pushed 105px past the form and put a horizontal
+       scrollbar on the document. */
+    .form__fieldset { display: block; }
+    .form__legend { display: block; margin-bottom: var(--s-3); }
   }
 </style>
 

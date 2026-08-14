@@ -88,23 +88,22 @@ const t = useTranslations(locale);
     isolation: isolate;
   }
 
-  /* Not the full blue wash that was removed: an elliptical pool of shade
-     centred on the copy, fading out well before the frame edges. */
+  /* A thin veil across the whole frame, and nothing more. Its only job is the
+     top of the photograph, where the transparent header's type sits before the
+     bar fills — the pool below is anchored to the copy and reaches nowhere near
+     that far up. */
   .hero2::after {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background:
-      radial-gradient(
-        ellipse 88% 76% at 50% 52%,
-        rgba(5, 20, 38, 0.66) 0%,
-        rgba(5, 20, 38, 0.55) 34%,
-        rgba(5, 20, 38, 0.34) 60%,
-        rgba(5, 20, 38, 0.08) 84%,
-        rgba(5, 20, 38, 0) 100%
-      );
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--navy-deep) 34%, transparent) 0%,
+      color-mix(in srgb, var(--navy-deep) 10%, transparent) 26%,
+      transparent 46%
+    );
   }
 
   .hero2__media {
@@ -147,11 +146,42 @@ const t = useTranslations(locale);
   }
 
   .hero2__content {
+    position: relative;
     display: grid;
     justify-items: center;
     text-align: center;
     gap: var(--s-5);
     max-width: 1100px;
+  }
+
+  /* The pool of shade is anchored to the copy rather than to the section, so it
+     sits under the type at every viewport. That matters here because the hero
+     is `align-content: end` — the copy sits low, while the old section-centred
+     gradient put its darkest point at 52% of the frame, above the words it was
+     meant to be seating.
+
+     Sized past the viewport on purpose: the headline runs to 1100px inside a
+     1440px frame, so there is little room for a horizontal falloff, and most of
+     the fade has to happen vertically. Radii are set so the full-strength core
+     clears the headline's own box — `measure-hero` is what confirms it. */
+  .hero2__content::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: -1;
+    width: 210vw;
+    height: 165vh;
+    translate: -50% -50%;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 50% 32% at 50% 50%,
+      color-mix(in srgb, var(--navy-deep) 66%, transparent) 0%,
+      color-mix(in srgb, var(--navy-deep) 66%, transparent) 38%,
+      color-mix(in srgb, var(--navy-deep) 38%, transparent) 66%,
+      color-mix(in srgb, var(--navy-deep) 10%, transparent) 86%,
+      transparent 100%
+    );
   }
 
   .hero2__headline {

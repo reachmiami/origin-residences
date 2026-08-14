@@ -24,7 +24,11 @@ export interface Copy {
     presentationBody: string;
     presentationCta: string;
     /** Alternating image/panel bands, in page order. */
-    features: { id: string; lines: string[]; sub?: string; alt: string }[];
+    /* `sub` is the credit's leading words only — the brand name itself is
+       `subBrand`, kept separate because it renders as the Artefacto wordmark
+       rather than as type. It stays in the copy so it can still be read aloud,
+       and so the leading word can differ per locale (by / por / pela). */
+    features: { id: string; lines: string[]; sub?: string; subBrand?: string; alt: string }[];
     fullBleedAlt: string;
   };
   forms: {
@@ -83,12 +87,12 @@ const en: Copy = {
       'Discover more about our limited availability units through a personalized one-on-one session from our sales gallery.',
     presentationCta: 'Schedule private presentation',
     features: [
-      { id: 'bespoke-design', lines: ['Exceptional', 'bespoke design'], sub: 'by artefacto',
-        alt: 'Living and dining room of an ORIGIN residence furnished by Artefacto, a sculptural cluster pendant above the table and terrace doors open to the bay.' },
+      { id: 'bespoke-design', lines: ['Exceptional', 'bespoke design'], sub: 'by', subBrand: 'Artefacto',
+        alt: 'Rendering of a residence living and dining room, green upholstered chairs around an oval table under a cluster pendant, opening to a bay view.' },
       { id: 'living-concept', lines: ['Carefully', 'thought out', 'living concept'],
-        alt: 'The ORIGIN building seen from the water at dusk, stacked terraces above the pool deck and palms along the seawall.' },
+        alt: 'Rendering of a residence seen from its terrace, sliding doors open onto the kitchen, dining table and living room within.' },
       { id: 'natural-beauty', lines: ['A celebration', 'of natural beauty'],
-        alt: 'An Artefacto lounge setting in soft bouclé, photographed from above in strong daylight.' },
+        alt: 'Rendering of the rooftop deck seen from across the water, the pool and umbrellas set between planted edges beneath a wide sky.' },
     ],
     fullBleedAlt: 'Great room of an ORIGIN residence: curved seating on a patterned rug, dining table beyond, and floor-to-ceiling glass onto the bay.',
   },
@@ -159,12 +163,12 @@ const es: Copy = {
       'Descubra más sobre nuestras unidades de disponibilidad limitada en una sesión personalizada e individual en nuestra galería de ventas.',
     presentationCta: 'Agendar presentación privada',
     features: [
-      { id: 'bespoke-design', lines: ['Diseño excepcional', 'hecho a medida'], sub: 'por artefacto',
-        alt: 'Salón y comedor de una residencia ORIGIN amueblada por Artefacto, con una lámpara escultórica sobre la mesa y las puertas de la terraza abiertas a la bahía.' },
+      { id: 'bespoke-design', lines: ['Diseño excepcional', 'hecho a medida'], sub: 'por', subBrand: 'Artefacto',
+        alt: 'Imagen ilustrativa de la sala y el comedor de una residencia: sillas tapizadas en verde alrededor de una mesa ovalada bajo una lámpara de racimo, abiertos a la vista de la bahía.' },
       { id: 'living-concept', lines: ['Un concepto de vida', 'cuidadosamente', 'pensado'],
-        alt: 'El edificio ORIGIN visto desde el agua al atardecer, con terrazas escalonadas sobre la piscina y palmeras a lo largo del malecón.' },
+        alt: 'Imagen ilustrativa de una residencia vista desde su terraza: las puertas correderas abren a la cocina, el comedor y la sala interiores.' },
       { id: 'natural-beauty', lines: ['Una celebración', 'de la belleza natural'],
-        alt: 'Un conjunto de salón de Artefacto en bouclé suave, fotografiado desde arriba con luz natural intensa.' },
+        alt: 'Imagen ilustrativa de la azotea vista desde el otro lado del agua: la piscina y las sombrillas entre bordes ajardinados bajo un cielo amplio.' },
     ],
     fullBleedAlt: 'Salón principal de una residencia ORIGIN: asientos curvos sobre una alfombra estampada, comedor al fondo y ventanales de piso a techo hacia la bahía.',
   },
@@ -235,12 +239,12 @@ const ptBr: Copy = {
       'Conheça mais sobre nossas unidades de disponibilidade limitada em uma sessão personalizada e individual em nosso showroom de vendas.',
     presentationCta: 'Agendar apresentação privada',
     features: [
-      { id: 'bespoke-design', lines: ['Design excepcional', 'sob medida'], sub: 'pela artefacto',
-        alt: 'Sala de estar e jantar de uma residência ORIGIN mobiliada pela Artefacto, com luminária escultural sobre a mesa e portas do terraço abertas para a baía.' },
+      { id: 'bespoke-design', lines: ['Design excepcional', 'sob medida'], sub: 'pela', subBrand: 'Artefacto',
+        alt: 'Imagem ilustrativa da sala de estar e jantar de uma residência: cadeiras estofadas em verde ao redor de uma mesa oval sob um pendente em cacho, abertas para a vista da baía.' },
       { id: 'living-concept', lines: ['Um conceito de morar', 'cuidadosamente', 'pensado'],
-        alt: 'O edifício ORIGIN visto da água ao entardecer, com terraços escalonados sobre o deck da piscina e palmeiras ao longo do cais.' },
+        alt: 'Imagem ilustrativa de uma residência vista de seu terraço: as portas de correr se abrem para a cozinha, a mesa de jantar e a sala de estar.' },
       { id: 'natural-beauty', lines: ['Uma celebração', 'da beleza natural'],
-        alt: 'Um conjunto de lounge da Artefacto em bouclé macio, fotografado de cima sob luz natural intensa.' },
+        alt: 'Imagem ilustrativa do deck da cobertura visto do outro lado da água: a piscina e os guarda-sóis entre bordas ajardinadas sob um céu amplo.' },
     ],
     fullBleedAlt: 'Sala principal de uma residência ORIGIN: assentos curvos sobre tapete estampado, mesa de jantar ao fundo e vidros do piso ao teto voltados para a baía.',
   },

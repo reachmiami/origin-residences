@@ -102,6 +102,16 @@
   --rule: rgba(8, 35, 65, 0.16);
   --rule-on-dark: rgba(255, 253, 249, 0.22);
 
+  /* Scrim laid over full-bleed photography so light-weight type stays legible
+     on top of it. Navy at opacity — the palette does not widen, it just gains a
+     transparency. The value is measured, not guessed: `measure-stack-contrast`
+     samples the real composited pixels behind the headings and reports the
+     lightest one. At 62% the worst pixel gave 4.53:1, which passes AA by 0.03
+     and would fail the moment a photograph is re-cropped or replaced. 70% puts
+     roughly a point of headroom under it, which the brand's 100-weight strokes
+     want anyway. */
+  --scrim-band: color-mix(in srgb, var(--navy) 70%, transparent);
+
   --focus-ring: var(--gold);
 
   /* --- Typography --------------------------------------------------------
@@ -349,6 +359,28 @@ ul, ol {
   background: var(--ground-alt);
 }
 
+/* The lead-capture band carries a photograph instead of a flat ground.
+   Scoped to #inquire, NOT to .section--alt, because that class also dresses the
+   Artefacto pair, the floor-plan collections, the neighbourhood locator and the
+   quote band — none of which should pick up a background image.
+
+   The veil is not decoration. The form's secondary type is --ink-muted and its
+   required marks are --gold-ink, both of which are calibrated against the flat
+   sand grounds; over the photograph's darker passages they would drop straight
+   through AA. `measure-inquire` reads the darkest pixel behind each piece of
+   type and is what sets this number. */
+#inquire.section--alt {
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--ground-alt) 72%, transparent),
+      color-mix(in srgb, var(--ground-alt) 72%, transparent)
+    ),
+    url('../assets/footer/origin-footer.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
 /* The brand's core typographic gesture: light, uppercase, widely tracked. */
 .eyebrow {
   font-size: var(--t-micro);
@@ -360,7 +392,7 @@ ul, ol {
 
 .display {
   font-size: var(--t-display);
-  font-weight: var(--w-thin);
+  font-weight: var(--w-light);
   letter-spacing: var(--track-display);
   line-height: var(--leading-display);
   text-transform: uppercase;
@@ -368,7 +400,7 @@ ul, ol {
 
 .heading {
   font-size: var(--t-h2);
-  font-weight: var(--w-thin);
+  font-weight: var(--w-light);
   letter-spacing: var(--track-heading);
   text-transform: uppercase;
 }

@@ -60,28 +60,37 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       </div>
     </fieldset>
 
+    {/* The visible label is the placeholder now. The <label> stays in the DOM,
+        visually hidden, because a placeholder is NOT an accessible name — it
+        disappears the moment anyone types, leaving a screen reader and anyone
+        checking their own answers with an unnamed box. Keeping both is what
+        lets the field look unlabelled without actually being unlabelled. */}
     <div class="form__grid">
       <p class="field">
-        <label for={`${id}-first`}>{c.forms.firstName} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-first`} name="firstName" type="text" autocomplete="given-name" required />
+        <label class="visually-hidden" for={`${id}-first`}>{c.forms.firstName}</label>
+        <input id={`${id}-first`} name="firstName" type="text" autocomplete="given-name"
+               placeholder={`${c.forms.firstName.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="firstName" hidden></span>
       </p>
 
       <p class="field">
-        <label for={`${id}-last`}>{c.forms.lastName} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-last`} name="lastName" type="text" autocomplete="family-name" required />
+        <label class="visually-hidden" for={`${id}-last`}>{c.forms.lastName}</label>
+        <input id={`${id}-last`} name="lastName" type="text" autocomplete="family-name"
+               placeholder={`${c.forms.lastName.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="lastName" hidden></span>
       </p>
 
       <p class="field">
-        <label for={`${id}-email`}>{c.forms.email} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+        <label class="visually-hidden" for={`${id}-email`}>{c.forms.email}</label>
+        <input id={`${id}-email`} name="email" type="email" autocomplete="email"
+               placeholder={`${c.forms.email.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="email" hidden></span>
       </p>
 
       <p class="field">
-        <label for={`${id}-phone`}>{c.forms.phone} <span class="req" aria-hidden="true">*</span></label>
-        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel" required />
+        <label class="visually-hidden" for={`${id}-phone`}>{c.forms.phone}</label>
+        <input id={`${id}-phone`} name="phone" type="tel" autocomplete="tel"
+               placeholder={`${c.forms.phone.toUpperCase()} *`} required />
         <span class="field__error" data-error-for="phone" hidden></span>
       </p>
 
@@ -105,7 +114,6 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     <span class="field__error consent__error" data-error-for="consent" hidden></span>
 
     <div class="form__foot">
-      <p class="form__required">* {t('required')}</p>
       <button class="btn btn--solid" type="submit" data-submit>
         <span data-submit-label>{isFull ? t('submit') : t('requestInfo')}</span>
       </button>
@@ -132,6 +140,11 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     gap: var(--s-6);
     max-width: 880px;
     margin-inline: auto;
+    /* Everything in the form runs one step heavier than the page around it.
+       NOTE: 500 is Montserrat Medium, which sits OUTSIDE the brand kit's
+       Thin/ExtraLight/Light — until now it was scoped strictly to the v2
+       header. Carried here at the owner's request; see HANDOFF open item 5. */
+    font-weight: var(--w-medium);
   }
 
   .form-block__head { display: grid; gap: var(--s-3); text-align: center; justify-items: center; }
@@ -139,12 +152,36 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
 
   .form { display: grid; gap: var(--s-5); }
 
-  .form__fieldset { border: 0; padding: 0; margin: 0; }
+  /* flow-root so the floated legend is contained rather than escaping the box. */
+  .form__fieldset {
+    display: flow-root;
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
 
-  .form__legend,
-  .field label {
-    display: block;
-    margin-bottom: var(--s-2);
+  /* The legend sits on the same row as the radios rather than above them.
+     `float` is what makes that possible: per the HTML rendering spec a fieldset's
+     first legend is only given its special "rendered legend" treatment when it is
+     NOT floated or absolutely positioned. Floated, it joins normal flow — where
+     a flex container beside it (the radios) is placed next to the float instead
+     of under it. Making the fieldset `display: flex` does NOT work: the legend
+     is not a flex item, so it would stay stubbornly on its own line. */
+  .form__legend {
+    float: left;
+    margin: 0 var(--s-5) 0 0;
+    padding: 0;
+    /* Sit on the SAME BASELINE as the radio labels beside it, not on the same
+       top edge. Both line boxes start at the same y, so aligning the baselines
+       means giving the smaller type extra leading — the radios' own line box,
+       plus half the font-size difference scaled by the face's (ascent −
+       descent). Left at a plain line-height the legend rides high and reads as
+       top-aligned, which is exactly what it looked like.
+       A float cannot take part in `align-items: baseline`, so this is arithmetic
+       rather than alignment; `measure-form` checks the result in pixels. */
+    line-height: calc(
+      var(--t-small) * var(--leading-body) + 0.717 * (var(--t-small) - var(--t-micro))
+    );
     font-size: var(--t-micro);
     letter-spacing: var(--track-label);
     text-transform: uppercase;
@@ -153,7 +190,7 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
 
   .req { color: var(--gold-ink); }
 
-  .form__radios { display: flex; flex-wrap: wrap; gap: var(--s-5); }
+  .form__radios { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-5); }
 
   .radio, .consent { display: flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
   .radio span { font-size: var(--t-small); }
@@ -185,8 +222,21 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     border-bottom: 1px solid var(--rule);
     border-radius: 0;
     font-size: var(--t-body);
-    font-weight: var(--w-light);
+    font-weight: var(--w-medium);
     transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  /* The placeholder now carries what the label used to say, so it takes the
+     label's register — tracked uppercase in muted ink — rather than looking
+     like half-typed input. Uppercasing happens in the markup, not here:
+     text-transform on ::placeholder is unevenly supported. */
+  .field input::placeholder,
+  .field textarea::placeholder {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-label);
+    color: var(--ink-muted);
+    opacity: 1; /* Firefox dims placeholders by default; that would fail AA. */
   }
 
   .field textarea { resize: vertical; }
@@ -228,16 +278,16 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     overflow: hidden;
   }
 
+  /* The required-fields note that sat opposite the button is gone, so the
+     button is now the only child and takes the right-hand edge on its own. */
   .form__foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: var(--s-4);
     margin-top: var(--s-2);
   }
-
-  .form__required { font-size: var(--t-micro); color: var(--ink-muted); }
 
   .btn--solid {
     display: inline-flex;

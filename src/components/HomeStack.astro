@@ -1,0 +1,239 @@
+---
+import { Image } from 'astro:assets';
+import artefactoSvg from '../assets/brand/logo-artefacto.svg?raw';
+
+/**
+ * The homepage's three feature bands, as edge-to-edge cards that shuffle.
+ *
+ * Each band is a full-bleed photograph the height of the viewport minus the
+ * fixed header, with its heading and rule centred over a scrim. The bands are
+ * sticky siblings inside one container, so each holds at the header's lower
+ * edge while the next scrolls up and covers it — the illusion being a deck of
+ * cards being dealt over one another.
+ *
+ * Shared by BOTH homepages (`/` and `/v2/`), which previously each carried
+ * their own verbatim copy of this markup and CSS. One implementation means the
+ * two cannot drift while the v1/v2 decision is still open.
+ *
+ * Ordering note: the bands need no explicit z-index. They are all positioned
+ * (sticky) with `z-index: auto`, so they paint in DOM order and each one
+ * naturally covers the one before it.
+ */
+interface Props {
+  bands: {
+    id: string;
+    /** Each entry is one deliberate line of the headline. */
+    lines: string[];
+    /** The credit's leading words, e.g. "by". */
+    sub?: string;
+    /** Brand name in the credit. Rendered as the Artefacto wordmark. */
+    subBrand?: string;
+    alt: string;
+    image: ImageMetadata;
+  }[];
+  /** Which line index onward carries the heavier weight. Default 1. */
+  emphasisFrom?: number;
+}
+
+const { bands, emphasisFrom = 1 } = Astro.props;
+
+/**
+ * The Artefacto wordmark, inlined so it can inherit the credit's text colour.
+ * An <img> could not — a referenced SVG is a separate document and `currentColor`
+ * never reaches it — and the mark has to change colour with the type it sits in.
+ *
+ * Imported with `?raw` so Vite inlines the file's text at build time — reading
+ * it from disk at render time does not work, because the built component runs
+ * from `dist/chunks/` where the source tree no longer exists.
+ *
+ * Two things have to be stripped. Illustrator ships the fill as a document-level
+ * `<style>` rule, which once inlined would (a) pin the mark to #231f20 so it
+ * could never take the type's colour, and (b) leak a global `.cls-1` selector
+ * into the page — and every other Illustrator export in `assets/brand/` uses
+ * that same class name, so they would fight over it.
+ */
+const artefactoMark = artefactoSvg
+  .replace(/<\?xml[\s\S]*?\?>/g, '')
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/<style>[\s\S]*?<\/style>/g, '')
+  .replace(/\sclass="cls-1"/g, ' fill="currentColor"')
+  .replace(/<svg\s/, '<svg aria-hidden="true" focusable="false" ')
+  .trim();
+---
+
+<div class="stack">
+  {bands.map((band, i) => (
+    <section class="stack__band" id={band.id} aria-labelledby={`${band.id}-heading`}>
+      <Image
+        class="stack__img"
+        src={band.image}
+        alt={band.alt}
+        widths={[768, 1280, 1920]}
+        sizes="100vw"
+        loading={i === 0 ? 'eager' : 'lazy'}
+      />
+      <div class="stack__scrim" aria-hidden="true"></div>
+
+      <div class="stack__body">
+        <h2 class="stack__title" id={`${band.id}-heading`} data-reveal>
+          {band.lines.map((line, li) => (
+            <span class:list={['stack__line', { 'is-strong': li >= emphasisFrom }]}>{line}</span>
+          ))}
+          {band.sub && (
+            <span class="stack__sub">
+              <span>{band.sub}</span>
+              {band.subBrand && (
+                <span class="stack__mark" role="img" aria-label={band.subBrand} set:html={artefactoMark} />
+              )}
+            </span>
+          )}
+        </h2>
+        <hr class="stack__rule" data-reveal="fade" />
+      </div>
+    </section>
+  ))}
+</div>
+
+<style>
+  /* No trailing pad by design. A sticky element may only stay stuck while its
+     box is inside its containing block's padding box, so the third band reaches
+     the top and moves straight on into the CTA below rather than dwelling. */
+  .stack {
+    position: relative;
+  }
+
+  .stack__band {
+    position: sticky;
+    top: var(--header-h);
+    /* Butted against the header's lower edge, filling exactly what is left of
+       the viewport. svh, not vh, so mobile browser chrome does not crop it. */
+    height: calc(100svh - var(--header-h));
+    min-height: 420px;
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    /* Opaque ground: each card must fully hide the one it covers, including
+       while a lazy photograph is still decoding. */
+    background: var(--navy);
+    scroll-margin-top: var(--header-h);
+  }
+
+  .stack__img,
+  .stack__scrim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .stack__img {
+    object-fit: cover;
+  }
+
+  /* Radiates from the centre, where the type sits, out to near-transparency at
+     the edges so the photograph is only muted where it has to be.
+
+     The radii are not styling by feel — they are set against measured type
+     extents. The heading block spans ~60% of the section's width at 1440px but
+     ~100% of it at 375px, so a core sized for the desktop composition would
+     leave the ends of the phone lines sitting in the falloff. `--scrim-rx`
+     widens below to compensate; the solid stop then covers the type at every
+     width, and `measure-stack-contrast` is what confirms it. */
+  .stack__scrim {
+    --scrim-rx: 78%;
+    --scrim-ry: 62%;
+
+    background: radial-gradient(
+      ellipse var(--scrim-rx) var(--scrim-ry) at 50% 50%,
+      var(--scrim-band) 0%,
+      var(--scrim-band) 42%,
+      color-mix(in srgb, var(--navy) 42%, transparent) 68%,
+      color-mix(in srgb, var(--navy) 16%, transparent) 88%,
+      transparent 100%
+    );
+  }
+
+  .stack__body {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    padding-inline: var(--gutter);
+    text-align: center;
+  }
+
+  .stack__title {
+    display: grid;
+    justify-items: center;
+    gap: 0.1em;
+    /* Larger than the old half-width panel allowed: the line now has the whole
+       viewport to cross. Weight, tracking and case are unchanged. */
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.4rem);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    line-height: 1.22;
+    text-transform: uppercase;
+    color: var(--ink-on-dark);
+  }
+
+  /* Each entry is one deliberate line; wrapping would change the composition. */
+  .stack__line { white-space: nowrap; }
+  .stack__line.is-strong { font-weight: var(--w-light); }
+
+  .stack__sub {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5em;
+    margin-top: 0.35em;
+    font-size: 0.42em;
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--ink-on-dark-muted);
+  }
+
+  /* The wordmark stands in for the brand name. `cap` is the cap height of the
+     surrounding font — the height uppercase "ARTEFACTO" occupied — and it runs
+     at 1.5× that, so the mark reads a little larger than the credit beside it.
+     The em fallback is the same multiple of Montserrat's 0.7 cap ratio, for
+     engines without the unit. */
+  .stack__mark :global(svg) {
+    display: block;
+    height: 1.05em;
+    height: 1.5cap;
+    width: auto;
+    /* The whole point of inlining: the mark takes the credit's colour. */
+    fill: currentColor;
+  }
+
+  /* Gold is decorative here, never carrying text, and reads on the navy scrim
+     the same way it does on the navy grounds elsewhere. */
+  .stack__rule {
+    width: min(60vw, 180px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  /* Reduced motion gets the same edge-to-edge composition with none of the
+     scroll choreography: plain blocks in normal flow, no sticking, no dwell. */
+  @media (prefers-reduced-motion: reduce) {
+    .stack__band {
+      position: static;
+      height: auto;
+      min-height: 0;
+      padding-block: var(--section-y);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .stack__line { white-space: normal; }
+    .stack__rule { width: min(70vw, 140px); }
+
+    /* The heading runs nearly edge to edge here, so the core has to reach past
+       the section's own width to keep the ends of the lines out of the fade. */
+    .stack__scrim {
+      --scrim-rx: 125%;
+      --scrim-ry: 55%;
+    }
+  }
+</style>
