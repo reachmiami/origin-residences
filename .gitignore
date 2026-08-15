@@ -9,3 +9,8 @@ node_modules/
 .DS_Store
 *.log
 npm-debug.log*
+
+# Camera working files. Originals belong in the asset library, not the repo —
+# only the exported web asset should be committed.
+*.CR3
+*.xmp

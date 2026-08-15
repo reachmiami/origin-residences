@@ -85,7 +85,7 @@ const en: Copy = {
     presentationTitle: 'Schedule private presentation',
     presentationBody:
       'Discover more about our limited availability units through a personalized one-on-one session from our sales gallery.',
-    presentationCta: 'Schedule private presentation',
+    presentationCta: 'Schedule presentation',
     features: [
       { id: 'bespoke-design', lines: ['Exceptional', 'bespoke design'], sub: 'by', subBrand: 'Artefacto',
         alt: 'Rendering of a residence living and dining room, green upholstered chairs around an oval table under a cluster pendant, opening to a bay view.' },
@@ -161,7 +161,7 @@ const es: Copy = {
     presentationTitle: 'Agendar presentación privada',
     presentationBody:
       'Descubra más sobre nuestras unidades de disponibilidad limitada en una sesión personalizada e individual en nuestra galería de ventas.',
-    presentationCta: 'Agendar presentación privada',
+    presentationCta: 'Agendar presentación',
     features: [
       { id: 'bespoke-design', lines: ['Diseño excepcional', 'hecho a medida'], sub: 'por', subBrand: 'Artefacto',
         alt: 'Imagen ilustrativa de la sala y el comedor de una residencia: sillas tapizadas en verde alrededor de una mesa ovalada bajo una lámpara de racimo, abiertos a la vista de la bahía.' },
@@ -237,7 +237,7 @@ const ptBr: Copy = {
     presentationTitle: 'Agendar apresentação privada',
     presentationBody:
       'Conheça mais sobre nossas unidades de disponibilidade limitada em uma sessão personalizada e individual em nosso showroom de vendas.',
-    presentationCta: 'Agendar apresentação privada',
+    presentationCta: 'Agendar apresentação',
     features: [
       { id: 'bespoke-design', lines: ['Design excepcional', 'sob medida'], sub: 'pela', subBrand: 'Artefacto',
         alt: 'Imagem ilustrativa da sala de estar e jantar de uma residência: cadeiras estofadas em verde ao redor de uma mesa oval sob um pendente em cacho, abertas para a vista da baía.' },

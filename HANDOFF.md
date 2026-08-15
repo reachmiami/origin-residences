@@ -1,6 +1,6 @@
 # Handoff — Origin Residences rebuild
 
-Orientation for a fresh session. Written 2026-08-12.
+Orientation for a fresh session. Last updated 2026-08-15.
 
 Read this first, then `PRODUCT.md` for product truth and brand constraints.
 `README.md` covers commands and layout, `FOLLOW-UP-BOSS.md` the CRM wiring,
@@ -8,30 +8,17 @@ Read this first, then `PRODUCT.md` for product truth and brand constraints.
 
 ---
 
-## ⛔ FIRST: the build is currently blocked, on purpose
+## The build runs clean
 
-`npm run build` fails immediately. This is not a bug — a pre-build guard
-(`scripts/check-env.mjs`) is refusing to continue because `.env` contains:
+`npm run build` needs no workaround. The API key that once blocked it is gone
+from `.env`, which now holds only `PUBLIC_FORM_RELAY_ENDPOINT`, and
+`scripts/check-env.mjs` passes.
 
-```
-PUBLIC_FORM_RELAY_KEY=fka_…      ← a Follow Up Boss API KEY
-```
-
-A FUB API key grants full read/write to the entire CRM. `PUBLIC_*` variables
-are **inlined into client JavaScript** by Astro, so building would publish it.
-
-**With the current Pixel-based setup that key is not needed at all.** The fix is
-to delete that line from `.env` (and rotate the key in Follow Up Boss as
-hygiene — it was pasted around, though it never reached `dist/`).
-
-To build before the owner clears it, swap in a placeholder and restore:
-
-```bash
-cp .env .env.bak
-printf 'PUBLIC_FORM_RELAY_ENDPOINT=https://api.web3forms.com/submit\n' > .env
-npm run build
-mv -f .env.bak .env
-```
+**The guard stays.** It refuses to build if any `PUBLIC_*` value looks like a
+credential, because `PUBLIC_*` is inlined into client JavaScript by Astro. If it
+ever fires, remove the credential — never the guard. Rotating the old key in
+Follow Up Boss is still worth doing as hygiene; it was pasted around, though it
+never reached `dist/`.
 
 ---
 
@@ -54,10 +41,35 @@ qualified enquiry, not on traffic.
 
 ## Current state
 
-- **120 pages build green** (with the env workaround above)
+- **120 pages build green**, no workaround
 - **3 locales**: English at the root, `/es/`, `/pt-br/`
 - **27 residences**, of which **3 are publicly released**
 - Home page weight **~105KB vs 719KB** on the incumbent
+
+### What the last session changed
+
+Working branch: `homepage-stack-hero-scrim-forms`. Nothing is merged to `main`.
+
+- **Homepage sections 4–6 are edge-to-edge cards that shuffle** — sticky
+  siblings, each `100svh − header`, centred heading over a scrim
+  (`HomeStack.astro`, shared by `/` and `/v2/`).
+- **The v2 hero scrim now follows the copy.** It was centred at 52% of the
+  section while `align-content: end` puts the copy at 68–75%, so the darkest
+  point sat above the words. It is a `::before` on `.hero2__content` now, plus a
+  thin top veil for the transparent header's type.
+- **`.display` and `.heading` moved to weight 300** (was 100).
+- **A photograph sits behind the lead-capture band** on all 13 pages carrying
+  `#inquire`, under a 72% `--ground-alt` veil.
+- **Both forms reworked**: legend inline with its options and on their baseline,
+  placeholders instead of visible labels, weight 500, required-note removed.
+- **`PageBand.astro`** — the Residences photographic title band, now on 10
+  templates / 37 pages. Six of them stand on a placeholder image.
+- **Floor Plans is out of the navigation**; the page still builds.
+- **Gallery uses Amenities' `page-head`**; every other titled page uses `.band`.
+- **The Team page is a deck of shuffling cards**, one ground colour per firm
+  with a radial pool behind each cut-out portrait.
+- **Footer**: three columns (contact · navigation · released residences), a
+  maker's credit, and a swipeable credits row below 640px.
 
 ### Pages
 Home (`/`), **alternate home (`/v2/`)**, Residences, Floor Plans, Gallery,
@@ -79,17 +91,35 @@ appear in both.
 
 ```
 src/data/contact.ts        phone + address — SINGLE source, was duplicated ×9
+src/data/nav.ts            the nav list — SINGLE source, header + footer
+src/data/band-art.ts       placeholder page-band artwork, awaiting real images
 src/data/released.json     which residences are public — SINGLE source
 src/data/units.ts          27 residences parsed from the live site
 src/i18n/ui.ts             chrome strings, locale paths, HOME_PATH
 src/content/copy.ts        shared page prose, en/es/pt-br
 src/content/pages/*.ts     per-page prose, en/es/pt-br
+src/components/PageBand    photographic page title band — 10 templates
+src/components/HomeStack   the homepage's three shuffling cards
 src/components/            Header (shared, v1+v2), HeroV2, FeatureBand, forms…
 src/scripts/leads.ts       lead delivery — read the warning at the top
 src/scripts/motion.ts      GSAP + Lenis, all gated on prefers-reduced-motion
 src/styles/tokens.css      every design token + @property registrations
 scripts/check-env.mjs      the pre-build secret guard
 ```
+
+### One implementation per pattern
+
+Three things in here exist because the same markup had been pasted into several
+files and started to drift. If you find yourself copying a block into a second
+page, extract it instead:
+
+- `PageBand.astro` replaced ten copies of the same forty lines of band CSS
+- `HomeStack.astro` replaced two byte-identical copies across `/` and `/v2/`
+- `nav.ts` replaced a nav list that the footer would otherwise have duplicated
+
+`.band` is **not** a global class. Amenities uses that name for a plain image
+`<div>` and Artefacto for a `<figure>`; they coexist only because Astro scopes
+styles per file. Anything global under that name will collide with all three.
 
 ### Inventory visibility
 Edit **`src/data/released.json`** and rebuild. Nothing else. Currently
@@ -159,33 +189,101 @@ panel — it fades out instead, but only while it has not yet landed
 
 **Astro scopes styles per component.** A parent cannot style a child
 component's markup; `LangSwitch` carries its own rules, and shared band layout
-lives in `FeatureBand.astro` rather than being copied per page.
+lives in `FeatureBand.astro` rather than being copied per page. Slotted content
+is the exception — it keeps the PARENT's scope, so a page can style what it
+passes into `PageBand`.
+
+**A grid item will not shrink below its own content.** `min-height: auto` and
+`min-width: auto` are the defaults, and both have caused silent damage here: a
+team card's copy grew to 908px inside a 532px card and was clipped away, and the
+footer's unbroken sales email set its column's floor and pushed the next column
+8px off the screen. Any grid or flex item that must fit its track needs an
+explicit `min-width: 0` / `min-height: 0`.
+
+**A fieldset's `<legend>` is not a flex item.** It gets special "rendered
+legend" treatment unless it is floated or absolutely positioned. To put a legend
+inline with its controls you must either float it — and then compute the
+baseline yourself, since floats cannot baseline-align — or take the real legend
+out of flow with `.visually-hidden` and use a plain span as the visible caption,
+which CAN be a flex item. Both approaches are in the forms; read the comments
+before changing either.
+
+**A sticky card is covered the instant it pins.** With no spacer between cards,
+the next card sits exactly one header-height above the fold at that moment, so
+the bottom strip of every pinned card is under the card that follows it.
+Anything interactive low in a card has only a short window in which it can be
+clicked — on The Team page that window measured 0px at some viewports until the
+copy reserved a bottom pad.
+
+**Splitting a media query moves everything after the split.** When the tablet
+band was carved out of the footer's `≤900px` block, the rules below the new
+closing brace silently landed in `≤640px` — so tablets lost the whole treatment
+while phones kept it. Re-read the braces after any media-query surgery.
+
+**`object-position: -150px` drops the vertical.** A single value sets X and
+resets Y to `center`. Where a figure is meant to stand on the card's lower edge,
+write both: `-150px bottom`.
 
 ---
 
 ## Verification workflow
 
 There is no test suite. Verification is Playwright scripts in the project root,
-run against `npm run preview`:
+run against a served build (`npm run preview`) or the dev server:
 
 ```bash
-npm run preview &            # serves dist/ on :4321
-node shoot.mjs               # 31 screenshots at 375/768/1440 + overflow + console check
-node shoot-header.mjs        # header at three widths
-node shoot-footer.mjs        # footer at three widths
-node measure.mjs             # per-element boxes in the header at 375px
+npm run preview &                 # serves dist/ on :4321
+node shoot.mjs                    # 31 screenshots at 375/768/1440 + overflow + console
+node measure.mjs                  # per-element boxes in the header at 375px
+node measure-stack.mjs [url]      # homepage cards: sticky geometry, cover order, centring
+node measure-stack-contrast.mjs   # lightest pixel behind LIGHT type on the cards
+node measure-hero.mjs             # v2 hero: headline + header shade, heading weights
+node measure-inquire.mjs          # darkest pixel behind DARK type on the lead band
+node measure-team.mjs             # the five team cards: grounds, gradients, contrast
 ```
 
-Screenshots land in the session scratchpad. **Measure, don't eyeball** — a 2px
-overflow and a 92px click-blocking overlap were both invisible in screenshots
-and obvious in element boxes. Equally, `document.scrollWidth` did *not* catch
-the overlap, because the damage stayed inside the bar.
+**Measure, don't eyeball.** A 2px overflow and a 92px click-blocking overlap
+were both invisible in screenshots and obvious in element boxes — and
+`document.scrollWidth` did not catch the overlap, because the damage stayed
+inside the bar.
+
+### Measuring without fooling yourself
+
+Read this before writing a new check. Every item below produced a confident,
+completely wrong number in the last session, and each one *looked* like a page
+defect until the probe was examined.
+
+- **Wait for Lenis.** Smooth scroll keeps moving after `scrollIntoView` returns.
+  Measure rects during that drift and the screenshot no longer matches them —
+  probe boxes straddled two cards and reported 1.60:1 on gold-over-navy. Poll
+  `window.scrollY` until it holds still for several frames.
+- **Exclude the header.** It is fixed and opaque off-white, and it has a 1px
+  box-shadow. Sampling under either turned a 7.49:1 eyebrow into 2.08:1, then
+  into 3.58:1.
+- **Screenshot the viewport, not the element**, when working in viewport
+  coordinates. Element screenshots and viewport rects drift apart on tall
+  elements — that mismatch produced an impossible 1.15:1.
+- **Compare against the box that actually clips.** Checking a copy column
+  against *itself* reported zero overflow while its content was escaping the
+  card entirely. Measure descendants against the clipping ancestor.
+- **Pick the right extreme.** Light type on dark fails against the LIGHTEST
+  pixel; dark type on light fails against the DARKEST. The team cards need both,
+  because the grounds differ per card.
+- **Sweep heights as well as widths.** `shoot.mjs` covers 375/768/1440 only.
+  Real defects have hidden at 320px wide and at short viewport heights, where a
+  card is too short for its own content.
 
 ---
 
 ## Open items, in the order I'd take them
 
-1. **Clear the API key from `.env`** so builds run unassisted. Blocking.
+1. **The page-band veil fails AA on 37 pages.** `PageBand.astro`'s gradient is
+   0.88 opaque at the very foot but only 0.42–0.58 where the copy actually sits,
+   which is not enough over bright photography. Measured against composited
+   pixels: Residences eyebrow **1.40:1**, unit pages 1.51:1, best of any page
+   3.26:1, against AA's 4.5. This is **pre-existing** — the CSS is byte-identical
+   to what shipped on Residences alone — but rolling the band out multiplied it
+   by ten. Fix the veil where the type sits and verify with a contrast sampler.
 2. **Enable Pixel form capture** in Follow Up Boss (*Pixel → Tracking*). The
    Pixel (`WT-FBRKNWTI`) is installed and firing `/identify`, but **no lead is
    created** until this setting is on. Verified by network trace. Until then the
@@ -194,19 +292,34 @@ the overlap, because the damage stayed inside the bar.
    out of the sitemap, yet every logo points at it, and `/` is indexable with
    nothing linking to it. Preferred fix: move v2's hero treatment to `/` and
    retire the alternate, keeping the canonical URL's history.
-4. **Native review of `es` and `pt-br`** before those locales go public. Also a
+4. **`neighborhood.astro` redeclares `MAP_HREF`.** It imports the shared one
+   from `contact.ts` and then shadows it with a hard-coded Bay Harbor Islands
+   address, so that page shows Aventura but links the map to the old location.
+   Deleting the local constant is the whole fix.
+5. **Native review of `es` and `pt-br`** before those locales go public. Also a
    counsel question on whether the translated consent text carries the same
-   force — `TRANSLATION-REVIEW.md` has the detail.
-5. **Decide on Montserrat Medium.** v2's header needs a weight the brand kit
-   does not contain. Either the brand's weight range widens, or the hero
-   photograph carries more shade so light weights survive.
-6. **36 warnings** from the first review round were never worked — only the
+   force — `TRANSLATION-REVIEW.md` has the detail. Note the footer's maker
+   credit ("Made with ♥ in Miami.") is English in every locale by default.
+6. **Decide on Montserrat Medium.** Now used in the v2 header *and* both forms —
+   three places outside a brand kit that contains only 100/200/300. Either the
+   brand's weight range widens or the forms come back down.
+7. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-7. **Assets the owner owes**: a horizontal one-line logo and a
-   white-on-transparent SVG (the stacked lockup is weakest on phones), and
-   floor-plan PDFs for 26 of 27 residences — only 702 had one.
-8. Smaller: the menu scrim still runs at 420ms while the panel and bar run at
-   720ms; the phone-width burger is 38px against the 44px target guideline.
+8. **Assets the owner owes**: real photographs for the six pages still on
+   `BAND_PLACEHOLDER` (The Team, Floor Plans, the three legal pages, and all 27
+   unit pages); a horizontal one-line logo and a white-on-transparent SVG (the
+   stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
+   residences — only 702 had one.
+9. Smaller, all live and all deliberate for now:
+   - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
+     frame them better now that they are cut-outs rather than photographs.
+   - The team shuffle needs `min-width: 901px` AND `min-height: 880px`; a
+     1280×800 laptop gets stacked cards, because a photo plus a full firm
+     paragraph does not fit in 682px.
+   - The menu scrim still runs at 420ms while the panel and bar run at 720ms;
+     the phone-width burger is 38px against the 44px target guideline.
+   - The old team `*-portrait.jpg` files are unreferenced now that the PNG
+     cut-outs are in; they are still tracked.
 
 ---
 

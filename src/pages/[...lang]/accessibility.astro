@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PageBand from '../../components/PageBand.astro';
+import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { legalCopy, legalBody } from '../../content/pages/legal';
@@ -38,14 +40,15 @@ const EMAIL = 'germanr.realty@gmail.com';
   locale={locale}
   path="accessibility"
 >
-  <header class="page-head">
-    <div class="shell shell--narrow">
-      <p class="eyebrow">{c.eyebrow}</p>
-      <h1 class="page-head__title">{c.title}</h1>
-      <hr class="page-head__rule" />
-      {chrome.englishNote && <p class="page-head__note">{chrome.englishNote}</p>}
-    </div>
-  </header>
+  {/* PLACEHOLDER artwork — see src/data/band-art.ts. */}
+  <PageBand
+    image={BAND_PLACEHOLDER}
+    alt={BAND_PLACEHOLDER_ALT[locale]}
+    eyebrow={c.eyebrow}
+    title={c.title}
+  >
+    {chrome.englishNote && <p class="band__note">{chrome.englishNote}</p>}
+  </PageBand>
 
   <div class="section legal">
     <div class="shell shell--narrow legal__inner" lang="en">
@@ -100,11 +103,16 @@ const EMAIL = 'germanr.realty@gmail.com';
 </Base>
 
 <style>
-  .page-head {
-    padding-block: calc(var(--header-h) + clamp(var(--s-6), 6vw, var(--s-9)))
-      clamp(var(--s-6), 4vw, var(--s-8));
-    background: var(--ground);
+  /* Slotted into PageBand, on the dark veil. */
+  .band__note {
+    max-width: var(--measure);
+    margin-top: var(--s-3);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    line-height: 1.8;
+    color: var(--ink-on-dark-muted);
   }
+
 
   /* The shared eyebrow is gold, which is 2.1:1 on this sand ground. Darkened
      against --navy-deep it holds the accent and clears AA. */
@@ -112,31 +120,7 @@ const EMAIL = 'germanr.realty@gmail.com';
     color: var(--gold-ink, color-mix(in srgb, var(--gold) 52%, var(--navy-deep)));
   }
 
-  .page-head__title {
-    margin-top: var(--s-4);
-    font-size: var(--t-h1);
-    font-weight: var(--w-thin);
-    letter-spacing: var(--track-display);
-    text-transform: uppercase;
-  }
-
-  .page-head__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    margin-top: clamp(var(--s-5), 3vw, var(--s-6));
-    border: 0;
-    background: var(--gold);
-  }
-
   /* Only rendered on es and pt-br: the statement below is published in English. */
-  .page-head__note {
-    max-width: var(--measure);
-    margin-top: var(--s-5);
-    font-size: var(--t-small);
-    font-weight: var(--w-light);
-    line-height: 1.8;
-    color: var(--ink-muted);
-  }
 
   .legal { background: var(--ground-alt); }
 

@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import PageBand from '../../components/PageBand.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
@@ -29,13 +30,15 @@ const c = artefactoCopy[locale];
   path="artefacto"
   darkHeader
 >
-  <section class="titleband" aria-labelledby="page-heading">
-    <div class="shell titleband__inner">
-      <p class="eyebrow">{c.eyebrow}</p>
-      <h1 class="display titleband__headline" id="page-heading">{c.headline}</h1>
-      <hr class="titleband__rule" />
-    </div>
-  </section>
+  {/* Uses `lobby`, not `terrace` — the terrace photograph is the full-bleed
+      figure directly below, and the same image twice in a row reads as a bug. */}
+  <PageBand
+    image={lobby}
+    alt={c.alt.lobby}
+    eyebrow={c.eyebrow}
+    title={c.headline}
+    headingId="page-heading"
+  />
 
   <figure class="band band--hero">
     <Image
@@ -166,23 +169,8 @@ const c = artefactoCopy[locale];
 </Base>
 
 <style>
-  /* --- Page title band ---------------------------------------------------- */
-  .titleband {
-    background: var(--navy);
-    color: var(--ink-on-dark);
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-  }
-
-  .titleband__inner { display: grid; gap: var(--s-5); }
-
-  .titleband__headline { max-width: 20ch; color: var(--off-white); }
-
-  .titleband__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    border: 0;
-    background: var(--gold);
-  }
+  /* The page title band lives in PageBand.astro now. The `.band` rules below
+     are a DIFFERENT thing — this page's own full-bleed figures — and stay. */
 
   /* --- Full-bleed bands ---------------------------------------------------
      The wrapper owns the crop; the image overfills it and drifts inside the
@@ -318,6 +306,5 @@ const c = artefactoCopy[locale];
   @media (max-width: 640px) {
     .band--hero { aspect-ratio: 4 / 3; }
     .band--strip { aspect-ratio: 3 / 2; }
-    .titleband { padding-block: calc(var(--header-h) + var(--s-6)) var(--s-7); }
   }
 </style>

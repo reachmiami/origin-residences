@@ -41,9 +41,13 @@ responsive behaviour, AVIF/WebP imagery, and WCAG 2.1 AA.
 ```
 src/
   layouts/Base.astro       shell, SEO, hreflang, direction contract
+  components/PageBand      photographic page title band — used by 10 templates
+  components/HomeStack     the homepage's three shuffling cards
   components/              Header (mega nav), Footer, Hero, forms, gallery
   pages/                   file-based routes; [unit].astro emits all 27
   data/units.ts            27 residences parsed from the live site
+  data/nav.ts              the nav list — shared by header and footer
+  data/band-art.ts         placeholder band artwork, awaiting real images
   content/copy.ts          page prose, en / es / pt-br
   i18n/ui.ts               chrome strings + locale-aware paths
   scripts/motion.ts        GSAP + Lenis, gated on prefers-reduced-motion
@@ -51,12 +55,18 @@ src/
   styles/tokens.css        every design token
 ```
 
+**Verification** lives in `measure-*.mjs` and `shoot.mjs` at the project root.
+There is no test suite; these are run by hand against a build. `HANDOFF.md`
+lists them and — more importantly — the ways a measurement can lie to you.
+
 ## Non-negotiables
 
 1. **No Follow Up Boss API key in this repo, ever.** It grants full CRM
    read/write and this site is public by construction. See `FOLLOW-UP-BOSS.md`.
-2. **No font-weight above 300, no second typeface.** The lightness is the
-   brand signal.
+2. **No second typeface, and no font-weight above 300** — with one sanctioned
+   exception, Montserrat Medium 500, currently in the v2 header and both forms.
+   The lightness is the brand signal; widening this further is the owner's call,
+   not a styling decision. See open item 6 in `HANDOFF.md`.
 3. **Colours come from tokens**, never raw hex in components.
 4. **No modals or lightboxes** — an explicit client requirement. Reveals happen
    in place or through navigation.

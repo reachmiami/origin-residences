@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import PageBand from '../../components/PageBand.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
@@ -31,13 +32,15 @@ const MAP_HREF =
   path="neighborhood"
   darkHeader
 >
-  <section class="titleband" aria-labelledby="page-heading">
-    <div class="shell titleband__inner">
-      <p class="eyebrow">{c.eyebrow}</p>
-      <h1 class="display titleband__headline" id="page-heading">{c.headline}</h1>
-      <hr class="titleband__rule" />
-    </div>
-  </section>
+  {/* Uses `fromTheWater`, not `canalView` — the canal photograph is the
+      full-bleed figure directly below. */}
+  <PageBand
+    image={fromTheWater}
+    alt={c.alt.water}
+    eyebrow={c.eyebrow}
+    title={c.headline}
+    headingId="page-heading"
+  />
 
   <figure class="band band--wide">
     <Image
@@ -117,25 +120,8 @@ const MAP_HREF =
 </Base>
 
 <style>
-  /* --- Page title band ---------------------------------------------------
-     Navy under the fixed bar, so the heading reads at full contrast before
-     any photography arrives. */
-  .titleband {
-    background: var(--navy);
-    color: var(--ink-on-dark);
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-  }
-
-  .titleband__inner { display: grid; gap: var(--s-5); }
-
-  .titleband__headline { max-width: 18ch; color: var(--off-white); }
-
-  .titleband__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    border: 0;
-    background: var(--gold);
-  }
+  /* The page title band lives in PageBand.astro now. The `.band` rules below
+     are a DIFFERENT thing — this page's own full-bleed figures — and stay. */
 
   /* --- Full-bleed photography bands --------------------------------------
      The wrapper owns the crop; the image fills it and drifts slowly inside
@@ -250,6 +236,5 @@ const MAP_HREF =
   @media (max-width: 640px) {
     .band--wide { aspect-ratio: 4 / 3; }
     .band--tall { aspect-ratio: 4 / 3; }
-    .titleband { padding-block: calc(var(--header-h) + var(--s-6)) var(--s-7); }
   }
 </style>

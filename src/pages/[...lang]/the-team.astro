@@ -1,16 +1,18 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import PageBand from '../../components/PageBand.astro';
+import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { teamCopy } from '../../content/pages/the-team';
 
-import vdaPortrait from '../../assets/team/vda-portrait.jpg';
-import revueltaPortrait from '../../assets/team/revuelta-portrait.jpg';
-import artefactoPortrait from '../../assets/team/artefacto-portrait.jpg';
-import guilhemPortrait from '../../assets/team/carla-guilhem-portrait.jpg';
-import cerveraPortrait from '../../assets/team/cervera-portrait.jpg';
+import vdaPortrait from '../../assets/team/vda-portrait.png';
+import revueltaPortrait from '../../assets/team/revuelta-portrait.png';
+import artefactoPortrait from '../../assets/team/artefacto-portrait.png';
+import guilhemPortrait from '../../assets/team/carla-guilhem-portrait.png';
+import cerveraPortrait from '../../assets/team/cervera-portrait.png';
 
 export function getStaticPaths() {
   return localeStaticPaths();
@@ -54,29 +56,39 @@ const partners = c.partners.map((p) => ({ ...p, ...firms[p.id] }));
   path="the-team"
   darkHeader
 >
-  <section class="titleband" aria-labelledby="page-heading">
-    <div class="shell titleband__inner">
-      <p class="eyebrow">{c.eyebrow}</p>
-      <h1 class="display titleband__headline" id="page-heading">{c.title}</h1>
-      <hr class="titleband__rule" />
-    </div>
-  </section>
+  {/* PLACEHOLDER artwork — this page owns only portraits, which cannot carry a
+      full-bleed band. See src/data/band-art.ts. */}
+  <PageBand
+    image={BAND_PLACEHOLDER}
+    alt={BAND_PLACEHOLDER_ALT[locale]}
+    eyebrow={c.eyebrow}
+    title={c.title}
+    headingId="page-heading"
+  />
 
-  <div class="section partners">
-    <div class="shell partners__list">
-      {partners.map((p, i) => (
-        <article class:list={['partner', { 'partner--flip': i % 2 === 1 }]}>
-          <figure class="partner__figure" data-reveal="fade">
-            <Image
-              src={p.image}
-              alt={p.alt}
-              widths={[352, 528, 704]}
-              sizes="(max-width: 900px) 100vw, 40vw"
-              loading={i === 0 ? 'eager' : 'lazy'}
-            />
-          </figure>
+  {/* Out of the .shell on purpose: these are edge-to-edge cards that shuffle,
+      the same mechanic as the homepage feature bands, so nothing may constrain
+      them to the page gutter. The two-column split stays — only the frame
+      changed.
 
-          <div class="partner__copy" data-reveal>
+      `data-firm` on each article carries that firm's ground colour. It is keyed
+      on the id rather than on nth-child so reordering the partners cannot
+      silently reassign the colours. */}
+  <div class="partners">
+    {partners.map((p, i) => (
+      <article class:list={['partner', { 'partner--flip': i % 2 === 1 }]} data-firm={p.id}>
+        <figure class="partner__figure" data-reveal="fade">
+          <Image
+            src={p.image}
+            alt={p.alt}
+            widths={[640, 960, 1280]}
+            sizes="(max-width: 900px) 100vw, 50vw"
+            loading={i === 0 ? 'eager' : 'lazy'}
+          />
+        </figure>
+
+        <div class="partner__copy" data-reveal>
+          <div class="partner__body-inner">
             <p class="eyebrow">{p.role}</p>
             <h2 class="heading partner__name">{p.name}</h2>
             <hr class="partner__rule" />
@@ -90,9 +102,9 @@ const partners = c.partners.map((p) => ({ ...p, ...firms[p.id] }));
               <span class="visually-hidden">{c.newTabNote}</span>
             </a>
           </div>
-        </article>
-      ))}
-    </div>
+        </div>
+      </article>
+    ))}
   </div>
 
   <PresentationCTA locale={locale} />
@@ -105,80 +117,301 @@ const partners = c.partners.map((p) => ({ ...p, ...firms[p.id] }));
 </Base>
 
 <style>
-  /* --- Page title band ---------------------------------------------------- */
-  .titleband {
-    background: var(--navy);
-    color: var(--ink-on-dark);
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-  }
+  /* The page title band lives in PageBand.astro now. */
 
-  .titleband__inner { display: grid; gap: var(--s-5); }
+  /* --- Partner cards -------------------------------------------------------
+     Edge-to-edge cards that shuffle, exactly as the homepage feature bands do:
+     sticky siblings in one container, each the height of the viewport minus the
+     header, so each holds at the header's lower edge while the next scrolls up
+     and covers it. The difference here is the interior — these keep their two
+     columns rather than centring a single one.
 
-  .titleband__headline { color: var(--off-white); }
+     No trailing pad on the container, matching the homepage: the last card runs
+     straight on into the CTA below rather than dwelling. */
+  .partners { position: relative; }
 
-  .titleband__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    border: 0;
-    background: var(--gold);
-  }
-
-  /* --- Partner rows --------------------------------------------------------
-     Alternating sides, separated by hairlines rather than cards — the credits
-     are a document, not a directory of tiles. */
-  .partners__list { display: grid; gap: clamp(var(--s-7), 6vw, var(--s-9)); }
-
+  /* BASE = the safe layout: edge-to-edge cards at their natural height, in
+     normal flow. The shuffle is added back further down, and only where a whole
+     card demonstrably fits. Building it this way round means the fallback is
+     the one that can never hide content. */
   .partner {
     display: grid;
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    gap: clamp(var(--s-5), 4vw, var(--s-8));
-    align-items: center;
-    padding-top: clamp(var(--s-6), 5vw, var(--s-8));
-    border-top: 1px solid var(--rule);
+    /* The photograph always gets the WIDE column; `--flip` mirrors the pair so
+       it stays wide while moving to the right. Reordering alone gave the flipped
+       cards a 612px image column against the base card's 828px, which cropped
+       those photographs far harder — the two variants now crop identically. */
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+
+    /* One padding value, shared by the copy and by the rule under the stacked
+       photographs, so the two can never disagree. */
+    --partner-pad: clamp(var(--s-6), 5vw, var(--s-10));
+    align-items: stretch;
+    scroll-margin-top: var(--header-h);
+
+    /* --- Ground -------------------------------------------------------------
+       A flat per-firm colour with a darker pool of the SAME colour radiating
+       out of it, centred on whichever side carries the photograph. The portraits
+       are cut-outs — between 63% and 79% of each PNG is transparent — so this
+       pool is what the figures actually stand on, and darkening it locally is
+       what lifts them off the flat ground.
+
+       The dark tone is derived from the ground rather than picked, so changing a
+       firm's colour changes its pool with it and the two can never drift. */
+    --partner-bg: var(--ground);
+    --partner-glow: color-mix(in srgb, var(--partner-bg) 66%, black);
+    --partner-ink: var(--ink);
+    --partner-accent: var(--gold-ink);
+
+    /* Centred on the photograph's own column, and sized to STAY there.
+
+       The radii are not taste. The pool is a darker tone, so where it reaches
+       under the copy it drags dark type down towards the ground: measured, it
+       cost the sand card its eyebrow (4.05:1) and the olive card its body copy
+       (3.90:1), both below AA. Confining it to the image column fixes that and
+       is also what "radiating from the side that has the image" actually means.
+
+       The two variants need different radii because their image columns are
+       different widths: 1.15fr on the base card, 0.85fr on --flip. */
+    --partner-focus-x: 29%;
+    --partner-focus-y: 50%;
+    --partner-rx: 28%;
+    --partner-ry: 92%;
+
+    background:
+      radial-gradient(
+        ellipse var(--partner-rx) var(--partner-ry) at var(--partner-focus-x) var(--partner-focus-y),
+        var(--partner-glow) 0%,
+        color-mix(in srgb, var(--partner-glow) 58%, transparent) 42%,
+        transparent 78%
+      ),
+      var(--partner-bg);
   }
 
-  .partner:first-child { padding-top: 0; border-top: 0; }
+  /* Mirrored, not merely reordered: the wide column moves to the right so the
+     image keeps its size while changing side. */
+  .partner--flip {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    --partner-focus-x: 71%;
+    --partner-rx: 28%;
+  }
+
+  /* --- The five grounds ----------------------------------------------------
+     Dark cards flip the type to the on-dark roles. Gold at --gold measures only
+     4.0:1 on the charcoal, which fails AA for type this small, so the accent on
+     both dark cards is the lighter --gold-light. On the olive, --gold-ink drops
+     to 2.41:1, so that card's accent is ink instead. */
+  .partner[data-firm='vda'] {
+    --partner-bg: var(--navy);
+    --partner-ink: var(--ink-on-dark);
+    --partner-accent: var(--gold-light);
+  }
+
+  .partner[data-firm='revuelta'] { --partner-bg: var(--sand); }
+
+  .partner[data-firm='artefacto'] {
+    --partner-bg: var(--charcoal);
+    --partner-ink: var(--ink-on-dark);
+    --partner-accent: var(--gold-light);
+  }
+
+  .partner[data-firm='carla-guilhem'] {
+    --partner-bg: var(--olive-tan);
+    --partner-ink: var(--ink-on-dark);
+    --partner-accent: var(--gold-light);
+  }
+
+  .partner[data-firm='cervera'] { --partner-bg: var(--sand-pale); }
 
   .partner--flip .partner__figure { order: 2; }
 
-  .partner__figure { margin: 0; }
+  /* The photograph fills its whole half of the card. */
+  /* The figure stands on the card's lower edge, and the photograph is held back
+     from the full height so there is headroom above it rather than a head
+     cropped by the card's own top edge. */
+  .partner__figure {
+    margin: 0;
+    height: 100%;
+    overflow: clip;
+    display: grid;
+    align-items: end;
+  }
 
-  .partner__copy { display: grid; gap: var(--s-3); align-content: start; }
+  .partner__figure :global(img) {
+    width: 100%;
+    height: 85%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
 
-  .partner__name { color: var(--ink); }
+  .partner__copy {
+    display: grid;
+    align-content: center;
+    padding: var(--partner-pad);
+    min-width: 0;
+  }
+
+  /* Holds the measure: the copy column is now half a viewport wide, and prose
+     set across all of it would be unreadable. */
+  .partner__body-inner {
+    display: grid;
+    gap: var(--s-3);
+    align-content: center;
+    max-width: 56ch;
+  }
+
+  /* Type takes its colour from the card, not from the page. Without this the
+     navy ink would be invisible on the navy and charcoal grounds. */
+  .partner__name { color: var(--partner-ink); }
+  .partner__body { color: var(--partner-ink); }
+  .partner .eyebrow { color: var(--partner-accent); }
 
   .partner__rule {
     width: clamp(40px, 5vw, 72px);
     height: 1px;
     border: 0;
+    /* Decorative, so gold stays gold on every ground. */
     background: var(--gold);
     margin-block: var(--s-2);
   }
-
-  .partner__body { color: var(--ink); }
 
   .partner__link {
     display: inline-flex;
     align-items: center;
     gap: var(--s-3);
     align-self: start;
+    /* Without this the link is a stretched grid item 625px wide, so its
+       border-bottom ran the whole column and read as a stray hairline rather
+       than an underline on the button. */
+    justify-self: start;
     min-height: 44px;
     margin-top: var(--s-2);
     padding-block: var(--s-2);
     font-size: var(--t-micro);
     letter-spacing: var(--track-label);
     text-transform: uppercase;
-    color: var(--gold-ink);
-    border-bottom: 1px solid var(--rule);
+    color: var(--partner-accent);
+    /* currentColor rather than --rule: at 16% alpha the old border was all but
+       invisible against the card grounds. */
+    border-bottom: 1px solid currentColor;
     transition: color var(--dur-fast) var(--ease-out),
                 border-color var(--dur-fast) var(--ease-out);
   }
-  .partner__link:hover { color: var(--ink); border-color: var(--navy); }
+  .partner__link:hover { color: var(--partner-ink); }
   .partner__link svg { transition: transform var(--dur-base) var(--ease-out); }
   .partner__link:hover svg { transform: translate(3px, -3px); }
 
   @media (max-width: 900px) {
-    .partner { grid-template-columns: 1fr; align-items: start; }
+    .partner { grid-template-columns: 1fr; }
     .partner--flip .partner__figure { order: 0; }
+
+    /* Stacked, "the side that has the image" is the TOP, so the pool moves up
+       there for both variants and stops short of the copy below it.
+
+       The reach is measured, and it needs two bands because the photograph is a
+       fixed 4:3 of the card's WIDTH while the copy's height barely changes: the
+       image ends around 50% of the card at 768px but only around 28% at 375px.
+       A single value either fails to cover the image on tablets or spills onto
+       the eyebrow on phones — which is exactly what cost the olive card 3.80:1. */
+    .partner,
+    .partner--flip {
+      --partner-focus-x: 50%;
+      /* Reaches 44%. Across 641–900px the photograph ends at 41–47% of the card
+         and the eyebrow starts at 48–54%, so this covers the image and clears
+         the copy at every width in the band. */
+      --partner-focus-y: 22%;
+      --partner-rx: 72%;
+      --partner-ry: 22%;
+    }
+
+    .partner { --partner-pad: clamp(var(--s-6), 7vw, var(--s-8)); }
+
+    .partner__figure { height: auto; position: relative; }
+    .partner__figure :global(img) { height: auto; aspect-ratio: 4 / 3; }
+
+    /* A hairline the photograph stands on. Stacked, the cut-outs are cropped by
+       the card's lower edge and read as floating; this gives them a floor.
+       Inset by the copy's own padding — a pseudo-element rather than a border so
+       the photograph itself still runs edge to edge. */
+    .partner__figure::after {
+      content: '';
+      position: absolute;
+      left: var(--partner-pad);
+      right: var(--partner-pad);
+      bottom: 0;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .partner__copy { padding: var(--partner-pad); }
+    .partner__body-inner { align-content: start; }
+  }
+
+  @media (max-width: 640px) {
+    /* Reaches 31%. Below 640px the photograph is a much smaller share of a
+       taller card — it ends at 28–40% with the eyebrow from 35% — so the pool
+       has to pull up correspondingly. */
+    .partner,
+    .partner--flip {
+      --partner-focus-y: 14%;
+      --partner-ry: 17%;
+    }
+  }
+
+  /* --- The shuffle ---------------------------------------------------------
+     Added ONLY where a whole card fits: wide enough for two columns, and tall
+     enough that a photograph plus a full firm paragraph plus its link fit in
+     one viewport. Both halves of that condition are measured, not guessed.
+
+     Height is the half that is easy to miss. A card is `100svh - header`, and a
+     grid item will not shrink below its own content, so on a short window the
+     copy column simply grows past the card and the card clips it: at 1100×650
+     the copy ran to 908px inside a 532px card and the "visit the website" link
+     rendered 259px below the card's own bottom edge, invisible and unclickable.
+
+     There is a second, subtler reason the floor has to be generous. In a sticky
+     stack with no spacer, a card starts being covered the instant it pins — the
+     next card is exactly one header-height above the fold at that moment — so
+     anything low in the card has only a short window in which it can be
+     clicked. Below this threshold that window measured 0px on every card. */
+  @media (min-width: 901px) and (min-height: 880px) and (prefers-reduced-motion: no-preference) {
+    .partner {
+      position: sticky;
+      top: var(--header-h);
+      /* svh, not vh, so mobile browser chrome does not crop the card. */
+      height: calc(100svh - var(--header-h));
+      overflow: clip;
+    }
+
+    .partner__copy {
+      /* Grid items default to min-height:auto and would otherwise refuse to
+         shrink to the card, overflowing it silently. */
+      min-height: 0;
+      overflow: clip;
+      /* Keeps the link clear of the strip the next card covers on arrival. */
+      padding-bottom: calc(clamp(var(--s-6), 5vw, var(--s-10)) + var(--header-h));
+    }
+  }
+
+  /* Two portraits are composed wider and further back than the rest, so the
+     shared 85% leaves them looking small in their columns. They run past full
+     height instead, trading the headroom for scale — the surplus is clipped off
+     the top, since the figure is bottom-aligned.
+
+     Scoped to a min-width query on purpose. The stacked layout sets the image
+     to `height: auto`, and these selectors are more specific than that rule —
+     left unscoped they would win everywhere and break phone and tablet. */
+  @media (min-width: 901px) {
+    .partner[data-firm='artefacto'] .partner__figure :global(img),
+    .partner[data-firm='revuelta'] .partner__figure :global(img) {
+      height: 103%;
+    }
+
+    /* Revuelta's subject sits far right in the frame; pulling the image left
+       brings him toward the middle of his column. The `bottom` is kept: without
+       a second value the vertical would fall back to `center` and the figure
+       would stop standing on the card's lower edge. */
+    .partner[data-firm='revuelta'] .partner__figure :global(img) {
+      object-position: -150px bottom;
+    }
   }
 </style>

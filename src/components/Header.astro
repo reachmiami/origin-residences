@@ -1,6 +1,7 @@
 ---
 import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
 import { unitsByLevel, unitCount } from '../data/units';
+import { exploreLinks } from '../data/nav';
 import SalesContact from './SalesContact.astro';
 import LangSwitch from './LangSwitch.astro';
 import { ADDRESS, ADDRESS_LINES, PHONE, PHONE_HREF } from '../data/contact';
@@ -22,15 +23,7 @@ const L = (p: string) => localizePath(p, locale);
 const current = Astro.url.pathname;
 const isCurrent = (p: string) => current === L(p);
 
-const exploreLinks = [
-  { path: 'residences', label: { en: 'Residences', es: 'Residencias', 'pt-br': 'Residências' } },
-  { path: 'floor-plans', label: { en: 'Floor Plans', es: 'Planos', 'pt-br': 'Plantas' } },
-  { path: 'gallery', label: { en: 'Gallery', es: 'Galería', 'pt-br': 'Galeria' } },
-  { path: 'amenities', label: { en: 'Amenities', es: 'Amenidades', 'pt-br': 'Comodidades' } },
-  { path: 'neighborhood', label: { en: 'Neighborhood', es: 'Vecindario', 'pt-br': 'Vizinhança' } },
-  { path: 'artefacto', label: { en: 'Artefacto', es: 'Artefacto', 'pt-br': 'Artefacto' } },
-  { path: 'the-team', label: { en: 'The Team', es: 'El Equipo', 'pt-br': 'A Equipe' } },
-];
+/* Shared with the footer menu — see src/data/nav.ts. */
 
 ---
 

@@ -27,7 +27,7 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
     metaDescription:
       'Classic elegance for modern living — the rooftop pool, waterfront Aqua Club, gym and resident services at ORIGIN by Artefacto in Bay Harbor Islands, Florida.',
     eyebrow: 'Amenities',
-    title: 'Classic elegance for modern living',
+    title: 'Elegance for modern living',
     lede: 'Nestled away on Bay Harbor’s east island, ORIGIN by Artefacto offers a sanctuary where you can enjoy picturesque and peaceful sunset views while embodying the essence of the Miami Lifestyle.',
     bandAlt:
       'Living and dining room of an ORIGIN residence furnished by Artefacto, with floor-to-ceiling glass opening onto a terrace above the water.',

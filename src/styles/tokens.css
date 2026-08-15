@@ -74,6 +74,25 @@
   --off-white: #fffdf9;   /* warm white, never pure #fff                  */
   --warm-gray: #98948f;   /* secondary text on light grounds              */
 
+  /* Team-card grounds. Owner-chosen, one per partner firm; they live here
+     because components may not carry raw hex. --charcoal is the one value the
+     owner named rather than specified ("charcoal gray") — a cool neutral, so it
+     sits beside the navy rather than fighting it. */
+  --charcoal: #26282a;
+
+  /* The heart in the footer's maker credit. A true red sits outside the pinned
+     palette on purpose — it is a signature mark rather than brand furniture,
+     and it is the one element there that must NOT turn gold on hover. Chosen
+     bright enough to read on the navy footer (3.88:1); it carries no meaning
+     that is not also in the link's text, so it is decorative. */
+  --heart-red: #e0473f;
+  /* Deepened from the owner's original #a79d7a. That lighter olive is a
+     mid-tone: it carried navy type fine (5.84:1) but no LIGHT ink clears AA on
+     it — off-white measured 2.67:1 and gold-light 1.28:1, near-invisible. Taken
+     down within the same hue family, it carries the same off-white + gold-light
+     treatment the charcoal card uses, at 9.57:1 and 4.61:1. */
+  --olive-tan: #4a442f;
+
   /* --- Semantic roles ---------------------------------------------------- */
   --ground: var(--sand);
   --ground-alt: var(--sand-pale);

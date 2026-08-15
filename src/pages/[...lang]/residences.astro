@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import InventoryGrid from '../../components/InventoryGrid.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import FeatureBand from '../../components/FeatureBand.astro';
+import PageBand from '../../components/PageBand.astro';
 
 import slidingGlass from '../../assets/residences/sliding-glass-living-bay-view.jpg';
 import greatRoomGlass from '../../assets/residences/great-room-kitchen-through-glass.jpg';
@@ -52,25 +53,14 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
   path="residences"
   darkHeader
 >
-  <section class="band" aria-labelledby="page-title">
-    <Image
-      class="band__media"
-      src={bandImage}
-      alt={r.bandAlt}
-      widths={[640, 990, 1228]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <div class="band__veil" aria-hidden="true"></div>
-
-    <div class="shell band__inner">
-      <p class="eyebrow band__eyebrow">{c.home.inventoryTitle}</p>
-      <h1 class="display band__title" id="page-title">{r.title}</h1>
-      <hr class="band__rule" />
-      <p class="band__lede">{c.home.inventoryLede}</p>
-    </div>
-  </section>
+  <PageBand
+    image={bandImage}
+    alt={r.bandAlt}
+    eyebrow={c.home.inventoryTitle}
+    title={r.title}
+    lede={c.home.inventoryLede}
+    headingId="page-title"
+  />
 
   <section class="section discover" aria-labelledby="discover-heading">
     <div class="shell shell--narrow discover__inner">
@@ -161,63 +151,8 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
 </Base>
 
 <style>
-  /* --- Page band ------------------------------------------------------------
-     The header is fixed and transparent here, so the band carries its clearance
-     itself rather than relying on a global offset. */
-  .band {
-    position: relative;
-    display: grid;
-    align-items: end;
-    min-height: clamp(420px, 62svh, 720px);
-    padding-block: calc(var(--header-h) + var(--s-7)) clamp(var(--s-7), 6vh, var(--s-9));
-    overflow: clip;
-    background: var(--navy);
-    color: var(--ink-on-dark);
-    isolation: isolate;
-  }
-
-  .band__media {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .band__veil {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      to top,
-      rgba(8, 35, 65, 0.88) 0%,
-      rgba(8, 35, 65, 0.42) 52%,
-      rgba(8, 35, 65, 0.58) 100%
-    );
-  }
-
-  .band__inner { display: grid; justify-items: start; gap: var(--s-4); max-width: 1180px; }
-
-  .band__eyebrow { color: var(--gold-light); }
-
-  .band__title { color: var(--off-white); }
-
-  .band__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    border: 0;
-    background: var(--gold);
-  }
-
-  .band__lede {
-    max-width: 46ch;
-    font-size: var(--t-small);
-    font-weight: var(--w-light);
-    letter-spacing: var(--track-body);
-    text-transform: uppercase;
-    color: var(--ink-on-dark-muted);
-  }
+  /* The page band now lives in PageBand.astro, shared with every other titled
+     page. Its clearance for the fixed transparent header travels with it. */
 
   /* --- Discover -------------------------------------------------------------- */
 

@@ -1,5 +1,7 @@
 ---
-import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { exploreLinks, homeLabel } from '../data/nav';
+import { unitsByLevel, unitCount } from '../data/units';
 import SalesContact from './SalesContact.astro';
 
 import developer from '../assets/brand/partner-Grupo-914.svg?raw';
@@ -8,7 +10,7 @@ import design from '../assets/brand/partner-Logo_Carla.svg?raw';
 import architecture from '../assets/brand/partner-Grupo-916.svg?raw';
 import construction from '../assets/brand/partner-thornton.svg?raw';
 import sales from '../assets/brand/partner-Grupo-917.svg?raw';
-import { ADDRESS, MAP_HREF, PHONE, PHONE_HREF } from '../data/contact';
+import { ADDRESS_LINES, MAP_HREF, PHONE, PHONE_HREF } from '../data/contact';
 
 interface Props {
   locale: Locale;
@@ -17,6 +19,9 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
+
+const current = Astro.url.pathname;
+const isCurrent = (p: string) => current === L(p);
 
 /* Credit order is the incumbent site's own. Marks are supplied as artwork
    without embedded names, so the heading carries the meaning. */
@@ -61,12 +66,15 @@ const disclaimerHeading: Record<Locale, string> = {
 
     <div class="footer__meta">
       <div class="footer__block">
-        <h2 class="footer__heading">{t('address')}</h2>
-        <a class="footer__value" href={MAP_HREF} target="_blank" rel="noopener noreferrer">{ADDRESS}</a>
-      </div>
-
-      <div class="footer__block">
         <h2 class="footer__heading">{t('call')}</h2>
+
+        {/* The sales gallery address, on its own two lines as published. */}
+        <address class="footer__address">
+          <a class="footer__value" href={MAP_HREF} target="_blank" rel="noopener noreferrer">
+            {ADDRESS_LINES.map((line) => <span class="footer__address-line">{line}</span>)}
+          </a>
+        </address>
+
         <a class="footer__value" href={PHONE_HREF}>{PHONE}</a>
         <SalesContact locale={locale} tone="dark" class="footer__sales" />
 
@@ -91,6 +99,60 @@ const disclaimerHeading: Record<Locale, string> = {
           </li>
         </ul>
       </div>
+
+      {/* Column two: the same list the header's mega panel carries, plus Home,
+          which the header expresses as the logo instead. */}
+      <nav class="footer__block" aria-labelledby="footer-menu">
+        <h2 class="footer__heading" id="footer-menu">{t('explore')}</h2>
+        <ul class="footer__links">
+          <li>
+            <a
+              class="footer__link"
+              href={L(HOME_PATH)}
+              aria-current={isCurrent(HOME_PATH) ? 'page' : undefined}
+            >{homeLabel[locale]}</a>
+          </li>
+          {exploreLinks.map((link) => (
+            <li>
+              <a
+                class="footer__link"
+                href={L(link.path)}
+                aria-current={isCurrent(link.path) ? 'page' : undefined}
+              >{link.label[locale]}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Column three: the released residences, grouped by level exactly as the
+          mega panel groups them. `unitsByLevel` is built from the released-only
+          set, so an unreleased unit cannot appear here. */}
+      <nav class="footer__block footer__block--residences" aria-labelledby="footer-residences">
+        <h2 class="footer__heading" id="footer-residences">
+          {t('residences')} <span class="footer__count">{unitCount}</span>
+        </h2>
+        <ul class="footer__levels">
+          {unitsByLevel.map((group) => (
+            <li class="footer__level">
+              <span class="footer__level-label">{group.label}</span>
+              <ul class="footer__units">
+                {group.units.map((u) => (
+                  <li>
+                    <a
+                      class="footer__unit"
+                      href={L(u.slug)}
+                      aria-current={isCurrent(u.slug) ? 'page' : undefined}
+                    >
+                      <span class="footer__unit-no">{u.number}</span>
+                      <span class="footer__unit-spec">{u.beds}{u.hasDen ? '+D' : ''} / {u.baths}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
 
     <div class="footer__disclaimer">
@@ -104,6 +166,25 @@ const disclaimerHeading: Record<Locale, string> = {
         <a href={L('accessibility')}>{t('accessibility')}</a>
       </nav>
       <p class="footer__copy">&copy; {year} Origin Residences. {t('rights')}</p>
+    </div>
+
+    {/* Maker's credit. The heart replaces the word, so the word itself stays in
+        the accessible name — a screen reader still reads "Made with heart in
+        Miami" and the icon is hidden from it. */}
+    <div class="footer__legal footer__made">
+      <a
+        class="footer__made-link"
+        href="https://reach.miami"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span>Made with</span>
+        <svg class="footer__heart" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
+        <span class="visually-hidden">heart</span>
+        <span>in Miami.</span>
+      </a>
     </div>
   </div>
 </footer>
@@ -140,9 +221,17 @@ const disclaimerHeading: Record<Locale, string> = {
   /* Partner marks arrive in mixed fills; normalise them to the footer's
      warm white so the row reads as one system. */
   .credit__mark :global(svg) {
+    /* Block + auto margins so the mark is centred on the label by its own box
+       rather than by inherited text-align, which an inline SVG resolves against
+       its baseline and which the sizing change below could otherwise upset. */
+    display: block;
     width: auto;
     max-width: 100%;
-    height: clamp(30px, 3.4vw, 42px);
+    /* 80% of the size these were. Written as the original clamp times 0.8 so
+       the fluid range stays intact and the reduction is legible. */
+    height: calc(clamp(30px, 3.4vw, 42px) * 0.8);
+    margin-inline: auto;
+    opacity: 0.8;
   }
   .credit__mark :global(svg *) {
     fill: var(--off-white);
@@ -153,14 +242,97 @@ const disclaimerHeading: Record<Locale, string> = {
      padding above, separated by the same hairline. */
   .footer__meta {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* Contact · menu · residences. The first column carries the most content,
+       so it takes the widest share rather than three equal thirds. */
+    grid-template-columns: 1.3fr 1fr 1fr;
     gap: clamp(var(--s-5), 4vw, var(--s-8));
     margin-top: var(--s-5);
     padding-top: var(--s-5);
     border-top: 1px solid var(--rule-on-dark);
   }
 
-  .footer__block { display: grid; gap: var(--s-2); align-content: start; }
+  /* --- Column one: contact ------------------------------------------------- */
+
+  .footer__address { font-style: normal; }
+
+  /* Two lines as published, rather than one line folded by the column width. */
+  .footer__address-line { display: block; }
+
+  /* --- Column two: menu ---------------------------------------------------- */
+
+  .footer__links { display: grid; gap: var(--s-1); }
+
+  .footer__link {
+    display: inline-block;
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    line-height: 1.8;
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .footer__link:hover,
+  .footer__link[aria-current='page'] { color: var(--gold); }
+
+  /* --- Column three: released residences ----------------------------------- */
+
+  .footer__count { color: var(--ink-on-dark-muted); }
+
+  .footer__levels { display: grid; gap: var(--s-3); }
+
+  /* Level label beside its units rather than above them, at every width. */
+  .footer__level {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+  }
+
+  .footer__level-label {
+    /* Fixed basis so the unit lists line up with each other down the column —
+       "PH Level 7" is wider than "Level 3", and left to size themselves the
+       rows would each start at a different x. */
+    flex: 0 0 auto;
+    /* 6.2em, not 5.5: the longest label today ("PH Level 7") measures 62px
+       against a 63px column, so 5.5em left a single pixel of margin and any
+       longer level name would have wrapped. */
+    min-width: 6.2em;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+    opacity: 0.7;
+  }
+
+  .footer__units { display: grid; gap: 2px; min-width: 0; }
+
+  /* Number and spec on one row, as the mega panel sets them. */
+  .footer__unit {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .footer__unit:hover,
+  .footer__unit[aria-current='page'] { color: var(--gold); }
+
+  .footer__unit-spec { font-size: var(--t-micro); opacity: 0.72; }
+
+  /* min-width: 0 because grid items default to min-width: auto and will not
+     shrink below their min-content width. The sales email is a single unbroken
+     token, so without this it sets the whole column's floor and shoves the next
+     column off the screen — measured 8px of document overflow at 320px. */
+  .footer__block {
+    display: grid;
+    gap: var(--s-2);
+    align-content: start;
+    min-width: 0;
+  }
+
+  /* Same reason, at the token level: let that one long address wrap. */
+  .footer__block :global(.sales-contact) { overflow-wrap: anywhere; }
 
   .footer__heading {
     font-size: var(--t-micro);
@@ -233,9 +405,99 @@ const disclaimerHeading: Record<Locale, string> = {
   }
   .footer__legal-links a:hover { color: var(--gold); }
 
+  /* --- Maker's credit ------------------------------------------------------ */
+
+  /* Two class names, not one, on purpose: the narrow-screen block below resets
+     `.footer__legal` to flex-start, and a single-class rule here would lose to
+     it at 640px and under. This outranks it at every width. */
+  .footer__legal.footer__made { justify-content: center; }
+
+  .footer__made-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: var(--ink-on-dark-muted);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .footer__made-link:hover { color: var(--gold); }
+
+  /* The heart carries its OWN colour rather than inheriting the link's, which
+     is what keeps it red while the words around it go gold on hover. */
+  .footer__heart {
+    width: 1em;
+    height: 1em;
+    flex: none;
+    color: var(--heart-red);
+  }
+
+  /* --- Tablet and below: smaller labels and marks --------------------------- */
+  @media (max-width: 860px) {
+    /* --t-micro is already the smallest token, so this is an explicit value. */
+    .credit__label { font-size: 0.64rem; letter-spacing: 0.2em; }
+
+    /* A further 20% off the 80% already applied — 0.8 × 0.8. Kept as the
+       original clamp times a factor so the fluid range survives. */
+    .credit__mark :global(svg) {
+      height: calc(clamp(30px, 3.4vw, 42px) * 0.64);
+    }
+  }
+
+  /* --- Tablet: all six visible, three across, nothing to scroll -------------
+     A single row cannot hold them here. The six items measure 723px of content
+     — three of them fixed by their LABEL rather than their mark ("Architecture
+     by" is 128px on its own) — against roughly 585px of content width at 641px.
+     Fitting one row would mean scaling everything to about 73%, which puts the
+     labels near 7px. Two rows of three keeps them at a readable size. */
+  @media (min-width: 641px) and (max-width: 860px) {
+    .credits__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--s-6) var(--s-5);
+    }
+  }
+
+  /* --- Mobile: one swipeable row --------------------------------------------
+     The row bleeds to the viewport edges by cancelling the shell's gutter, then
+     pads it back inside so the first and last marks are not flush to the screen.
+     The scrollbar is left visible on purpose: nothing inside this row is
+     focusable, so hiding it would leave the overflow with no affordance and no
+     way to reach it without a touchscreen. */
   @media (max-width: 640px) {
-    .credits__grid { grid-template-columns: repeat(2, 1fr); }
-    .footer__meta { grid-template-columns: 1fr; }
-    .footer__legal { justify-content: flex-start; }
+    .credits__grid {
+      display: flex;
+      grid-template-columns: none;
+      /* Tighter than the desktop rhythm so the marks read as one strip rather
+         than as separate tiles — but still clear of each other. */
+      gap: var(--s-5);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: var(--s-3);
+    }
+
+    /* Width from content, not a fixed share of the viewport: the marks differ
+       enormously in proportion (Artefacto is 7.5:1, VDA 3.6:1) and a fixed
+       share leaves the narrow ones stranded in whitespace. */
+    .credit {
+      flex: 0 0 auto;
+      width: auto;
+      scroll-snap-align: start;
+    }
+
+    /* --- Meta: two columns, residences dropped ---------------------------- */
+    .footer__meta { grid-template-columns: 1fr 1fr; }
+
+    /* The residences list is the one column that can go: every unit in it is
+       also in the header's mega panel, so nothing becomes unreachable. */
+    .footer__block--residences { display: none; }
+
+    /* --- Legal row centred ------------------------------------------------ */
+    .footer__legal { justify-content: center; text-align: center; }
+    .footer__legal-links { justify-content: center; }
   }
 </style>

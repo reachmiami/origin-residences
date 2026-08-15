@@ -1,0 +1,123 @@
+---
+import { Image } from 'astro:assets';
+
+/**
+ * The photographic page title band.
+ *
+ * Lifted verbatim from the Residences page, which is where this treatment
+ * started, and now shared by every page that carries a title. Extracting it was
+ * not optional at this scale: Astro scopes styles per file, so leaving it inline
+ * would have meant ten copies of the same forty lines of CSS, drifting apart the
+ * first time anyone adjusted the veil.
+ *
+ * `.band` is deliberately NOT a global class. Several pages already use that
+ * name for something else entirely — a plain image `<div>` on Amenities, a
+ * `<figure>` on Artefacto — and they only coexist because Astro scopes them.
+ * Anything global here would collide with all of them.
+ */
+interface Props {
+  image: ImageMetadata;
+  alt: string;
+  /** Small tracked caps above the title. */
+  eyebrow?: string;
+  title: string;
+  /** Short line under the rule. Omitted where a page has no such copy — this
+      band is not a reason to invent marketing prose for a legal page. */
+  lede?: string;
+  /** Must match the `aria-labelledby` the page expects. */
+  headingId?: string;
+  /** Eager-load the image. True for the first thing on the page, which is
+      almost always this. */
+  eager?: boolean;
+}
+
+const {
+  image,
+  alt,
+  eyebrow,
+  title,
+  lede,
+  headingId = 'page-heading',
+  eager = true,
+} = Astro.props;
+---
+
+<section class="band" aria-labelledby={headingId}>
+  <Image
+    class="band__media"
+    src={image}
+    alt={alt}
+    widths={[640, 990, 1228, 1600]}
+    sizes="100vw"
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : undefined}
+  />
+  <div class="band__veil" aria-hidden="true"></div>
+
+  <div class="shell band__inner">
+    {eyebrow && <p class="eyebrow band__eyebrow">{eyebrow}</p>}
+    <h1 class="display band__title" id={headingId}>{title}</h1>
+    <hr class="band__rule" />
+    {lede && <p class="band__lede">{lede}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: clamp(420px, 62svh, 720px);
+    padding-block: calc(var(--header-h) + var(--s-7)) clamp(var(--s-7), 6vh, var(--s-9));
+    overflow: clip;
+    background: var(--navy);
+    color: var(--ink-on-dark);
+    isolation: isolate;
+  }
+
+  .band__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Darkest at the foot, where the type sits, and again at the head, where the
+     transparent header's type sits. */
+  .band__veil {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to top,
+      rgba(8, 35, 65, 0.88) 0%,
+      rgba(8, 35, 65, 0.42) 52%,
+      rgba(8, 35, 65, 0.58) 100%
+    );
+  }
+
+  .band__inner { display: grid; justify-items: start; gap: var(--s-4); max-width: 1180px; }
+
+  .band__eyebrow { color: var(--gold-light); }
+
+  .band__title { color: var(--off-white); }
+
+  .band__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .band__lede {
+    max-width: 46ch;
+    font-size: var(--t-small);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    text-transform: uppercase;
+    color: var(--ink-on-dark-muted);
+  }
+</style>

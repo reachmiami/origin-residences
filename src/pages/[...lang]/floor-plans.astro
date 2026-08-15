@@ -1,6 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import PageBand from '../../components/PageBand.astro';
+import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import InquiryForm from '../../components/InquiryForm.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
@@ -153,19 +155,17 @@ function planAlt(label: string, group: Unit[]): string {
   locale={locale}
   path="floor-plans"
 >
-  <section class="page-head" aria-labelledby="page-heading">
-    <div class="shell page-head__inner">
-      <p class="eyebrow" data-reveal="fade">{t('explore')}</p>
-      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.title}</h1>
-      <hr class="page-head__rule" data-reveal="fade" />
-      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">
-        {site.home.inventoryLede}
-      </p>
-      <a class="page-head__all" href={L('residences')} data-reveal="fade">
-        {t('backToInventory')} &rarr;
-      </a>
-    </div>
-  </section>
+  {/* PLACEHOLDER artwork — see src/data/band-art.ts. */}
+  <PageBand
+    image={BAND_PLACEHOLDER}
+    alt={BAND_PLACEHOLDER_ALT[locale]}
+    eyebrow={t('explore')}
+    title={c.title}
+    lede={site.home.inventoryLede}
+    headingId="page-heading"
+  >
+    <a class="band__all" href={L('residences')}>{t('backToInventory')} &rarr;</a>
+  </PageBand>
 
   {/* The comparison table buyers actually build in their heads: bedrooms,
       den, bath count and the area each family spans. */}
@@ -270,45 +270,24 @@ function planAlt(label: string, group: Unit[]): string {
 </Base>
 
 <style>
+  /* Slotted into PageBand, on the dark veil. */
+  .band__all {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-light);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .band__all:hover { color: var(--off-white); }
+
   /* The bar is fixed and transparent at rest, so the first band pays for it. */
   .page-head {
     padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
     background: var(--ground);
   }
-
-  .page-head__inner {
-    display: grid;
-    justify-items: start;
-    gap: var(--s-4);
-  }
-
-  .page-head__title { color: var(--ink); }
-
-  .page-head__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    margin-block: var(--s-2);
-    border: 0;
-    background: var(--gold);
-  }
-
-  .page-head__lede {
-    font-size: var(--t-h4);
-    font-weight: var(--w-xlight);
-    letter-spacing: var(--track-body);
-    text-transform: uppercase;
-  }
-
-  .page-head__all {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    font-size: var(--t-micro);
-    letter-spacing: var(--track-label);
-    text-transform: uppercase;
-    color: var(--gold-ink);
-  }
-  .page-head__all:hover { color: var(--ink); }
 
   /* --- Plan families ----------------------------------------------------- */
 
