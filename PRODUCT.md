@@ -29,7 +29,8 @@ A boutique 27-residence waterfront building whose interiors are a collaboration 
 
 ## Operating Context
 
-- Purchase decisions run through a private presentation, held either in the sales gallery at 9760 West Bay Harbor Dr or virtually. Booking that appointment is the real conversion.
+- Purchase decisions run through a private presentation, held either in the sales gallery or virtually. Booking that appointment is the real conversion.
+- **Two addresses, not one, and they are not interchangeable.** The building is at 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154; sales are made from 17651 Biscayne Blvd, Aventura, FL 33160. Both are held separately in `src/data/contact.ts` (`SITE_ADDRESS` vs `ADDRESS`) because conflating them once sent the neighbourhood map to the wrong place.
 - Buyers evaluate by floor plan and exposure, so per-unit interior/exterior/total square footage (in both sq. ft. and m²) is decision-critical material, not decoration.
 - Leads land in Follow Up Boss and are worked by phone. Speed and completeness of the lead record matter more than form volume.
 - Downloadable per-unit PDFs are part of the sales material.
@@ -41,6 +42,7 @@ A boutique 27-residence waterfront building whose interiors are a collaboration 
 - **Dropped from the incumbent site** (cannot function without a backend, user-confirmed): login, register, favorites, saved searches, viewing history, password reset, mortgage calculator, email-to-a-friend, and the IDX plugin's modal furniture.
 - **27 residences**, levels 3–7, across 4 plan families ranging 2 BR / 2.5 BA to 4 BR + Den / 4.5 BA. Interior 1,302–2,328 sq. ft.; total 1,437–2,799 sq. ft. Exact per-unit figures extracted and held in the content model.
 - **No prices, no availability status** (user-confirmed). Price is a conversation; its absence is what drives the inquiry.
+- **No commercial map service.** The user ruled out Google Maps on the billing-account obligation and asked for something styleable and stripped of layers. The neighbourhood locator is therefore a committed SVG basemap generated once from OpenStreetMap: every colour is a brand token, nothing loads at runtime, and there is no key to leak or bill. The trade accepted was that it does not pan or zoom.
 - **Trilingual: English, Spanish, Portuguese (pt-BR)** (user-confirmed). English is source. ES and pt-BR are AI-authored and flagged for native-speaker review before launch — a confirmed open item, not a shipped guarantee.
 - Conversion is tiered (user-confirmed): *Inquire* is the persistent nav CTA for volume; *Schedule Private Presentation* is the emphasized close on unit pages and long-scroll endings.
 
@@ -51,7 +53,9 @@ A boutique 27-residence waterfront building whose interiors are a collaboration 
 Extracted from the live site and now authoritative:
 
 - **Palette.** Deep navy `#082341` (primary), warm sand `#e6dfd5` (ground), antique gold `#ba935b` (accent). Supporting: pale sand `#eeeae7`, off-white `#fffdf9`, warm gray `#98948f`, light gold `#cbae87`, muted taupe-gold `#a19076`.
-- **Typography.** Montserrat, self-hosted, in **light weights only — Thin 100, ExtraLight 200, Light 300**. Set predominantly in uppercase with wide letter-spacing. The lightness and the tracking *are* the brand signal; heavy weights break it. (Lora appears in a Google Fonts request but is not part of the self-hosted brand kit.)
+- **Typography.** Montserrat, self-hosted, in **light weights — Thin 100, ExtraLight 200, Light 300**. Set predominantly in uppercase with wide letter-spacing. The lightness and the tracking *are* the brand signal; heavy weights break it. (Lora appears in a Google Fonts request but is not part of the self-hosted brand kit.)
+
+  **Two exceptions the user authorised in build, in this order:** Montserrat **Medium 500**, first for the v2 header where light weights were illegible over the sunset photograph, then extended to both forms and the neighbourhood locator's list; and **SemiBold 600**, for the locator's category filter, added after the user asked twice for a bolder filter and 500 was already the heaviest face loaded. Neither is in the incumbent kit. **This is an unresolved brand question, not a settled widening** — either the range has genuinely changed and this section should say so plainly, or those uses come back down. Do not treat the exceptions as licence to reach for weight generally; hierarchy still comes from scale, tracking and case.
 - **Logo.** `Logo_Carla.svg` (wordmark, 231.8 × 45.0, white fill), plus `logo-sidebar.png` and `LOGOPP.png`. Held in `scratchpad/scrape/brand/`.
 - **Hero motion.** An existing brand video, `seis_2-1.mp4`.
 - Name: **ORIGIN** / Origin Residences. Legal entity in the terms: Bay Harbour Investment, Inc.
@@ -68,7 +72,7 @@ Real, extracted from the incumbent site — nothing here is fabricated:
 - **95 unique media assets, 24MB**, from the IDXBoost S3 bucket (`scratchpad/scrape/assets/`).
 - **27 unit records** with verified bed/bath, interior, exterior, and total areas in sq. ft. and m² (`scratchpad/scrape/units.json`).
 - **Verbatim marketing copy** for all 9 core pages (`scratchpad/scrape/text/`).
-- Contact: (786) 850-8998 · germanr.realty@gmail.com · 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154.
+- Contact as originally scraped: (786) 850-8998 · germanr.realty@gmail.com · 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154. **The build now ships different details** — `src/data/contact.ts` carries (305) 458-1100 and the Aventura sales-gallery address. That divergence has not been reconciled with the user; `contact.ts` is what renders, and this line records only what the incumbent site said.
 - Legal: existing Terms of Use and Privacy Policy text, and the TCPA-style consent language attached to every form.
 
 **Absences future work must not fabricate:** no prices, no availability status, no testimonials, no sales figures, no completion date, no awards. Only one unit (702) had a linked PDF; the rest are not on hand.
