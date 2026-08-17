@@ -5,7 +5,7 @@ import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { legalCopy, legalBody } from '../../content/pages/legal';
-import { ADDRESS, PHONE, PHONE_HREF } from '../../data/contact';
+import { ADDRESS, EMAIL, EMAIL_HREF, PHONE, PHONE_HREF } from '../../data/contact';
 
 /* The incumbent site publishes an Accessibility page, so the commitment is an
    existing public one. This statement describes only what this build actually
@@ -31,7 +31,6 @@ const chrome = legalCopy[locale];
 const c = chrome.accessibility;
 const body = legalBody.accessibility;
 
-const EMAIL = 'germanr.realty@gmail.com';
 ---
 
 <Base
@@ -75,7 +74,7 @@ const EMAIL = 'germanr.realty@gmail.com';
         <h2 class="subheading" id="a11y-feedback">{body.feedbackTitle}</h2>
         <p class="prose">{body.feedbackBody}</p>
         <p class="prose">
-          {body.contactBeforeEmail}<a href={`mailto:${EMAIL}`}>{EMAIL}</a>{
+          {body.contactBeforeEmail}<a href={EMAIL_HREF}>{EMAIL}</a>{
             body.contactBetweenEmailPhone
           }<a href={PHONE_HREF}>{PHONE}</a>{body.contactBetweenPhoneAddress}{ADDRESS}{
             body.contactAfterAddress

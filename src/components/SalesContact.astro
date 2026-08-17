@@ -1,5 +1,6 @@
 ---
 import type { Locale } from '../i18n/ui';
+import { EMAIL, EMAIL_HREF } from '../data/contact';
 
 /**
  * The sales contact address. Rendered in the footer and in the navigation
@@ -13,15 +14,11 @@ interface Props {
 }
 
 const { tone = 'light', class: className } = Astro.props;
-
-/** The address shown to visitors. Not the form's delivery destination —
-    lead routing is configured at the relay, see src/scripts/leads.ts. */
-const EMAIL = 'germanr.realty@gmail.com';
 ---
 
 <a
   class:list={['sales-contact', `sales-contact--${tone}`, className]}
-  href={`mailto:${EMAIL}`}
+  href={EMAIL_HREF}
 >{EMAIL}</a>
 
 <style>

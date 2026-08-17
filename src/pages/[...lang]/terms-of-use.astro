@@ -5,7 +5,7 @@ import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { legalCopy, legalBody } from '../../content/pages/legal';
-import { ADDRESS, PHONE, PHONE_HREF } from '../../data/contact';
+import { ADDRESS, EMAIL, EMAIL_HREF, PHONE, PHONE_HREF } from '../../data/contact';
 
 /* Every word of the Terms below is the incumbent site's own published text.
    Nothing has been added: where the Company has not published a clause, this
@@ -30,7 +30,6 @@ const chrome = legalCopy[locale];
 const c = chrome.terms;
 const body = legalBody.terms;
 
-const EMAIL = 'germanr.realty@gmail.com';
 ---
 
 <Base
@@ -68,7 +67,7 @@ const EMAIL = 'germanr.realty@gmail.com';
       <section class="legal__section" aria-labelledby="terms-contact" data-reveal>
         <h2 class="subheading" id="terms-contact">{body.contactTitle}</h2>
         <p class="prose">
-          {body.contactBeforeEmail}<a href={`mailto:${EMAIL}`}>{EMAIL}</a>{
+          {body.contactBeforeEmail}<a href={EMAIL_HREF}>{EMAIL}</a>{
             body.contactBetweenEmailPhone
           }<a href={PHONE_HREF}>{PHONE}</a>{body.contactBetweenPhoneAddress}{ADDRESS}{
             body.contactAfterAddress

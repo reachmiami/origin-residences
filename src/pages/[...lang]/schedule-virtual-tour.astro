@@ -7,7 +7,7 @@ import { useTranslations, localeStaticPaths, localeFromParam } from '../../i18n/
 import { getCopy } from '../../content/copy';
 import { scheduleCopy } from '../../content/pages/schedule-virtual-tour';
 import facade from '../../assets/schedule/origin-waterfront-facade-dusk.jpg';
-import { ADDRESS, MAP_HREF, PHONE, PHONE_HREF } from '../../data/contact';
+import { ADDRESS, EMAIL, EMAIL_HREF, MAP_HREF, PHONE, PHONE_HREF } from '../../data/contact';
 
 export function getStaticPaths() {
   return localeStaticPaths();
@@ -18,7 +18,6 @@ const t = useTranslations(locale);
 const c = getCopy(locale);
 const s = scheduleCopy[locale];
 
-const EMAIL = 'germanr.realty@gmail.com';
 ---
 
 <Base
@@ -49,7 +48,7 @@ const EMAIL = 'germanr.realty@gmail.com';
         </li>
         <li class="fact">
           <h2 class="fact__label">{t('email')}</h2>
-          <a class="fact__value" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+          <a class="fact__value" href={EMAIL_HREF}>{EMAIL}</a>
         </li>
       </ul>
 

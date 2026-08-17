@@ -6,7 +6,7 @@ import InquiryForm from '../../components/InquiryForm.astro';
 import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { getCopy } from '../../content/copy';
 import { legalCopy, legalBody } from '../../content/pages/legal';
-import { ADDRESS, PHONE, PHONE_HREF } from '../../data/contact';
+import { ADDRESS, EMAIL, EMAIL_HREF, PHONE, PHONE_HREF } from '../../data/contact';
 
 /* Sourced from what the Site actually does and from the incumbent's own
    published notices — the form consent language and the marketing-email
@@ -38,7 +38,6 @@ const body = legalBody.privacy;
    every locale, for the same reason the rest of the policy is. */
 const consent = getCopy('en').forms.consent;
 
-const EMAIL = 'germanr.realty@gmail.com';
 ---
 
 <Base
@@ -93,7 +92,7 @@ const EMAIL = 'germanr.realty@gmail.com';
       <section class="legal__section" aria-labelledby="privacy-contact" data-reveal>
         <h2 class="subheading" id="privacy-contact">{body.contactTitle}</h2>
         <p class="prose">
-          {body.contactBeforeEmail}<a href={`mailto:${EMAIL}`}>{EMAIL}</a>{
+          {body.contactBeforeEmail}<a href={EMAIL_HREF}>{EMAIL}</a>{
             body.contactBetweenEmailPhone
           }<a href={PHONE_HREF}>{PHONE}</a>{body.contactBetweenPhoneAddress}{ADDRESS}{
             body.contactAfterAddress
