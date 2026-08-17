@@ -72,7 +72,8 @@ Real, extracted from the incumbent site — nothing here is fabricated:
 - **95 unique media assets, 24MB**, from the IDXBoost S3 bucket (`scratchpad/scrape/assets/`).
 - **27 unit records** with verified bed/bath, interior, exterior, and total areas in sq. ft. and m² (`scratchpad/scrape/units.json`).
 - **Verbatim marketing copy** for all 9 core pages (`scratchpad/scrape/text/`).
-- Contact as originally scraped: (786) 850-8998 · germanr.realty@gmail.com · 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154. **The build now ships different details** — `src/data/contact.ts` carries (305) 458-1100 and the Aventura sales-gallery address. That divergence has not been reconciled with the user; `contact.ts` is what renders, and this line records only what the incumbent site said.
+- Contact, **user-confirmed and authoritative**: (305) 458-1100 · germanr.realty@gmail.com. Addresses per Operating Context above — the building at 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154, and the sales gallery at 17651 Biscayne Blvd, Aventura, FL 33160. The phone lives in `src/data/contact.ts`; the email is currently hard-coded in `SalesContact.astro`.
+- For the record, so nobody "corrects" it back: the incumbent site listed **(786) 850-8998** at scrape time. That number is superseded. The email and the building address were scraped correctly and still stand.
 - Legal: existing Terms of Use and Privacy Policy text, and the TCPA-style consent language attached to every form.
 
 **Absences future work must not fabricate:** no prices, no availability status, no testimonials, no sales figures, no completion date, no awards. Only one unit (702) had a linked PDF; the rest are not on hand.
