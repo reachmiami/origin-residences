@@ -14,6 +14,7 @@ export interface NeighborhoodCopy {
   metaDescription: string;
   eyebrow: string;
   headline: string;
+  lede: string;
   intro: string;
   salesGalleryTitle: string;
   poiTitle: string;
@@ -72,7 +73,9 @@ export const neighborhoodCopy: Record<Locale, NeighborhoodCopy> = {
     metaDescription:
       'Discover Bay Harbour, an elegant neighborhood nestled in one of the most sophisticated areas of Miami, and the points of interest around Origin Residences.',
     eyebrow: 'Neighborhood',
-    headline: 'The ultimate waterfront lifestyle',
+    headline: 'An Island Sanctuary Steps from world-class luxury.',
+    lede:
+      'Bay Harbor Islands offers unparalleled access to some of Miami’s finest dining and shopping destinations. Just minutes away, residents can explore the upscale boutiques and world-class restaurants of Bal Harbour Shops, a premier luxury shopping destination featuring brands like Chanel, Gucci, and Prada.',
     intro:
       'Discover Bay Harbour, an elegant neighborhood nestled in one of the most sophisticated areas of Miami. Perfectly blending natural beauty with a modern and upscale lifestyle, Bay Harbour offers a truly unique living experience for a peaceful place to call home.',
     salesGalleryTitle: 'Sales gallery',
@@ -93,7 +96,9 @@ export const neighborhoodCopy: Record<Locale, NeighborhoodCopy> = {
     metaDescription:
       'Descubra Bay Harbour, un vecindario elegante enclavado en una de las zonas más sofisticadas de Miami, y los puntos de interés en torno a Origin Residences.',
     eyebrow: 'Vecindario',
-    headline: 'La máxima expresión de la vida frente al mar',
+    headline: 'Un santuario insular apartado, a pasos del lujo de talla mundial.',
+    lede:
+      'Bay Harbor Islands ofrece un acceso incomparable a algunos de los mejores destinos gastronómicos y comerciales de Miami. A pocos minutos, los residentes pueden recorrer las boutiques de alta gama y los restaurantes de talla mundial de Bal Harbour Shops, un destino de compras de lujo de primer nivel con firmas como Chanel, Gucci y Prada.',
     intro:
       'Descubra Bay Harbour, un vecindario elegante enclavado en una de las zonas más sofisticadas de Miami. Con una combinación perfecta de belleza natural y un estilo de vida moderno y exclusivo, Bay Harbour ofrece una experiencia de vida verdaderamente única y un lugar sereno al que llamar hogar.',
     salesGalleryTitle: 'Galería de ventas',
@@ -114,7 +119,9 @@ export const neighborhoodCopy: Record<Locale, NeighborhoodCopy> = {
     metaDescription:
       'Conheça Bay Harbour, um bairro elegante situado em uma das áreas mais sofisticadas de Miami, e os pontos de interesse ao redor do Origin Residences.',
     eyebrow: 'Vizinhança',
-    headline: 'A expressão máxima do viver à beira-mar',
+    headline: 'Um santuário insular reservado, a passos do luxo de nível mundial.',
+    lede:
+      'Bay Harbor Islands oferece acesso incomparável a alguns dos melhores destinos de gastronomia e compras de Miami. A poucos minutos, os moradores podem percorrer as boutiques sofisticadas e os restaurantes de nível mundial do Bal Harbour Shops, um destino premium de compras de luxo com marcas como Chanel, Gucci e Prada.',
     intro:
       'Conheça Bay Harbour, um bairro elegante situado em uma das áreas mais sofisticadas de Miami. Ao unir com equilíbrio a beleza natural a um estilo de vida moderno e requintado, Bay Harbour proporciona uma experiência de morar verdadeiramente única — um lugar tranquilo para chamar de seu.',
     salesGalleryTitle: 'Galeria de vendas',

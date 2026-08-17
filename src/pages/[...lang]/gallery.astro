@@ -4,7 +4,6 @@ import GalleryGrid from '../../components/GalleryGrid.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
-import { getCopy } from '../../content/copy';
 import { galleryCopy } from '../../content/pages/gallery';
 
 export function getStaticPaths() {
@@ -12,7 +11,6 @@ export function getStaticPaths() {
 }
 
 const locale = localeFromParam(Astro.params?.lang);
-const site = getCopy(locale);
 const c = galleryCopy[locale];
 ---
 
@@ -25,11 +23,10 @@ const c = galleryCopy[locale];
   {/* Same page-head treatment as Amenities — centred, on the sand ground. */}
   <section class="page-head" aria-labelledby="gallery-heading">
     <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
       <h1 class="display page-head__title" id="gallery-heading" data-reveal>{c.title}</h1>
       <hr class="page-head__rule" data-reveal="fade" />
-      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">
-        {site.home.collabLine1} {site.home.collabLine2} {site.home.collabLine3}
-      </p>
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.lede}</p>
     </div>
   </section>
 
@@ -53,31 +50,5 @@ const c = galleryCopy[locale];
 </Base>
 
 <style>
-  /* The gallery carries itself; the page opening stays to one line of type. */
-  /* Copied verbatim from amenities.astro so the two page heads cannot drift.
-     Astro scopes styles per page, so this cannot be shared without lifting it
-     into tokens.css — worth doing if a third page ever adopts it. */
-  .page-head {
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-    background: var(--ground);
-    text-align: center;
-  }
-
-  .page-head__inner {
-    display: grid;
-    justify-items: center;
-    gap: var(--s-4);
-  }
-
-  .page-head__title { color: var(--ink); }
-
-  .page-head__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    margin-block: var(--s-2);
-    border: 0;
-    background: var(--gold);
-  }
-
-  .page-head__lede { color: var(--ink); }
+  /* The page head is shared from tokens.css; this page adds nothing to it. */
 </style>

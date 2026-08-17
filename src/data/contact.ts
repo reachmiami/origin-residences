@@ -20,3 +20,18 @@ export const ADDRESS = ADDRESS_LINES.join(', ');
 
 export const MAP_HREF =
   `https://maps.google.com/?q=${encodeURIComponent(ADDRESS)}`;
+
+/**
+ * THE BUILDING ITSELF — distinct from the sales gallery above.
+ *
+ * Sales are made from Aventura; the residences are in Bay Harbor Islands. Both
+ * addresses are real and they are not interchangeable, which is why they are
+ * named separately here. `neighborhood.astro` used to shadow the imported
+ * MAP_HREF with a hard-coded copy of this address; it reads SITE_MAP_HREF now.
+ */
+export const SITE_ADDRESS_LINES = ['9760 West Bay Harbor Dr', 'Bay Harbor Islands, FL 33154'] as const;
+
+export const SITE_ADDRESS = SITE_ADDRESS_LINES.join(', ');
+
+export const SITE_MAP_HREF =
+  `https://maps.google.com/?q=${encodeURIComponent(SITE_ADDRESS)}`;

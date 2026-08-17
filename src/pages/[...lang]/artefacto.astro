@@ -38,6 +38,10 @@ const c = artefactoCopy[locale];
     eyebrow={c.eyebrow}
     title={c.headline}
     headingId="page-heading"
+    {/* This headline wraps to three lines, so its copy climbs 720px up a 904px
+        band — past the veil's default hold, which left the title on a bright
+        lobby at 1.82:1. Only this page needs the taller hold. */}
+    veilHold="760px"
   />
 
   <figure class="band band--hero">

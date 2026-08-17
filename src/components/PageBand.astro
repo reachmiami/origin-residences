@@ -29,6 +29,13 @@ interface Props {
   /** Eager-load the image. True for the first thing on the page, which is
       almost always this. */
   eager?: boolean;
+  /**
+   * How far up from the band's foot the veil stays at full strength. The
+   * default suits a two- or three-line title block; a page whose headline wraps
+   * further needs more, or its top line ends up on unveiled photograph. Only
+   * Artefacto needs this today — check with `measure-band.mjs` before changing.
+   */
+  veilHold?: string;
 }
 
 const {
@@ -39,6 +46,7 @@ const {
   lede,
   headingId = 'page-heading',
   eager = true,
+  veilHold,
 } = Astro.props;
 ---
 
@@ -52,7 +60,7 @@ const {
     loading={eager ? 'eager' : 'lazy'}
     fetchpriority={eager ? 'high' : undefined}
   />
-  <div class="band__veil" aria-hidden="true"></div>
+  <div class="band__veil" aria-hidden="true" style={veilHold ? `--veil-hold:${veilHold}` : undefined}></div>
 
   <div class="shell band__inner">
     {eyebrow && <p class="eyebrow band__eyebrow">{eyebrow}</p>}
@@ -68,7 +76,7 @@ const {
     position: relative;
     display: grid;
     align-items: end;
-    min-height: clamp(420px, 62svh, 720px);
+    min-height: clamp(420px, 62svh, 614px);
     padding-block: calc(var(--header-h) + var(--s-7)) clamp(var(--s-7), 6vh, var(--s-9));
     overflow: clip;
     background: var(--navy);
@@ -85,17 +93,36 @@ const {
     object-fit: cover;
   }
 
-  /* Darkest at the foot, where the type sits, and again at the head, where the
-     transparent header's type sits. */
+  /* The veil has to be dark WHERE THE TYPE IS, which is not the same as dark at
+     the foot of the band. One veil across the whole band, not a pool around the
+     copy — the localised version read as a panel sitting behind the words.
+
+     The original gradient ran 0.88 at the very bottom but only 0.42–0.58 across
+     the strip the copy actually occupies, because the copy is bottom-aligned
+     above a `clamp(3rem, 6vh, 6rem)` pad. Measured against composited pixels
+     that left every band page below AA — the Residences eyebrow at 1.40:1, the
+     best page anywhere 3.26:1.
+
+     So the hold is anchored in PIXELS from the foot, sized to the copy block
+     rather than to a share of a band whose height varies. The eyebrow is the
+     binding constraint: --gold-light is close in luminance to sunlit
+     photography and needs roughly 0.85 of navy over a blown-out highlight to
+     clear 4.5:1. Above the hold the veil releases so the photograph still
+     reads, then lifts again at the very top, where the transparent header's own
+     type sits. A page whose headline wraps further can raise the hold through
+     the `veilHold` prop — Artefacto does. */
   .band__veil {
+    --veil-hold: clamp(320px, 46vh, 430px);
+
     position: absolute;
     inset: 0;
     z-index: -1;
     background: linear-gradient(
       to top,
-      rgba(8, 35, 65, 0.88) 0%,
-      rgba(8, 35, 65, 0.42) 52%,
-      rgba(8, 35, 65, 0.58) 100%
+      color-mix(in srgb, var(--navy) 94%, transparent) 0,
+      color-mix(in srgb, var(--navy) 88%, transparent) var(--veil-hold),
+      color-mix(in srgb, var(--navy) 26%, transparent) calc(var(--veil-hold) + 170px),
+      color-mix(in srgb, var(--navy) 52%, transparent) 100%
     );
   }
 

@@ -36,13 +36,32 @@
 }
 
 /* Medium sits OUTSIDE the incumbent brand kit, which ships Thin/ExtraLight/
-   Light only. It exists solely for the v2 header, where light weights were
-   illegible over the sunset photograph. Do not use it elsewhere without
-   deciding that the brand's weight range has genuinely changed. */
+   Light only. It arrived for the v2 header, where light weights were illegible
+   over the sunset photograph, and has since spread to the forms and the
+   neighbourhood locator. Do not use it elsewhere without deciding that the
+   brand's weight range has genuinely changed. */
 @font-face {
   font-family: 'Montserrat';
   src: url('/fonts/Montserrat-Medium.woff2') format('woff2');
   font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* SemiBold is the second off-kit weight, added on request for the locator's
+   category filter — with only 100/200/300/500 loaded there was nothing between
+   Medium and "no bolder face exists", so asking for 600 or 700 in CSS just
+   re-rendered Medium.
+
+   LATIN SUBSET ONLY (16KB, from Google Fonts, SIL OFL 1.1). It covers ASCII and
+   Latin-1, which is every accent the Spanish and Portuguese copy uses. A glyph
+   outside that range asked for at 600 falls back to the system stack, so keep
+   this weight on short, known strings. Nothing loads it unless a rule asks for
+   600, which today is `.chip` alone. */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('/fonts/Montserrat-SemiBold.woff2') format('woff2');
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
@@ -140,7 +159,8 @@
   --w-thin: 100;
   --w-xlight: 200;
   --w-light: 300;
-  --w-medium: 500; /* v2 header only — see the @font-face note above */
+  --w-medium: 500;    /* off-kit — see the @font-face note above */
+  --w-semibold: 600;  /* off-kit, latin subset only — locator filter */
 
   /* Fluid scale, 360px → 1600px viewport */
   --t-display: clamp(2.25rem, 1.15rem + 4.9vw, 5.5rem);
@@ -442,6 +462,65 @@ ul, ol {
   height: 1px;
   background: var(--rule);
   border: 0;
+}
+
+/* --- Page head -------------------------------------------------------------
+   The quiet alternative to the photographic PageBand: a centred title on the
+   sand ground. Used by Gallery, Amenities and Neighborhood.
+
+   Shared from here rather than copied per page. It WAS copied — into four files,
+   one of which no longer even used it — and the first request to change the
+   title size would have meant four edits and four chances to drift.
+
+   The title carries `.display` too, and this rule deliberately overrides that
+   class's fluid size with fixed steps. Both selectors are one class, so this
+   wins on source order alone: it must stay BELOW `.display`.
+   -------------------------------------------------------------------------- */
+
+.page-head {
+  padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
+  background: var(--ground);
+  text-align: center;
+}
+
+.page-head__inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--s-4);
+}
+
+.page-head__title {
+  font-size: 3.5rem;
+  color: var(--ink);
+}
+
+.page-head__rule {
+  width: clamp(64px, 8vw, 120px);
+  height: 1px;
+  margin-block: var(--s-2);
+  border: 0;
+  background: var(--gold);
+}
+
+.page-head__lede { color: var(--ink); }
+
+.page-head__all {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--t-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.page-head__all:hover { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .page-head__title { font-size: 2.5rem; }
+}
+
+@media (max-width: 640px) {
+  .page-head__title { font-size: 1.5rem; }
 }
 
 .section--dark .rule {

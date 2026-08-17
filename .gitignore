@@ -14,3 +14,8 @@ npm-debug.log*
 # only the exported web asset should be committed.
 *.CR3
 *.xmp
+
+# Hand-off working files — source documents you drop for me to read (lists,
+# notes, exports). Whatever gets derived from them is committed as real source;
+# the working file itself stays out of the repo.
+_working/

@@ -1,0 +1,510 @@
+---
+import basemap from '../assets/map/neighborhood-basemap.svg?raw';
+import originMark from '../assets/brand/marker-origin.svg?raw';
+import { CATEGORIES, PLACES, SITE } from '../data/neighborhood-places';
+import { SITE_ADDRESS } from '../data/contact';
+import type { Locale } from '../i18n/ui';
+
+/**
+ * The neighbourhood locator.
+ *
+ * No map library, no tiles, no API key and no billing account. The basemap is a
+ * plain SVG generated once from OpenStreetMap data and committed — so every
+ * colour is a brand token and the whole thing is about 60KB with nothing loaded
+ * at runtime. The trade is that it does not pan or zoom, which a fixed-extent
+ * locator does not need.
+ *
+ * Markers are DECORATIVE. Several places share one pin — all 36 Bal Harbour
+ * Shops tenants sit at the mall's coordinate, as do the restaurants inside each
+ * hotel — so a pin is not a reliable one-to-one for a place. The list beside
+ * the map carries the real content and the semantics; the pins illustrate it.
+ * That also avoids two tab stops for every entry.
+ */
+interface Props {
+  locale?: Locale;
+}
+
+const originSvg = originMark
+  .replace(/<\?xml[\s\S]*?\?>/g, '')
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/<svg\s/, '<svg aria-hidden="true" focusable="false" ');
+
+/* One marker per distinct coordinate, not per place. Grouped to 4dp — about
+   11 metres — which merges tenants of one building without merging neighbours. */
+const groups = new Map<string, { x: number; y: number; n: number; cats: Set<string>; names: string[] }>();
+for (const p of PLACES) {
+  const key = `${p.x.toFixed(3)},${p.y.toFixed(3)}`;
+  const g = groups.get(key) ?? { x: p.x, y: p.y, n: p.n, cats: new Set<string>(), names: [] };
+  g.n = Math.min(g.n, p.n);
+  p.cats.forEach((c) => g.cats.add(c));
+  g.names.push(p.name);
+  groups.set(key, g);
+}
+const markers = [...groups.values()].sort((a, b) => a.n - b.n);
+
+/* The list, grouped under its category heading, in filter order. */
+const byCategory = CATEGORIES.map((cat) => ({
+  cat,
+  places: PLACES.filter((p) => p.cats.includes(cat)).sort((a, b) => a.n - b.n),
+})).filter((g) => g.places.length > 0);
+---
+
+<section class="locator" aria-labelledby="locator-heading" data-locator>
+  <div class="shell locator__head">
+    <h2 class="heading" id="locator-heading" data-reveal>The neighbourhood</h2>
+    <hr class="locator__rule" data-reveal="fade" />
+  </div>
+
+  {/* Deliberately NOT inside a .shell. A sticky element can only travel within
+      its parent's box, and a wrapper that holds just the filter gives it a
+      range of zero — it looked sticky in the CSS and never moved. Its parent is
+      the section, so it can hold position for the whole locator.
+
+      The filter is a real group of toggle buttons: it changes what is shown on
+      the page, so it is not a tablist and the map is not a tabpanel. */}
+  <div class="locator__filter" role="group" aria-label="Filter places by category">
+    <button type="button" class="chip is-on" data-cat="" aria-pressed="true">All</button>
+    {CATEGORIES.map((cat) => (
+      <button type="button" class="chip" data-cat={cat} aria-pressed="false">{cat}</button>
+    ))}
+  </div>
+
+  {/* Out of the shell: the grid runs the full width so the list has room for
+      several columns beside a map that keeps its own size. */}
+  <div class="locator__grid">
+      <div class="locator__map">
+        <p class="locator__site">{SITE_ADDRESS}</p>
+
+        <div class="map" data-map>
+          <Fragment set:html={basemap} />
+
+          {markers.map((m) => (
+            <span
+              class="pin"
+              data-cats={[...m.cats].join('|')}
+              style={`--x:${m.x}%; --y:${m.y}%`}
+              aria-hidden="true"
+            >{String(m.n).padStart(2, '0')}</span>
+          ))}
+
+          {/* The building. Never filtered out — it is the reference every other
+              pin is read against. */}
+          <span class="pin pin--site" style={`--x:${SITE.x}%; --y:${SITE.y}%`}>
+            <Fragment set:html={originSvg} />
+            <span class="visually-hidden">Origin Residences, {SITE_ADDRESS}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* The map's accessible equivalent, and the thing that actually carries
+          the content. Filtering removes PINS but only dims the list: a place
+          often sits in two categories, so pulling entries out would make the
+          groups look broken. Dimming keeps every name readable and keeps the
+          column layout from reflowing on every click. */}
+      <div class="locator__list">
+        {byCategory.map((group) => (
+          <section class="locator__group" data-group={group.cat}>
+            <h3 class="locator__group-title">{group.cat}</h3>
+            <ul>
+              {group.places.map((p) => (
+                <li data-cats={p.cats.join('|')}>
+                  <span class="locator__no" aria-hidden="true">{String(p.n).padStart(2, '0')}</span>
+                  <span class="locator__name">{p.name}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+  </div>
+</section>
+
+<style>
+  .locator {
+    padding-block: var(--section-y);
+    background: var(--ground);
+
+    /* The basemap's only colours. Brand tokens, so the map cannot drift from
+       the rest of the page. */
+    --map-ground: var(--sand);
+    /* Mixed into the OFF-WHITE, not the sand. Navy diluted with a warm ground
+       comes out grey — the bay read as concrete. Against the cool white it
+       stays blue, which is the one distinction this map has to make. */
+    --map-water: color-mix(in srgb, var(--navy) 22%, var(--off-white));
+    --map-road: color-mix(in srgb, var(--navy) 14%, var(--sand));
+    --map-coast: color-mix(in srgb, var(--navy) 26%, var(--off-white));
+  }
+
+  .locator__head { display: grid; justify-items: center; text-align: center; gap: var(--s-4); }
+
+  .locator__rule {
+    width: clamp(64px, 8vw, 120px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+    margin-bottom: var(--s-7);
+  }
+
+  /* --- Filter --------------------------------------------------------------- */
+
+  /* Sticks directly beneath the fixed header, so the categories stay reachable
+     while the list scrolls underneath. Full-bleed and opaque: the page passes
+     behind it, so it cannot be transparent. */
+  .locator__filter {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* The chips carry no padding of their own now, so the row's gap is the only
+       thing keeping them apart. */
+    column-gap: var(--s-5);
+    row-gap: var(--s-2);
+    padding: var(--s-4) var(--gutter);
+    margin-bottom: var(--s-6);
+    background: var(--ground);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Type only: no chrome and no letter-spacing. Colour alone separates the
+     selected chip; the weight is uniform. NOTE: 600 is Montserrat SemiBold,
+     the second weight outside the brand kit and the only rule that loads it.
+     See HANDOFF open item 6. */
+  .chip {
+    padding: 0;
+    border: 0;
+    font-size: var(--t-micro);
+    font-weight: var(--w-semibold);
+    letter-spacing: normal;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .chip:hover { color: var(--gold-ink); }
+  .chip.is-on { color: var(--ink); }
+
+  /* --- Layout --------------------------------------------------------------- */
+
+  /* Full width, not shell width. The map column is sized to what the map
+     actually occupies so the list takes every remaining pixel — which is what
+     lets it run several columns. */
+  .locator__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 620px) minmax(0, 1fr);
+    gap: clamp(var(--s-5), 4vw, var(--s-8));
+    align-items: start;
+    padding-inline: var(--gutter);
+  }
+
+  /* The list is usually far taller than the map, so the map holds its position
+     while the rest of the list scrolls past it rather than leaving a long
+     column of dead space. */
+  .locator__map {
+    min-width: 0;
+    position: sticky;
+    top: calc(var(--header-h) + var(--filter-h, 64px) + var(--s-4));
+  }
+
+  /* --- Map ------------------------------------------------------------------ */
+
+  .map {
+    position: relative;
+    /* Matches the basemap's own viewBox so the percentage-positioned pins land
+       where the projection put them. Change one and you must regenerate both. */
+    aspect-ratio: 1000 / 1362;
+    max-height: 78vh;
+    margin-inline: auto;
+    overflow: clip;
+    border: 1px solid var(--rule);
+  }
+
+  .map :global(svg) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pin {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--off-white);
+    font-size: 0.74rem;
+    font-weight: var(--w-medium);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    transition: opacity var(--dur-fast) var(--ease-out),
+                scale var(--dur-fast) var(--ease-out);
+  }
+
+  .pin[hidden] { display: none; }
+
+  /* The building's own mark. Sits BENEATH the numbered pins: it is the anchor
+     the others are read against, not something to obscure them. */
+  .pin--site {
+    z-index: 0;
+    width: 32px;
+    height: 32px;
+    background: none;
+    color: var(--gold);
+  }
+  .pin--site :global(svg) {
+    position: static;
+    width: 100%;
+    height: 100%;
+  }
+  /* The mark ships with its own black fill; take the brand gold instead. */
+  .pin--site :global(svg path) { fill: currentColor; }
+
+  /* Above the map and styled as a section label, matching the list's own
+     category headings. Plain text — it is a caption, not a destination. */
+  .locator__site {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    padding-bottom: var(--s-2);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: var(--s-3);
+  }
+
+  /* --- List ----------------------------------------------------------------- */
+
+  .locator__list {
+    min-width: 0;
+    columns: 3;
+    column-gap: clamp(var(--s-5), 3vw, var(--s-7));
+  }
+
+  .locator__group {
+    /* Keep a category and its places in one column. */
+    break-inside: avoid;
+    margin-bottom: var(--s-5);
+  }
+
+  .locator__group {
+    transition: opacity var(--dur-base) var(--ease-out),
+                filter var(--dur-base) var(--ease-out);
+  }
+
+  .locator__group-title {
+    font-size: var(--t-micro);
+    font-weight: var(--w-medium);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    padding-bottom: var(--s-2);
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: var(--s-3);
+  }
+
+  .locator__list ul { display: grid; gap: var(--s-1); }
+
+  .locator__list li {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: var(--s-2);
+    align-items: baseline;
+    font-size: var(--t-small);
+    font-weight: var(--w-medium);
+    color: var(--ink);
+  }
+
+  .locator__no {
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-body);
+    color: var(--ink-muted);
+  }
+
+  /* Stacks at 1200, not 900. Beside a map that holds its size, the list column
+     is too narrow for two readable columns below about 1200px — measured, it
+     dropped to one from 1200 all the way down to 901. Stacked, the list has the
+     full width and runs three or four. */
+  /* --- Arrival ---------------------------------------------------------------
+     Everything is visible in the markup and only hidden once the script has
+     confirmed motion is wanted, so a failed script or a reduced-motion visitor
+     gets the finished locator rather than a blank one. `is-ready` is what the
+     script adds; until then none of these rules apply. */
+  .locator.is-ready .chip,
+  .locator.is-ready .locator__group,
+  .locator.is-ready .pin--site { opacity: 0; }
+
+  .locator.is-ready .pin:not(.pin--site) { opacity: 0; }
+
+  /* The numbers fall in from above the crop, accelerating, then settle with two
+     diminishing bounces. The map clips, so they arrive from off-canvas. */
+  @keyframes pin-drop {
+    0% {
+      opacity: 0;
+      translate: -50% calc(-50% - 220px);
+      animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+    }
+    14% { opacity: 1; }
+    52% {
+      opacity: 1;
+      translate: -50% calc(-50% + 8px);
+      animation-timing-function: var(--ease-out);
+    }
+    70% {
+      translate: -50% calc(-50% - 12px);
+      animation-timing-function: cubic-bezier(0.55, 0.06, 0.68, 0.19);
+    }
+    84% {
+      translate: -50% calc(-50% + 4px);
+      animation-timing-function: var(--ease-out);
+    }
+    93% { translate: -50% calc(-50% - 3px); }
+    100% { opacity: 1; translate: -50% -50%; }
+  }
+
+  .locator.is-in .chip {
+    opacity: 1;
+    transition: opacity var(--dur-base) var(--ease-out) calc(var(--i, 0) * 40ms);
+  }
+
+  /* The mark fades; it does not travel. */
+  .locator.is-in .pin--site {
+    opacity: 1;
+    transition: opacity var(--dur-slow) var(--ease-out) 220ms;
+  }
+
+  /* One after another. `both` holds the 0% frame through the delay, so a pin
+     waiting its turn stays off-map rather than flashing in place. */
+  .locator.is-in .pin:not(.pin--site) {
+    animation: pin-drop 900ms calc(320ms + var(--i, 0) * 34ms) both;
+  }
+
+  .locator.is-in .locator__group {
+    opacity: 1;
+    transition: opacity var(--dur-slow) var(--ease-out) calc(320ms + var(--i, 0) * 90ms);
+  }
+
+  /* Filtered out, not removed: pushed back far enough to read as inactive while
+     the names stay legible and the layout stays put. Has to out-specify the
+     arrival rule above, which sets opacity on the same element. */
+  .locator.is-in .locator__group.is-dim {
+    opacity: 0.15;
+    filter: blur(var(--dim-blur, 0.8px));
+    transition: opacity var(--dur-base) var(--ease-out),
+                filter var(--dur-base) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .locator.is-ready .chip,
+    .locator.is-ready .locator__group,
+    .locator.is-ready .pin--site,
+    .locator.is-ready .pin:not(.pin--site) {
+      opacity: 1;
+      translate: -50% -50%;
+      transition: none;
+      animation: none;
+    }
+    /* The recede stays; only the blur goes. */
+    .locator { --dim-blur: 0px; }
+    .locator.is-ready .chip,
+    .locator.is-ready .locator__group { translate: none; }
+  }
+
+  @media (max-width: 1200px) {
+    .locator__grid { grid-template-columns: 1fr; }
+    /* Stacked, a sticky map would sit on top of the list it belongs to. */
+    .locator__map { position: static; }
+    .locator__list { margin-top: var(--s-6); }
+    /* Full width, like the list beside it. The height cap is what was holding
+       the map back: with the aspect ratio locked, capping the height caps the
+       width too, and the map sat centred in a column it could have filled. Let
+       it run the full width and take whatever height that implies. */
+    .map { max-height: none; }
+  }
+
+  /* Three columns need roughly 200px each to hold a place name on one line. */
+  @media (max-width: 900px) {
+    .locator__list { columns: 2; }
+  }
+
+  @media (max-width: 640px) {
+    /* Centred, a wrapped row leaves the last line floating mid-screen. Ranged
+       left, every line starts on the same gutter as the rest of the page. */
+    .locator__filter { justify-content: start; }
+  }
+
+  @media (max-width: 620px) {
+    .locator__list { columns: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .locator__map { position: static; }
+  }
+</style>
+
+<script>
+  /* Filtering is the whole behaviour. Everything is rendered server-side and
+     visible before this runs, so a failed script leaves every place listed and
+     every pin on the map — it only removes the ability to narrow them. */
+  document.querySelectorAll<HTMLElement>('[data-locator]').forEach((root) => {
+    const chips = [...root.querySelectorAll<HTMLButtonElement>('.chip')];
+
+    /* Stagger indices live on the elements, so the CSS can space the arrival
+       without the script animating anything itself. */
+    chips.forEach((c, i) => c.style.setProperty('--i', String(i)));
+    root.querySelectorAll<HTMLElement>('.pin:not(.pin--site)')
+      .forEach((p, i) => p.style.setProperty('--i', String(i)));
+    root.querySelectorAll<HTMLElement>('.locator__group')
+      .forEach((g, i) => g.style.setProperty('--i', String(i)));
+
+    /* Hide-then-reveal only once we know JS runs. */
+    root.classList.add('is-ready');
+    const reveal = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        root.classList.add('is-in');
+        reveal.disconnect();
+      });
+    }, { rootMargin: '0px 0px -15% 0px' });
+    reveal.observe(root);
+
+    /* The map has to clear the sticky filter, whose height changes as the chips
+       wrap. Measured rather than guessed. */
+    const filter = root.querySelector<HTMLElement>('.locator__filter');
+    const setFilterH = () => {
+      if (filter) root.style.setProperty('--filter-h', `${Math.round(filter.offsetHeight)}px`);
+    };
+    setFilterH();
+    window.addEventListener('resize', setFilterH, { passive: true });
+    const pins = [...root.querySelectorAll<HTMLElement>('.pin:not(.pin--site)')];
+    const groups = [...root.querySelectorAll<HTMLElement>('.locator__group')];
+
+    const has = (el: HTMLElement, cat: string) =>
+      !cat || (el.dataset.cats ?? '').split('|').includes(cat);
+
+    const apply = (cat: string) => {
+      /* Pins go: a filtered map with only the selected numbers is the point.
+         The list stays whole and the other categories recede. */
+      pins.forEach((p) => { p.hidden = !has(p, cat); });
+      groups.forEach((g) => {
+        g.classList.toggle('is-dim', Boolean(cat) && g.dataset.group !== cat);
+      });
+
+      chips.forEach((c) => {
+        const on = (c.dataset.cat ?? '') === cat;
+        c.classList.toggle('is-on', on);
+        c.setAttribute('aria-pressed', String(on));
+      });
+    };
+
+    chips.forEach((c) => c.addEventListener('click', () => apply(c.dataset.cat ?? '')));
+    apply('');
+  });
+</script>

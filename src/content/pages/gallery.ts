@@ -6,8 +6,9 @@ import type { Locale } from '../../i18n/ui';
  * `en` is verbatim from originresidences.com. `es` and `pt-br` are AI-authored
  * and awaiting native review — see TRANSLATION-REVIEW.md.
  *
- * The lede under the heading is the shared collaboration line and already
- * lives in src/content/copy.ts, so it is not repeated here.
+ * The page head carries its own eyebrow, title and lede. It used to borrow the
+ * shared collaboration line from src/content/copy.ts; the owner replaced that
+ * with copy specific to this page.
  *
  * `prevImage` / `nextImage` are the GalleryGrid step controls: the ui
  * dictionary only carries the residence wording, so the page supplies these.
@@ -36,7 +37,9 @@ export interface GalleryPhoto {
 export interface GalleryCopy {
   metaTitle: string;
   metaDescription: string;
+  eyebrow: string;
   title: string;
+  lede: string;
   prevImage: string;
   nextImage: string;
   photos: GalleryPhoto[];
@@ -47,7 +50,10 @@ export const galleryCopy: Record<Locale, GalleryCopy> = {
     metaTitle: 'Gallery | Origin Residences',
     metaDescription:
       'The building, its amenities and its Artefacto interiors — the Origin Residences gallery, in Bay Harbor Islands, Florida.',
-    title: 'Gallery',
+    eyebrow: 'Gallery',
+    title: 'Discover the Origin Residences Vision.',
+    lede:
+      'Step into a visual journey of modern island living in Bay Harbor Islands. Origin showcases west-facing sunset views, refined architecture, and custom interiors by Artefacto. Explore the photos and videos below to experience the light, space, and elegance of your future home.',
     prevImage: 'Previous image',
     nextImage: 'Next image',
     photos: [
@@ -178,7 +184,10 @@ export const galleryCopy: Record<Locale, GalleryCopy> = {
     metaTitle: 'Galería | Origin Residences',
     metaDescription:
       'El edificio, sus amenidades y sus interiores de Artefacto: la galería de Origin Residences, en Bay Harbor Islands, Florida.',
-    title: 'Galería',
+    eyebrow: 'Galería',
+    title: 'Descubra la visión de Origin Residences.',
+    lede:
+      'Adéntrese en un recorrido visual por la vida isleña contemporánea en Bay Harbor Islands. Origin reúne vistas al atardecer orientadas al oeste, una arquitectura depurada e interiores a medida de Artefacto. Explore las fotografías y los videos a continuación para descubrir la luz, el espacio y la elegancia de su futuro hogar.',
     prevImage: 'Imagen anterior',
     nextImage: 'Imagen siguiente',
     photos: [
@@ -309,7 +318,10 @@ export const galleryCopy: Record<Locale, GalleryCopy> = {
     metaTitle: 'Galeria | Origin Residences',
     metaDescription:
       'O edifício, suas comodidades e seus interiores Artefacto: a galeria do Origin Residences, em Bay Harbor Islands, Flórida.',
-    title: 'Galeria',
+    eyebrow: 'Galeria',
+    title: 'Descubra a visão da Origin Residences.',
+    lede:
+      'Entre em uma jornada visual pelo morar contemporâneo em Bay Harbor Islands. O Origin reúne vistas do pôr do sol voltadas para oeste, arquitetura refinada e interiores sob medida da Artefacto. Explore as fotos e os vídeos abaixo para conhecer a luz, o espaço e a elegância do seu futuro lar.',
     prevImage: 'Imagem anterior',
     nextImage: 'Próxima imagem',
     photos: [

@@ -281,13 +281,8 @@ function planAlt(label: string, group: Unit[]): string {
     color: var(--gold-light);
     transition: color var(--dur-fast) var(--ease-out);
   }
-  .band__all:hover { color: var(--off-white); }
+  .band__all:hover { color: var(--off-white); }/* The bar is fixed and transparent at rest, so the first band pays for it. */
 
-  /* The bar is fixed and transparent at rest, so the first band pays for it. */
-  .page-head {
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-    background: var(--ground);
-  }
 
   /* --- Plan families ----------------------------------------------------- */
 

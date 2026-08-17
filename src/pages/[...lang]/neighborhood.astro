@@ -1,11 +1,11 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import PageBand from '../../components/PageBand.astro';
+import NeighborhoodMap from '../../components/NeighborhoodMap.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
-import { neighborhoodCopy, pointsOfInterest } from '../../content/pages/neighborhood';
+import { neighborhoodCopy } from '../../content/pages/neighborhood';
 
 import canalView from '../../assets/neighborhood/canal-view-from-terraces.jpg';
 import streetApproach from '../../assets/neighborhood/origin-street-approach.jpg';
@@ -19,10 +19,7 @@ export function getStaticPaths() {
 const locale = localeFromParam(Astro.params?.lang);
 const c = neighborhoodCopy[locale];
 
-/* Place names, the address and the phone number are locale-independent — they
-   are reproduced exactly as published in every language. */
-const MAP_HREF =
-  'https://maps.google.com/?q=9760+West+Bay+Harbor+Dr,+Bay+Harbor+Islands,+FL+33154';
+
 ---
 
 <Base
@@ -30,17 +27,18 @@ const MAP_HREF =
   description={c.metaDescription}
   locale={locale}
   path="neighborhood"
-  darkHeader
 >
-  {/* Uses `fromTheWater`, not `canalView` — the canal photograph is the
-      full-bleed figure directly below. */}
-  <PageBand
-    image={fromTheWater}
-    alt={c.alt.water}
-    eyebrow={c.eyebrow}
-    title={c.headline}
-    headingId="page-heading"
-  />
+  {/* Same page-head treatment as Amenities and Gallery — centred, on the sand
+      ground. `darkHeader` is gone with the photographic band it belonged to:
+      the bar now opens over a light ground and needs its dark ink. */}
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
+      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.headline}</h1>
+      <hr class="page-head__rule" data-reveal="fade" />
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.lede}</p>
+    </div>
+  </section>
 
   <figure class="band band--wide">
     <Image
@@ -82,23 +80,8 @@ const MAP_HREF =
     </div>
   </section>
 
-  <section class="section poi" aria-labelledby="poi-heading">
-    <div class="shell">
-      <header class="poi__head">
-        <h2 class="heading" id="poi-heading" data-reveal>{c.poiTitle}</h2>
-        <p class="poi__kicker" data-reveal data-reveal-delay="0.06">{c.poiKicker}</p>
-      </header>
 
-      <ol class="poi__list" data-reveal>
-        {pointsOfInterest.map((name, i) => (
-          <li class="poi__item">
-            <span class="poi__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-            <span class="poi__name">{name}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
+  <NeighborhoodMap locale={locale} />
 
   <figure class="band band--tall">
     <Image
@@ -120,8 +103,8 @@ const MAP_HREF =
 </Base>
 
 <style>
-  /* The page title band lives in PageBand.astro now. The `.band` rules below
-     are a DIFFERENT thing — this page's own full-bleed figures — and stay. */
+  /* The page head is shared from tokens.css. The `.band` rules below are a
+     DIFFERENT thing — this page's own full-bleed figures — and stay. */
 
   /* --- Full-bleed photography bands --------------------------------------
      The wrapper owns the crop; the image fills it and drifts slowly inside
@@ -185,49 +168,6 @@ const MAP_HREF =
 
   .locate__figure { margin: 0; }
 
-  /* --- Points of interest ------------------------------------------------- */
-  .poi__head {
-    display: grid;
-    gap: var(--s-2);
-    padding-bottom: var(--s-5);
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .poi__kicker {
-    font-size: var(--t-micro);
-    letter-spacing: var(--track-label);
-    text-transform: uppercase;
-    color: var(--gold-ink);
-  }
-
-  .poi__list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    column-gap: clamp(var(--s-5), 4vw, var(--s-8));
-    margin-top: var(--s-6);
-  }
-
-  .poi__item {
-    display: grid;
-    grid-template-columns: 2.6rem 1fr;
-    gap: var(--s-3);
-    align-items: baseline;
-    padding-block: var(--s-3);
-    border-top: 1px solid var(--rule);
-  }
-
-  .poi__no {
-    font-size: var(--t-micro);
-    letter-spacing: var(--track-label);
-    color: var(--gold-ink);
-  }
-
-  .poi__name {
-    font-size: var(--t-small);
-    font-weight: var(--w-light);
-    letter-spacing: var(--track-body);
-    color: var(--ink);
-  }
 
   @media (max-width: 880px) {
     .locate__grid { grid-template-columns: 1fr; }

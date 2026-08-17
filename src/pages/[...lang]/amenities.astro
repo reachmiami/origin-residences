@@ -122,42 +122,8 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
   </section>
 </Base>
 
-<style>
-  /* The bar is fixed and transparent at rest, so the first band pays for it. */
-  .page-head {
-    padding-block: calc(var(--header-h) + var(--s-8)) var(--s-8);
-    background: var(--ground);
-    text-align: center;
-  }
+<style>/* The bar is fixed and transparent at rest, so the first band pays for it. */
 
-  .page-head__inner {
-    display: grid;
-    justify-items: center;
-    gap: var(--s-4);
-  }
-
-  .page-head__title { color: var(--ink); }
-
-  .page-head__rule {
-    width: clamp(64px, 8vw, 120px);
-    height: 1px;
-    margin-block: var(--s-2);
-    border: 0;
-    background: var(--gold);
-  }
-
-  .page-head__lede { color: var(--ink); }
-
-  .page-head__all {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    font-size: var(--t-micro);
-    letter-spacing: var(--track-label);
-    text-transform: uppercase;
-    color: var(--gold-ink);
-  }
-  .page-head__all:hover { color: var(--ink); }
 
   /* --- Full-bleed lead render -------------------------------------------- */
 
