@@ -643,9 +643,15 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
    `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and all 27 unit
    pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
-   residences — only 702 had one. Also **`src/assets/team/Sergio Guzman &
-   Mauricio Moya 77.jpg` is untracked and unreferenced** — it was dropped into
-   the repo and nothing imports it; find out where it belongs.
+   residences — only 702 had one.
+
+   Two asset folders are **untracked on purpose**, not strays: `amenities/random/`
+   and `neighborhood/origin-palms.jpg` are staged for pages not yet built, and
+   should be committed by whatever work starts using them. The stray team
+   portrait that used to be listed here was deleted at the owner's request.
+   `src/assets/amenities/residence-living-dining-bay-view.jpg` is the opposite
+   case — tracked but unreferenced since the Amenities lead render was dropped,
+   and NOT the same file as the identically-named one in `assets/gallery/`.
 12. Smaller, all live and all deliberate for now:
    - The Gallery lede promises "photos and videos"; the page has no video.
    - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
