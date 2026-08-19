@@ -26,6 +26,19 @@ treatment. **These are the freshest strings on the site — review them first.**
 | `the-team.ts` → `eyebrow`, `title`, `lede` | The Team |
 | `artefacto.ts` → `headline`, `headLede` | Artefacto |
 | `amenities.ts` → three `schedule` items | Amenities |
+| `amenities.ts` → all six `stack` entries | Amenities |
+
+The six amenity cards carry a translated `title`, a `line` and an `alt`
+describing the lead photograph. All six lines are owner-written English as of
+19 Aug 2026; the three that had none before are the clubroom, the fitness
+centre and the playroom. Two are worth a second look in translation: `boat
+slip` is rendered `amarre` (es) and `vaga de atracação` (pt-BR), both standard
+but regional; and `Clubroom` was kept in English inside all three titles, as
+the amenity's name rather than a description. The English titles are owner-supplied.
+Two notes: the alt text describes RENDERINGS, and says so, because five of the
+six images are renders rather than photographs — keep that word in translation;
+and `Club Room` was left in English inside the Spanish and Portuguese titles,
+since it reads as the amenity's name rather than as a description.
 
 Three renamed amenity lines, all owner-supplied in English:
 

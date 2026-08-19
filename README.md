@@ -47,6 +47,8 @@ src/
                            and The Team
   components/HomeHero      the homepage hero — sunset still, flying logo
   components/HomeStack     the homepage's three shuffling cards
+  components/AmenityStack  the six shuffling amenity cards
+  components/KenBurns      crossfading slideshow with a Ken Burns drift
   components/NeighborhoodMap  keyless locator — SVG basemap, filter, pins
   components/              Header (mega nav), Footer, Hero, forms, gallery
   pages/                   file-based routes; [unit].astro emits all 27

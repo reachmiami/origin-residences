@@ -52,6 +52,53 @@ qualified enquiry, not on traffic.
 Working branch: `homepage-stack-hero-scrim-forms`, **six commits, nothing
 merged to `main`** — which still sits on the original rebuild.
 
+#### Uncommitted — the Amenities deck
+
+- **Six stacking amenity cards**, each backed by a Ken Burns slideshow:
+  `AmenityStack.astro` (the deck) and `KenBurns.astro` (the media layer). They
+  replaced the four alternating image/copy `features` rows.
+- **Same sticky mechanic as `HomeStack.astro`, deliberately not yet merged.**
+  HomeStack's `<Image>` needs `object-fit` to out-specify Astro's responsive
+  image styles from inside its own scope, and a shared global rule would lose
+  that silently. This repo's precedent is to extract at the THIRD copy — that
+  is how `.page-head` reached `tokens.css`. **A third deck should trigger the
+  extraction**; both components carry a comment saying so.
+- **Images come from `import.meta.glob` per folder**, so dropping another
+  photograph into `src/assets/amenities/<folder>/` joins that card's slideshow
+  with no code change. Globbed per folder rather than once across `amenities/*`
+  on purpose: `eager: true` would otherwise pull `amenities/random/` — eight
+  unused files including multi-megabyte brochure PNGs — through the image
+  pipeline on every build. A card with no images throws at build time.
+- **The scrim is heavier than the homepage's and for a measured reason.** Those
+  cards sit over one still frame chosen to suit them; these cycle through up to
+  five images never graded together. The worst case is now *bounded by the
+  scrim rather than by the photography*: `rgb(94,107,121)` is navy-deep at 64.8%
+  effective alpha over pure white, which is why every viewport reports the same
+  5.36:1. A first attempt cleared 9.66:1 and flattened the rooftop render to
+  grey — on this site contrast past the threshold is bought at the image's
+  expense.
+- **`measure-amenity-stack.mjs`** forces every slide of every card active in
+  turn and measures each one.
+- **The lead render above the deck was removed** at the owner's request, taking
+  its `.band` markup, CSS, the `Image` import and the `bandAlt` copy in all
+  three locales with it. `src/assets/amenities/residence-living-dining-bay-view.jpg`
+  is now unreferenced but still tracked — it is NOT the identically-named file
+  in `assets/gallery/`, which the gallery and homepage still use.
+- **The crossfade had two faults, both fixed and both measured.** Fading both
+  slides at once left each at ~50% mid-transition, so ~25% of the container's
+  navy showed *through* the picture — a grey pulse on every change. Only the
+  incoming slide fades now, lifted above an outgoing one that holds full
+  opacity for the whole fade. Separately the drift ran on `.is-active` alone,
+  so the outgoing slide's transform snapped back to base the instant it lost
+  that class; `.is-leaving` carries the same animation so it keeps drifting out.
+  Verified by tracing every frame: 0 frames with no fully-opaque slide, largest
+  visible transform step 0.10, and composited luminance ramping monotonically
+  through a transition. `advance()` also awaits `decode()` — an undecoded slide
+  stalls the compositor and looks exactly like a CSS fault. That is what caught the only real contrast
+  failure: Spanish, slide 5, short viewport, **4.08:1** — the longer title
+  wrapped onto more lines and reached into the scrim's falloff while English
+  passed at 5.05:1 on the same card.
+
 #### Uncommitted — The Team and Artefacto onto `.page-head`
 
 - **Both pages lost their photographic title band** and now carry the flat sand
@@ -324,6 +371,37 @@ widths against a bare fallback — `document.fonts.check()` will NOT tell you,
 because it answers for the family, not the face. Both off-kit files are latin
 subsets now: ASCII and Latin-1, which covers every accent the es/pt-br copy uses.
 
+**A `z-index` escapes any ancestor that is not a stacking context.** `KenBurns`
+lifts the incoming slide above the outgoing one to crossfade them. Its wrapper
+`.kb` was `position: absolute` with `z-index: auto`, which creates NO stacking
+context — so `z-index: 2` on a slide resolved against the CARD instead, where it
+competed with the scrim (1) and the copy (2). The active slide painted over the
+scrim and the headline was left sitting on bare photography: it measured
+**1.00:1**, white on a white terrace, and on the darker slides it looks fine.
+`.kb` now carries `isolation: isolate`, which contains the layering without
+disturbing anything the card does. Whenever a z-index is added inside a
+component, check what its nearest stacking context actually is.
+
+**A block comment among a component's attributes is NOT a comment in Astro.**
+Written inside the `<Image>` tag in `KenBurns.astro`, a `/* … */` block was
+parsed as ATTRIBUTES — it reached the HTML as `*="true" Only="true" the="true"`
+— and it silently swallowed every attribute that followed it. `alt`, `loading`,
+`sizes` and `decoding` all vanished, so fourteen images shipped with no alt text
+and no lazy loading, and the page pulled 2.8MB before a single scroll. **The
+build stayed green and nothing errored.** Comment above the tag, never among its
+attributes. Note also that `{/* … */}` cannot be a sibling of the element inside
+a `.map()` arrow that returns a single expression — put it above the `map`, or
+in the frontmatter.
+
+**`loading="lazy"` does almost nothing for a slideshow.** Every slide of a card
+is absolutely positioned at that card's own box, so they all share ONE position
+in the document. The browser saw five images at the top of card one and fetched
+all five as soon as that card came within its viewport-distance threshold —
+measured, 11 of 14 slides decoded before any scroll. The fix is to withhold the
+URL, not to hint at it: `KenBurns` resolves images through `getImage()` and
+ships the non-lead slides with `data-src`/`data-srcset`, promoting them on first
+approach. Initial load went 2823KB → 1129KB.
+
 **Verification must run against a BUILD, and `npm run preview` will not tell
 you when it isn't.** This is the single most expensive trap in this repo.
 
@@ -427,6 +505,7 @@ node measure-inquire.mjs          # darkest pixel behind DARK type on the lead b
 node measure-team.mjs             # the five team cards: grounds, gradients, contrast
 node measure-band.mjs             # the page band's veil contrast, every band page
 node measure-page-head.mjs        # the 5 page-head pages: head ink + bar ink
+node measure-amenity-stack.mjs    # the 6 amenity cards, EVERY slide of each
 
 Run these against `npm run preview`, NEVER the dev server — see the build/dev
 gotcha above. `assert-build.mjs` enforces it for the two scripts that import it.
@@ -547,16 +626,27 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
      gold fill is the CTA's identity — so it probably needs the owner, not a
      fix. Large-text AA (3:1) is also missed, narrowly.
 
-9. **36 warnings** from the first review round were never worked — only the
+9. **The amenity deck needs more photographs, and three cards need a line.**
+   Four of the six folders hold a SINGLE image — `clubroom`, `fitness-center`,
+   `kidsroom`, `pet-zone` — so those cards drift but never cross-fade; only
+   rooftop and aqua club have five each. Drop files into the folder and they
+   join that slideshow automatically. (The supporting lines are all in now —
+   the owner wrote the three that were missing, so every card carries one, and
+   they run at `--t-body` rather than `--t-small`.) Also worth knowing: the aqua-club images are
+   near-square (about 1285×1224) and crop hard in a full-bleed landscape card,
+   and `pet-zone/origin-pets.jpg` looks like the same photograph already
+   tracked as `amenities/pet-park-dogs.jpg`.
+
+10. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-10. **Assets the owner owes**: real photographs for the five templates still on
+11. **Assets the owner owes**: real photographs for the five templates still on
    `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and all 27 unit
    pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
    residences — only 702 had one. Also **`src/assets/team/Sergio Guzman &
    Mauricio Moya 77.jpg` is untracked and unreferenced** — it was dropped into
    the repo and nothing imports it; find out where it belongs.
-11. Smaller, all live and all deliberate for now:
+12. Smaller, all live and all deliberate for now:
    - The Gallery lede promises "photos and videos"; the page has no video.
    - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
      frame them better now that they are cut-outs rather than photographs.
