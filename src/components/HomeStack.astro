@@ -11,9 +11,10 @@ import artefactoSvg from '../assets/brand/logo-artefacto.svg?raw';
  * edge while the next scrolls up and covers it — the illusion being a deck of
  * cards being dealt over one another.
  *
- * Shared by BOTH homepages (`/` and `/v2/`), which previously each carried
- * their own verbatim copy of this markup and CSS. One implementation means the
- * two cannot drift while the v1/v2 decision is still open.
+ * Extracted when there were two homepages, each carrying its own verbatim copy
+ * of this markup and CSS. Only `/` remains, but this stays a component: it is
+ * a self-contained pattern, and the duplication is exactly what went wrong
+ * before.
  *
  * Ordering note: the bands need no explicit z-index. They are all positioned
  * (sticky) with `z-index: auto`, so they paint in DOM order and each one

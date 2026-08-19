@@ -5,12 +5,17 @@ import { getCopy } from '../content/copy';
 import sunset from '../assets/home/origin-sunset.jpg';
 
 /**
- * Alternate homepage hero.
+ * The homepage hero.
  *
  * The logo starts life here — oversized, centred above the headline — and
  * travels up into the header bar as the page scrolls, while the bar's centre
- * track opens to receive it. Only the v2 page mounts this; the original hero
- * is untouched.
+ * track opens to receive it. Pair it with `headerVariant="home"`: the bar has
+ * to open a centre slot for the logo to land in, and this is the only page
+ * that does that.
+ *
+ * The internal `hero2` / `data-h2-*` names are historical — this began as the
+ * alternate homepage. They are file-scoped and wired into the GSAP selectors
+ * and measure-hero.mjs, so they were left alone rather than churned.
  */
 interface Props {
   locale: Locale;

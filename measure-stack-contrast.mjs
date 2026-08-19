@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import sharp from 'sharp';
 
-const URL = process.argv[2] || 'http://localhost:4321/v2/';
+const URL = process.argv[2] || 'http://localhost:4321/';
 const IDS = ['bespoke-design', 'living-concept', 'natural-beauty'];
 const TYPE = [255, 253, 249]; // --off-white
 

@@ -212,11 +212,12 @@ export function useTranslations(locale: Locale) {
 /**
  * Where the logo and any "home" link point.
  *
- * Set to 'v2' while the alternate homepage is the one being shown. Change this
- * back to '' to send every page to the original homepage again — it is the
- * only place the destination is written down.
+ * The root, now that the alternate homepage has been promoted onto it. Kept as
+ * a named constant because it is the only place the destination is written
+ * down — the header logo, the footer logo and the hero's flying logo all read
+ * it, so they cannot drift apart.
  */
-export const HOME_PATH = 'v2';
+export const HOME_PATH = '';
 
 /** Build a locale-aware absolute path. English stays at the root. */
 export function localizePath(path: string, locale: Locale): string {

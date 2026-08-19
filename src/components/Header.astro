@@ -9,14 +9,14 @@ import { ADDRESS, ADDRESS_LINES, PHONE, PHONE_HREF } from '../data/contact';
 interface Props {
   locale: Locale;
   dark?: boolean;
-  /** 'v2' hands the logo to the page: the bar keeps only a slot for it to fly
-      into, and the flanks sit closer together until it arrives. Every other
-      page uses 'default' and is untouched by this. */
-  variant?: 'default' | 'v2';
+  /** 'home' hands the logo to the page: the bar keeps only a slot for it to
+      fly into, and the flanks sit closer together until it arrives. Only the
+      homepage uses it; every other page is 'default' and untouched by this. */
+  variant?: 'default' | 'home';
 }
 
 const { locale, dark = false, variant = 'default' } = Astro.props;
-const isV2 = variant === 'v2';
+const isHome = variant === 'home';
 const t = useTranslations(locale);
 const L = (p: string) => localizePath(p, locale);
 
@@ -27,7 +27,7 @@ const isCurrent = (p: string) => current === L(p);
 
 ---
 
-<header class:list={['header', { 'header--dark': dark, 'header--v2': isV2 }]} data-header>
+<header class:list={['header', { 'header--dark': dark, 'header--home': isHome }]} data-header>
   <div class="header__bar">
     {/* Three columns: the outer two are equal-width so the logo sits on the
         true centre of the bar regardless of what flanks it. */}
@@ -43,7 +43,7 @@ const isCurrent = (p: string) => current === L(p);
       <LangSwitch locale={locale} class="langs--bar" />
     </div>
 
-    {isV2 ? (
+    {isHome ? (
       <>
         {/* Desktop and tablet: the space the flying logo lands in. */}
         <div class="header__slot" data-logo-slot aria-hidden="true"></div>
@@ -258,19 +258,24 @@ const isCurrent = (p: string) => current === L(p);
 
   .header__brand { justify-self: center; }
 
-  /* --- v2 -----------------------------------------------------------------
+  /* --- Homepage -----------------------------------------------------------
      The centre track starts collapsed so the flanks read as one close group,
      then opens to the logo's width as the page scrolls. --logo-slot is driven
-     by the hero's scroll animation.                                        */
-  /* Light weights disappeared against the sunset, so the v2 bar steps up to
-     Medium. Scoped to v2: every other page keeps the brand's light kit. */
-  .header--v2 .header__phone,
-  .header--v2 .pill__face,
-  .header--v2 .pill__label { font-weight: var(--w-medium); }
+     by the hero's scroll animation.
 
-  /* Both controls read as one pair in v2: Inquire drops its solid gold fill
-     and takes the Menu button's outline treatment. */
-  .header--v2 .pill--solid {
+     EVERY colour rule below names .is-condensed and .is-open explicitly. The
+     shared `.header.is-condensed` rules sit at this same specificity and apply
+     from 40px of scroll, so a rule that omits them silently loses the moment
+     the page moves. This has bitten three times — see HANDOFF.            */
+  /* Light weights disappeared against the sunset, so the homepage bar steps up
+     to Medium. Scoped here: every other page keeps the brand's light kit. */
+  .header--home .header__phone,
+  .header--home .pill__face,
+  .header--home .pill__label { font-weight: var(--w-medium); }
+
+  /* Both controls read as one pair on the homepage: Inquire drops its solid
+     gold fill and takes the Menu button's outline treatment. */
+  .header--home .pill--solid {
     background: transparent;
     border-color: currentColor;
     color: inherit;
@@ -279,7 +284,7 @@ const isCurrent = (p: string) => current === L(p);
   /* Accent that tracks the bar's own fill: white while the header is still
      transparent over the photograph, gold once it has turned white. The mix
      rides --header-bg, so it crosses over exactly as the bar does. */
-  .header--v2 {
+  .header--home {
     /* The bar fills for either reason — the logo landing, or the menu opening
        over it. An open menu against a transparent bar read as a white panel
        floating on nothing. */
@@ -292,8 +297,8 @@ const isCurrent = (p: string) => current === L(p);
   }
 
 
-  .header--v2 {
-    --v2-accent: color-mix(
+  .header--home {
+    --home-accent: color-mix(
       in srgb,
       var(--gold) calc(var(--bar-fill, 0) * 100%),
       #ffffff
@@ -302,17 +307,17 @@ const isCurrent = (p: string) => current === L(p);
 
 
 
-  /* Declared after the condensed-state rules so v2's accent wins at every
+  /* Declared after the condensed-state rules so this accent wins at every
      scroll position; those share this specificity and come earlier. */
-  .header--v2 .header__phone:hover,
-  .header--v2.is-condensed .header__phone:hover,
-  .header--v2.is-open .header__phone:hover { color: var(--v2-accent); }
+  .header--home .header__phone:hover,
+  .header--home.is-condensed .header__phone:hover,
+  .header--home.is-open .header__phone:hover { color: var(--home-accent); }
 
-  /* v2 holds the bar translucent over the photograph and fills it in only as
-     the logo arrives, so the header never turns white around an empty slot. */
-  .header--v2.is-condensed,
-  .header--v2.is-open,
-  .header--v2 {
+  /* The homepage holds the bar translucent over the photograph and fills it in
+     only as the logo arrives, so it never turns white around an empty slot. */
+  .header--home.is-condensed,
+  .header--home.is-open,
+  .header--home {
     background: rgba(255, 253, 249, var(--bar-fill, 0));
     box-shadow: 0 1px 0 rgba(8, 35, 65, calc(var(--bar-fill, 0) * 0.16));
   }
@@ -321,9 +326,9 @@ const isCurrent = (p: string) => current === L(p);
      from bright sky to dark water as the photograph scrolls past. A fixed ink
      colour cannot survive both. So the bar carries its own soft shade while
      it is transparent, and retires it exactly as the white ground arrives. */
-  .header--v2 { position: fixed; }
+  .header--home { position: fixed; }
 
-  .header--v2::before {
+  .header--home::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -340,11 +345,12 @@ const isCurrent = (p: string) => current === L(p);
 
   /* Ink follows the same one value: warm white against that shade during the
      flight, navy once the bar is white. The condensed/open rules set colour at
-     the same specificity and are applied from 40px of scroll, so v2 has to
-     name those states explicitly or it loses the moment the page moves. */
-  .header--v2,
-  .header--v2.is-condensed,
-  .header--v2.is-open {
+     the same specificity and are applied from 40px of scroll, so the homepage
+     has to name those states explicitly or it loses the moment the page
+     moves. */
+  .header--home,
+  .header--home.is-condensed,
+  .header--home.is-open {
     color: color-mix(in srgb, var(--navy) calc(var(--bar-fill, 0) * 100%), #fffdf9);
   }
 
@@ -352,7 +358,7 @@ const isCurrent = (p: string) => current === L(p);
      landed, --header-bg is flipped to 1 and everything keyed to it — the
      background, the shadow, and the white → gold accent — fades over this
      one transition. Flipping it back to 0 reverses the whole thing. */
-  .header--v2 {
+  .header--home {
     transition: --header-bg 1140ms var(--ease-out),
                 /* Same token and easing the panel's clip-path uses, so the bar
                    and the menu move as one gesture and cannot drift apart if
@@ -362,18 +368,18 @@ const isCurrent = (p: string) => current === L(p);
 
   /* The menu icon is drawn with currentColor, so it follows the ink for free. */
 
-  .header--v2 .header__bar {
+  .header--home .header__bar {
     grid-template-columns: 1fr var(--logo-slot, 0px) 1fr;
     transition: none;
   }
 
-  .header--v2 .header__slot {
+  .header--home .header__slot {
     width: var(--logo-slot, 0px);
     height: 1px;
   }
 
   /* The static phone logo is inert until the phone breakpoint. */
-  .header--v2 .header__brand--static { display: none; }
+  .header--home .header__brand--static { display: none; }
 
   /* Collapsing the centre track is not enough on its own: each flank is still
      1fr wide and aligns its content to the OUTER edge, so nothing appears to
@@ -384,10 +390,10 @@ const isCurrent = (p: string) => current === L(p);
      is a full 1fr wide — sliding it inward dragged its empty half across the
      other flank's controls and ate their clicks. Padding moves the content
      within a box that never leaves its own half, so nothing can overlap. */
-  .header--v2 .header__side--start {
+  .header--home .header__side--start {
     padding-inline-start: calc(var(--flank-close, 1) * 34%);
   }
-  .header--v2 .header__side--end {
+  .header--home .header__side--end {
     padding-inline-end: calc(var(--flank-close, 1) * 34%);
   }
 
@@ -730,10 +736,10 @@ const isCurrent = (p: string) => current === L(p);
     .header__brand img { height: clamp(38px, 5vw, 52px); }
   }
 
-  /* Higher specificity than the shared rule above, so v2 keeps its grid and
-     the logo still has a reserved centre column to fly into. */
+  /* Higher specificity than the shared rule above, so the homepage keeps its
+     grid and the logo still has a reserved centre column to fly into. */
   @media (max-width: 1080px) {
-    .header--v2 .header__bar {
+    .header--home .header__bar {
       display: grid;
       grid-template-columns: 1fr var(--logo-slot, 0px) 1fr;
       gap: var(--s-3);
@@ -742,13 +748,13 @@ const isCurrent = (p: string) => current === L(p);
        on the flanks for the old flex bar, and order reorders GRID
        auto-placement too — which put the slot in column 1 and the left flank
        in the collapsed centre. Naming the columns makes placement immune. */
-    .header--v2 .header__side--start {
+    .header--home .header__side--start {
       grid-column: 1;
       order: 0;
       justify-content: flex-start;
     }
-    .header--v2 .header__slot { grid-column: 2; order: 0; }
-    .header--v2 .header__side--end {
+    .header--home .header__slot { grid-column: 2; order: 0; }
+    .header--home .header__side--end {
       grid-column: 3;
       order: 0;
       justify-content: flex-end;
@@ -757,12 +763,12 @@ const isCurrent = (p: string) => current === L(p);
 
   /* Phones: back to v1's compact bar — logo left, controls right, no flight. */
   @media (max-width: 640px) {
-    .header--v2 .header__bar {
+    .header--home .header__bar {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .header--v2 .header__slot { display: none; }
+    .header--home .header__slot { display: none; }
     /* The mark's gold is baked into the SVG and it ships as an <img>, so CSS
        cannot recolour it. Masking flips that around: the artwork becomes the
        stencil and the colour comes from background-color, which can then
@@ -772,7 +778,7 @@ const isCurrent = (p: string) => current === L(p);
        It also carries the same colour transition the phone number does — the
        phone has one and this did not, so the two crossed over at visibly
        different rates even though both read the same value. */
-    .header--v2 .header__brand--static {
+    .header--home .header__brand--static {
       display: block;
       order: 1;
       margin-right: auto;
@@ -792,9 +798,9 @@ const isCurrent = (p: string) => current === L(p);
 
     /* The stencil carries the shape; the <img> would only double it. The link
        keeps its aria-label, so the name is still announced. */
-    .header--v2 .header__brand--static img { display: none; }
-    .header--v2 .header__side--start { order: 2; padding-inline-start: 0; }
-    .header--v2 .header__side--end { order: 3; padding-inline-end: 0; }
+    .header--home .header__brand--static img { display: none; }
+    .header--home .header__side--start { order: 2; padding-inline-start: 0; }
+    .header--home .header__side--end { order: 3; padding-inline-end: 0; }
   }
 
   /* Tablet only: the number becomes a glyph so the bar stops crowding the
@@ -865,7 +871,7 @@ const isCurrent = (p: string) => current === L(p);
        first and the bar drains only once it is out of the way — a staged
        entrance read as a lag, but a staged exit reads as the bar following the
        menu out. v1 has no bar fill of its own and is unaffected. */
-    const isV2 = header.classList.contains('header--v2');
+    const isHome = header.classList.contains('header--home');
     const PANEL_MS = 720;  // must match --dur-slow
 
     /* `is-open` marks the PANEL, which now lags the click on the way in — so
@@ -896,7 +902,7 @@ const isCurrent = (p: string) => current === L(p);
       trigger!.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
 
-      if (isV2) header!.style.setProperty('--menu-open', '1');
+      if (isHome) header!.style.setProperty('--menu-open', '1');
       revealPanel();
     }
 
@@ -913,7 +919,7 @@ const isCurrent = (p: string) => current === L(p);
         panel!.hidden = true;
         scrim!.hidden = true;
         // The bar drains only once the panel is fully out of the way.
-        if (isV2) header!.style.setProperty('--menu-open', '0');
+        if (isHome) header!.style.setProperty('--menu-open', '0');
       }, PANEL_MS);
 
       if (restoreFocus) (lastFocused ?? trigger)!.focus();

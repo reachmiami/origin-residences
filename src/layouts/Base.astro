@@ -15,9 +15,10 @@ interface Props {
   darkHeader?: boolean;
   /** Keep the page out of search results — used by unreleased residences. */
   noindex?: boolean;
-  /** 'v2' swaps in the alternate homepage header. Every other page keeps
-      the default, so this cannot affect them. */
-  headerVariant?: 'default' | 'v2';
+  /** 'home' swaps in the homepage header, which holds the bar transparent
+      over the hero photograph and opens a centre slot for the flying logo.
+      Every other page keeps the default, so this cannot affect them. */
+  headerVariant?: 'default' | 'home';
   ogImage?: string;
 }
 
@@ -92,9 +93,13 @@ const hreflangFor: Record<Locale, string> = { en: 'en-US', es: 'es-ES', 'pt-br':
       STORY: A buyer or broker understands this is a boutique 27-residence
         waterfront building with Artefacto interiors, and acts by inquiring or
         booking a private presentation.
-      FIRST VIEWPORT: Full-bleed brand video under a thin fixed bar; wordmark
-        left, hover-swap pill right. The 27-residence headline in tracked
-        Thin caps, gold rule beneath, VIEW AVAILABLE UNITS as primary action.
+      FIRST VIEWPORT: Full-bleed sunset photograph under a transparent fixed
+        bar; the wordmark stands oversized above the copy and flies up into the
+        bar on scroll, which fills as it lands. The 27-residence headline in
+        tracked light caps, gold rule beneath, VIEW TRAILER as primary action —
+        the brand film now plays on demand rather than autoplaying behind the
+        type. Chosen by the owner over the video hero, which is retired but
+        kept at src/components/Hero.astro.
       FORM: Refinement of the incumbent world (the standing exit), not
         candidate 4 of the grounded list. Identity fixed; execution rebuilt.
       FINISH: unreviewed and undocumented is unfinished; this build ends with

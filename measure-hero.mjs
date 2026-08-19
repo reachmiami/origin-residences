@@ -1,5 +1,5 @@
 /**
- * Measures the v2 hero: the shade actually sitting behind the headline, the
+ * Measures the homepage hero: the shade actually sitting behind the headline, the
  * shade behind the transparent header's type, and the heading weights.
  *
  * The hero is the one place where two pieces of light type sit over the same
@@ -13,7 +13,7 @@
 import { chromium } from 'playwright';
 import sharp from 'sharp';
 
-const URL = process.argv[2] || 'http://localhost:4321/v2/';
+const URL = process.argv[2] || 'http://localhost:4321/';
 
 const lin = (c) => {
   const s = c / 255;

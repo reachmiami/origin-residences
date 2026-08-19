@@ -57,14 +57,14 @@ const t = useTranslations(locale);
     color: var(--accent);
   }
 
-  /* v2 sits over a bright photograph. Medium weight for legibility, and the
-     active locale carries full-strength ink rather than gold, which was
-     dissolving into the sunset behind it. */
-  :global(.header--v2) .langs__item { font-weight: var(--w-medium); opacity: 0.62; }
-  /* White over the photograph, gold once the bar fills — see --v2-accent. */
-  :global(.header--v2) .langs__item:hover,
-  :global(.header--v2) .langs__item.is-active {
-    color: var(--v2-accent);
+  /* The homepage sits over a bright photograph. Medium weight for legibility,
+     and the active locale carries full-strength ink rather than gold, which
+     was dissolving into the sunset behind it. */
+  :global(.header--home) .langs__item { font-weight: var(--w-medium); opacity: 0.62; }
+  /* White over the photograph, gold once the bar fills — see --home-accent. */
+  :global(.header--home) .langs__item:hover,
+  :global(.header--home) .langs__item.is-active {
+    color: var(--home-accent);
     opacity: 1;
   }
 
@@ -75,15 +75,15 @@ const t = useTranslations(locale);
     color: var(--gold-ink);
   }
 
-  /* v2 last: hover and active resolve to exactly the same accent, at every
-     scroll position, whatever the condensed rules above say. */
-  :global(.header--v2) .langs__item:hover,
-  :global(.header--v2) .langs__item.is-active,
-  :global(.header--v2.is-condensed) .langs__item:hover,
-  :global(.header--v2.is-condensed) .langs__item.is-active,
-  :global(.header--v2.is-open) .langs__item:hover,
-  :global(.header--v2.is-open) .langs__item.is-active {
-    color: var(--v2-accent);
+  /* The homepage last: hover and active resolve to exactly the same accent,
+     at every scroll position, whatever the condensed rules above say. */
+  :global(.header--home) .langs__item:hover,
+  :global(.header--home) .langs__item.is-active,
+  :global(.header--home.is-condensed) .langs__item:hover,
+  :global(.header--home.is-condensed) .langs__item.is-active,
+  :global(.header--home.is-open) .langs__item:hover,
+  :global(.header--home.is-open) .langs__item.is-active {
+    color: var(--home-accent);
     opacity: 1;
   }
 

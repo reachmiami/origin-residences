@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import Hero from '../../components/Hero.astro';
+import HomeHero from '../../components/HomeHero.astro';
 import HomeStack from '../../components/HomeStack.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
@@ -17,6 +17,10 @@ import greatRoom from '../../assets/home/great-room-full-bleed.jpg';
 export function getStaticPaths() {
   return localeStaticPaths();
 }
+
+/* The sunset hero with the flying logo. It was built as an alternate (`/v2/`)
+   and shown to the client, who chose it; it is the homepage now, and the
+   original video hero is retired in src/components/Hero.astro. */
 
 const locale = localeFromParam(Astro.params?.lang);
 const c = getCopy(locale);
@@ -41,9 +45,9 @@ const bands = c.home.features.map((f) => ({ ...f, image: artwork[f.id] }));
   description={meta.metaDescription}
   locale={locale}
   path=""
-  darkHeader
+  headerVariant="home"
 >
-  <Hero locale={locale} />
+  <HomeHero locale={locale} />
 
   <section class="section intro" aria-labelledby="intro-heading">
     <div class="shell shell--narrow intro__inner">
@@ -157,7 +161,7 @@ const bands = c.home.features.map((f) => ({ ...f, image: artwork[f.id] }));
   .btn--outline svg { transition: transform var(--dur-base) var(--ease-out); }
   .btn--outline:hover svg { transform: translate(3px, -3px); }
 
-  /* The three feature bands live in HomeStack.astro, shared with /v2/. */
+  /* The three feature bands live in HomeStack.astro. */
 
   /* --- Closing frame ------------------------------------------------------ */
 

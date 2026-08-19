@@ -2,6 +2,23 @@
 import { localizePath, type Locale } from '../i18n/ui';
 import { getCopy } from '../content/copy';
 
+/**
+ * RETIRED — nothing imports this, and that is deliberate.
+ *
+ * The original homepage hero: the brand film autoplaying full-bleed under the
+ * headline. The owner chose the sunset hero instead (HomeHero.astro), which is
+ * what `/` mounts now. Kept on disk at the owner's request in case that
+ * decision is reversed — so do not "clean it up" as dead code.
+ *
+ * The brand film itself is not retired: HomeHero plays the same
+ * /video/origin-hero.mp4 on demand behind its VIEW TRAILER button. The only
+ * other thing that belongs to this file is /hero-poster.jpg, also unused.
+ * `c.home.heroCta` is likewise unused but left in all three locales.
+ *
+ * If it is ever remounted: it pairs with `darkHeader`, NOT
+ * `headerVariant="home"` — it has no flying logo, so the bar must carry its
+ * own static one.
+ */
 interface Props {
   locale: Locale;
 }

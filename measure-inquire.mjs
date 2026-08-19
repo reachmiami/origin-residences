@@ -12,7 +12,7 @@
 import { chromium } from 'playwright';
 import sharp from 'sharp';
 
-const URL = process.argv[2] || 'http://localhost:4321/v2/';
+const URL = process.argv[2] || 'http://localhost:4321/';
 
 const lin = (c) => {
   const s = c / 255;

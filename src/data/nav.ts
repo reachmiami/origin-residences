@@ -29,7 +29,8 @@ export const exploreLinks: NavLink[] = [
 /**
  * Home is separate because the two chromes express it differently: the header
  * carries it as the logo, the footer needs it as a named row. Its path is not
- * hard-coded — it follows HOME_PATH, so the v1/v2 switch moves both at once.
+ * hard-coded — it follows HOME_PATH, the single place the home destination is
+ * written down, so header and footer cannot drift apart.
  */
 export const homeLabel: Record<Locale, string> = {
   en: 'Home',

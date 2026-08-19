@@ -32,6 +32,17 @@ export default defineConfig({
     layout: 'constrained',
   },
 
+  /* `/v2/` was the alternate homepage during client review and has been
+     promoted onto `/`. Nothing public ever linked to it — it was noindex and
+     out of the sitemap — but a reviewer may still hold the URL, so it points
+     at the real homepage rather than 404ing. Static output emits these as
+     small meta-refresh pages. Safe to delete once no one is using them. */
+  redirects: {
+    '/v2/': '/',
+    '/es/v2/': '/es/',
+    '/pt-br/v2/': '/pt-br/',
+  },
+
   build: {
     inlineStylesheets: 'auto',
     format: 'directory',
@@ -39,10 +50,7 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: (page) =>
-        !hiddenUnitSlugs.some((slug) => page.includes(`/${slug}/`)) &&
-        // The alternate homepage is for client review only.
-        !/\/v2\/$/.test(page),
+      filter: (page) => !hiddenUnitSlugs.some((slug) => page.includes(`/${slug}/`)),
       i18n: {
         defaultLocale: 'en',
         locales: { en: 'en-US', es: 'es-ES', 'pt-br': 'pt-BR' },
