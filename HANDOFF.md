@@ -49,8 +49,80 @@ qualified enquiry, not on traffic.
 
 ### Recent work on this branch
 
-Working branch: `homepage-stack-hero-scrim-forms`, **three commits, nothing
+Working branch: `homepage-stack-hero-scrim-forms`, **six commits, nothing
 merged to `main`** — which still sits on the original rebuild.
+
+#### Uncommitted — The Team and Artefacto onto `.page-head`
+
+- **Both pages lost their photographic title band** and now carry the flat sand
+  `.page-head`, the same treatment as Neighborhood, Gallery and Amenities. New
+  owner-supplied eyebrow / H1 / lede on both, in all three locales.
+- **The Team is off `BAND_PLACEHOLDER`** — it stood on placeholder artwork it
+  could never really carry, since the page owns only portraits. That is one
+  fewer photograph owed (open item 9). PageBand is down to 7 templates and
+  BAND_PLACEHOLDER to 5.
+- **Artefacto dropped its hand-tuned `veilHold="760px"`** with the band; type on
+  sand needs no veil. Its `lobby` image is still used lower down the page.
+- **`darkHeader` removed from both.** It belonged to the photographic band; the
+  bar now opens over a light ground and needs its dark ink. Verified by
+  diffing both headers against Gallery's — 0 of 315 probes differ.
+- **Fixed while measuring: the `.page-head` eyebrow was raw `--gold` on sand,
+  2.14:1, on ALL FIVE page-head pages.** `tokens.css` says three tokens above
+  that gold is decorative and `--gold-ink` is the text-safe member; the
+  `.page-head__all` rule in the same block already followed that. Now
+  `.page-head .eyebrow` does too, at 4.88:1. Scoped, because the same class
+  carries raw gold correctly on navy at 5.59:1.
+- **New: `measure-page-head.mjs`.** These five pages had no contrast check at
+  all — measure-band.mjs excludes them by design and nothing replaced it.
+- **Amenities lost its page-head link**, and with it the `.page-head__all` rule
+  in `tokens.css` — Amenities was the only user, so the class no longer exists.
+  `t()` and `L()` went too; that link was their only use in the file. The
+  `viewAvailable` string stays, still used by the mega nav.
+- **The Amenities schedule is 14 items, was 17.** The owner removed "27 unique
+  residences", "2 bedroom to 4 bedroom" and "personalized services", and
+  renamed "Dog run / park" to "Pet Zone", in all three locales. The first two
+  are product facts rather than amenities and still appear on Residences and
+  the homepage — they were dropped from this list only. Two further renames:
+  "Bicycle storage area" → "Bicycle Rack Area", and "Points available for
+  connection of electric vehicle charging stations" → "EV-Ready infrastructure
+  available".
+- **The Amenities schedule band is navy now.** It carries `section--dark`, the
+  same modifier PresentationCTA uses, so the ground and ink come from one place
+  — measured identical to PresentationCTA at every width. Its hairlines moved
+  from `--rule` to `--rule-on-dark`; 16% navy is invisible on navy. Type
+  measures 15.58:1. See the build-cache gotcha this uncovered.
+- **The gallery grid lost its top padding.** `.gallery.section` sits directly
+  under the page-head on the same sand ground, so the section's top padding
+  stacked with the head's bottom padding into one oversized gap. Bottom padding
+  kept — below it is the CTA band, a different ground.
+
+#### Uncommitted — v2 promoted to `/`
+
+The v1/v2 question (was open item 2) is **decided and done**: the owner chose
+the alternate, and it is the homepage now.
+
+- **`/v2/` is gone.** Its body moved into `index.astro`, which now mounts the
+  sunset hero and `headerVariant="home"`. The two files were byte-identical
+  below the hero, so nothing but the hero and four `<Base>` props changed.
+- **`HOME_PATH` is `''`.** Every logo points at the real homepage again, and
+  the SEO contradiction is closed: `/` is indexable, in the sitemap, and is
+  what the chrome links to.
+- **`HeroV2.astro` → `HomeHero.astro`; `.header--v2` → `.header--home`;
+  `--v2-accent` → `--home-accent`; `variant="v2"` → `variant="home"`.** 44
+  selectors across `Header.astro` and `LangSwitch.astro`. Held to a
+  before/after measurement — see `measure-home-header.mjs` below.
+- **`/v2/` redirects to `/`** in all three locales, via `redirects` in
+  `astro.config.mjs`. Astro emits meta-refresh stubs carrying `noindex` and a
+  canonical. Nothing public ever linked there; this only protects a reviewer's
+  bookmark, and is safe to delete once nobody is using it.
+- **`Hero.astro` (the v1 autoplay video hero) is retired but KEPT**, unreferenced,
+  at the owner's request. It carries a header comment saying so — do not clean
+  it up as dead code. `public/hero-poster.jpg` and `c.home.heroCta` are
+  orphaned with it. The brand film is not lost: `HomeHero` plays the same
+  `/video/origin-hero.mp4` on demand behind VIEW TRAILER.
+- The `hero2` / `data-h2-*` names inside `HomeHero.astro` were deliberately
+  NOT renamed — they are file-scoped and wired into the GSAP selectors and
+  `measure-hero.mjs`, so churning them was all risk and no gain.
 
 #### `7bcdcf9` — the neighbourhood locator, the band veil, the page heads
 
@@ -76,11 +148,13 @@ merged to `main`** — which still sits on the original rebuild.
 
 #### `02e110c` — the page band, the team page, the footer
 
-- **`PageBand.astro`** — the Residences photographic title band, now on 10
-  templates / 37 pages. Six of them stand on a placeholder image.
+- **`PageBand.astro`** — the Residences photographic title band. It was on 10
+  templates at this commit; The Team and Artefacto have since moved onto
+  `.page-head`, leaving 7.
 - **Floor Plans is out of the navigation**; the page still builds.
 - **Gallery and Amenities use `page-head`**; every other titled page uses
-  `.band`.
+  `.band`. Neighborhood joined them in `7bcdcf9`, and Artefacto and The Team
+  after it — five in total now.
 - **The Team page is a deck of shuffling cards**, one ground colour per firm with
   a radial pool behind each cut-out portrait.
 - **Footer**: three columns (contact · navigation · released residences), a
@@ -102,18 +176,16 @@ merged to `main`** — which still sits on the original rebuild.
   placeholders instead of visible labels, weight 500, required-note removed.
 
 ### Pages
-Home (`/`), **alternate home (`/v2/`)**, Residences, Floor Plans, Gallery,
+Home (`/`), Residences, Floor Plans, Gallery,
 Amenities, Neighborhood, Artefacto, The Team, Schedule, 27 unit pages, and
 Privacy / Terms / Accessibility — each in all three locales.
 
-### Two homepages exist
-`/` is v1 (brand video hero). `/v2/` is the alternate the client is currently
-being shown: sunset still, centred copy, and a logo that flies from the hero
-into the header on scroll. **Every page's logo currently links to `/v2/`** via
-`HOME_PATH` in `src/i18n/ui.ts` — a one-line switch back to `''`.
-
-Everything below the hero is shared between them, so edits to those bands
-appear in both.
+### One homepage
+`/` carries the sunset hero: centred copy and a logo that flies from the hero
+into the header on scroll (`HomeHero.astro` + `headerVariant="home"`). It was
+built as `/v2/`, shown to the client, chosen, and promoted. The original brand-
+video hero survives unreferenced in `Hero.astro`; the film itself now plays on
+demand from the hero's VIEW TRAILER button.
 
 ---
 
@@ -128,13 +200,16 @@ src/data/units.ts          27 residences parsed from the live site
 src/i18n/ui.ts             chrome strings, locale paths, HOME_PATH
 src/content/copy.ts        shared page prose, en/es/pt-br
 src/content/pages/*.ts     per-page prose, en/es/pt-br
-src/components/PageBand    photographic page title band — 10 templates
+src/components/PageBand    photographic page title band — 7 templates
+.page-head in tokens.css   the flat sand title treatment — 5 templates
+src/components/HomeHero    the homepage hero — sunset still + flying logo
 src/components/HomeStack   the homepage's three shuffling cards
 src/components/NeighborhoodMap  the locator: filter, SVG basemap, pins, list
 src/data/neighborhood-places.ts 77 places — GENERATED, read its header first
 src/assets/map/            the committed basemap SVG (106KB raw, 35KB gzipped)
 src/assets/brand/marker-origin.svg  the building's own map marker
-src/components/            Header (shared, v1+v2), HeroV2, FeatureBand, forms…
+src/components/Hero.astro  RETIRED video hero — unreferenced, kept on purpose
+src/components/            Header (shared, all pages), FeatureBand, forms…
 src/scripts/leads.ts       lead delivery — read the warning at the top
 src/scripts/motion.ts      GSAP + Lenis, all gated on prefers-reduced-motion
 src/styles/tokens.css      every design token + @property registrations
@@ -151,7 +226,8 @@ page, extract it instead:
 - `HomeStack.astro` replaced two byte-identical copies across `/` and `/v2/`
 - `nav.ts` replaced a nav list that the footer would otherwise have duplicated
 - `.page-head` in `tokens.css` replaced three copies across Amenities, Gallery
-  and Neighborhood
+  and Neighborhood; Artefacto and The Team joined them rather than adding a
+  fourth and fifth
 
 `.band` is **not** a global class. Amenities uses that name for a plain image
 `<div>` and Artefacto for a `<figure>`; they coexist only because Astro scopes
@@ -174,8 +250,9 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
    variable. Ever. The guard blocks builds if one appears.
 2. **Font weights 100/200/300 by default.** The brand kit ships
    Thin/ExtraLight/Light. There are now **two owner-authorised exceptions**:
-   **Medium 500** (v2 header, both forms, the locator's list and site label) and
-   **SemiBold 600** (the locator's category filter, the only rule that loads it).
+   **Medium 500** (the homepage header, both forms, the locator's list and site
+   label) and **SemiBold 600** (the locator's category filter, the only rule
+   that loads it).
    Both are LATIN-SUBSET files. Read open item 5 before using either anywhere
    new.
 3. **Colours from tokens**, never raw hex in components (only `#b3261e` error red).
@@ -193,14 +270,16 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
 Do not rediscover these.
 
 **`.header.is-condensed` rules keep winning.** They set `color`/`background` at
-the same specificity as v2's rules and apply from 40px of scroll. Any v2 rule
-touching colour must name `.header--v2.is-condensed` and `.header--v2.is-open`
-explicitly or it silently loses the moment the page moves. This bit three times.
+the same specificity as the homepage header's rules and apply from 40px of
+scroll. Any `.header--home` rule touching colour must name
+`.header--home.is-condensed` and `.header--home.is-open` explicitly or it
+silently loses the moment the page moves. This bit three times.
+`measure-home-header.mjs` exists to catch exactly this.
 
 **`order` reorders CSS Grid auto-placement.** The shared `≤1080px` block sets
-`order: 2/3` on the header flanks for the old flex bar. That pushed the v2
-logo slot into column 1 and the left flank into the collapsed centre. The v2
-tablet grid now assigns `grid-column` explicitly.
+`order: 2/3` on the header flanks for the old flex bar. That pushed the
+homepage's logo slot into column 1 and the left flank into the collapsed
+centre. The homepage tablet grid now assigns `grid-column` explicitly.
 
 **Transform moves the box; padding moves the content.** Sliding the header
 flanks together with `translateX` dragged each flank's empty half across the
@@ -233,8 +312,8 @@ is the exception — it keeps the PARENT's scope, so a page can style what it
 passes into `PageBand`.
 
 **A text-subset webfont fails silently, and the tell is a width INVERSION.**
-`Montserrat-Medium.woff2` had been cut down to a handful of glyphs for the v2
-header's few strings. It was missing **60 of the 65 characters** the locator's
+`Montserrat-Medium.woff2` had been cut down to a handful of glyphs for the
+homepage header's few strings. It was missing **60 of the 65 characters** the locator's
 list needs, so everything set to `--w-medium` — the group titles, 89 place
 names, the pin numbers, and the forms — rendered in the **system fallback**.
 Nothing errored; the file loaded with a 200. The symptom was a measurement that
@@ -244,6 +323,38 @@ face, load it in isolation under its own family name and compare per-character
 widths against a bare fallback — `document.fonts.check()` will NOT tell you,
 because it answers for the family, not the face. Both off-kit files are latin
 subsets now: ASCII and Latin-1, which covers every accent the es/pt-br copy uses.
+
+**Verification must run against a BUILD, and `npm run preview` will not tell
+you when it isn't.** This is the single most expensive trap in this repo.
+
+`astro preview` cannot bind 4321 if an `astro dev` server already holds it — it
+moves to another port and says so quietly. Every script here defaults to
+`localhost:4321`, so the whole verification suite then measures the DEV SERVER
+while appearing to measure the build. Two separate failures came out of that in
+one session:
+
+- A scoped rule deleted from `amenities.astro` kept applying. `curl` and the
+  browser's own `fetch(…, {cache:'no-store'})` both showed it ABSENT from the
+  served HTML while `document.styleSheets` showed it PRESENT — because Vite's
+  in-memory module graph had gone stale. Cache-busting changed nothing; it was
+  never an HTTP cache.
+- Clearing `.astro` / `node_modules/.astro` mid-session invalidated Vite's
+  pre-bundled deps, so the long-running dev server began returning
+  **504 Outdated Optimize Dep** for `gsap`, `gsap_ScrollTrigger` and `lenis`.
+  GSAP never loaded, the homepage flying logo silently stopped animating, and
+  the header's condensed state died with it — while the production build was
+  perfectly healthy the whole time.
+
+`assert-build.mjs` now guards this: it refuses to run if the target serves
+`@vite/client`, which a built page never contains. It is wired into
+`measure-home-header.mjs` and `measure-page-head.mjs`; **add it to the others.**
+
+Practical rules:
+- Check what owns 4321 before believing a measurement: `lsof -nP -iTCP:4321 -sTCP:LISTEN`.
+- Prefer an explicit port: `npx astro preview --port 4322` and pass the base URL.
+- If a dev server starts 504-ing on deps, `rm -rf node_modules/.vite` and restart it.
+- When a probe and `curl` disagree, the disagreement IS the finding. Do not pick
+  a side — find out why they differ.
 
 **`translate` is not `transform`.** An element animated with the `translate`
 property reports `transform: none`, and a `DOMMatrix` built from that reads 0 —
@@ -311,11 +422,25 @@ node shoot.mjs                    # 31 screenshots at 375/768/1440 + overflow + 
 node measure.mjs                  # per-element boxes in the header at 375px
 node measure-stack.mjs [url]      # homepage cards: sticky geometry, cover order, centring
 node measure-stack-contrast.mjs   # lightest pixel behind LIGHT type on the cards
-node measure-hero.mjs             # v2 hero: headline + header shade, heading weights
+node measure-hero.mjs             # homepage hero: headline + header shade, weights
 node measure-inquire.mjs          # darkest pixel behind DARK type on the lead band
 node measure-team.mjs             # the five team cards: grounds, gradients, contrast
-node measure-band.mjs             # the page band's veil contrast, every page
+node measure-band.mjs             # the page band's veil contrast, every band page
+node measure-page-head.mjs        # the 5 page-head pages: head ink + bar ink
+
+Run these against `npm run preview`, NEVER the dev server — see the build/dev
+gotcha above. `assert-build.mjs` enforces it for the two scripts that import it.
+node measure-home-header.mjs [url] # homepage header: 3 widths × rest/condensed/open
 ```
+
+`measure-home-header.mjs` is a **comparison** instrument, not a pass/fail one.
+It prints JSON; run it before and after a change to the homepage header and
+diff the two. Every colour is canonicalised through a canvas pixel, because
+`getComputedStyle` returns a mid-transition value in a different colour space
+from the settled one and the raw strings compare unequal while the colour is
+identical. Two runs against an unchanged page differ in **0 of 378** probes,
+and **46 of 126** probes differ between states — so it is both stable enough to
+trust and sharp enough to catch a dropped rule.
 
 **Measure, don't eyeball.** A 2px overflow and a 92px click-blocking overlap
 were both invisible in screenshots and obvious in element boxes — and
@@ -354,16 +479,17 @@ defect until the probe was examined.
 
 Two items closed in `7bcdcf9`: the page-band veil (was item 1, now ≥5.03:1
 everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
+**Item 2 (v1 vs v2, and the SEO contradiction) is closed** in the working tree
+— v2 was promoted to `/`; see "Uncommitted" above.
 
 1. **Enable Pixel form capture** in Follow Up Boss (*Pixel → Tracking*). The
    Pixel (`WT-FBRKNWTI`) is installed and firing `/identify`, but **no lead is
    created** until this setting is on. Verified by network trace. Until then the
    form shows success and the lead goes nowhere. This is the only item that
    blocks the site doing its job.
-2. **Decide v1 vs v2, then fix the SEO contradiction.** `/v2/` is `noindex` and
-   out of the sitemap, yet every logo points at it, and `/` is indexable with
-   nothing linking to it. Preferred fix: move v2's hero treatment to `/` and
-   retire the alternate, keeping the canonical URL's history.
+2. ~~Decide v1 vs v2, then fix the SEO contradiction.~~ **DONE** — v2's hero
+   moved to `/`, the alternate is retired, the canonical URL keeps its history,
+   and every logo points at `/` again. Not yet committed.
 3. **The locator's pins crowd, and they are burying the building.** At the
    owner-requested 32px, the gold Origin mark measures **85% covered** by
    numbered pins on "All", and **24 of 29 pins overlap** at least one other (48
@@ -380,9 +506,9 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
    Note also that all 36 Bal Harbour Shops tenants share the mall's pin, as do
    the restaurants inside each hotel, which is why pins are `aria-hidden` and
    the list carries the semantics.
-5. **Decide on the off-kit font weights — there are two now.** Medium 500 (v2
-   header, both forms, the locator's list and site label) and SemiBold 600 (the
-   locator's category filter). The kit contains only 100/200/300. Either the
+5. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
+   homepage header, both forms, the locator's list and site label) and SemiBold
+   600 (the locator's category filter). The kit contains only 100/200/300. Either the
    brand's weight range has genuinely widened, in which case say so in
    `PRODUCT.md`, or these come back down. Both files are latin subsets pulled
    from Google Fonts (SIL OFL 1.1); a glyph outside ASCII/Latin-1 asked for at
@@ -404,16 +530,33 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
      announced only by the chip's own `aria-pressed`.
    - The selected chip is distinguished by **colour alone**; the weight cue went
      when every chip moved to 600.
-8. **36 warnings** from the first review round were never worked — only the
+8. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
+   deliberately NOT fixed in passing.** Both are the same root cause as the
+   page-head eyebrow — raw `--gold` used as text — but they live in the header,
+   which HANDOFF records as the most regression-prone area in this build, and
+   neither was in scope for the work that found them. Both are site-wide and
+   pre-existing, and both are printed on every run of that script as `!` lines
+   so they cannot quietly become normal:
+   - The **language switcher's active locale** is raw `--gold` on the page
+     ground: **2.14:1** wherever the bar sits on sand. `--gold-ink` would fix it
+     the same way it fixed the eyebrow, but the header's colour rules have to
+     satisfy `.is-condensed` and `.is-open` too, so it needs the before/after
+     treatment in `measure-home-header.mjs`, not a one-line edit.
+   - The **solid Inquire pill** sets warm white on `--gold`: **2.79:1**, on
+     every page. This one is a brand-palette question rather than a bug — the
+     gold fill is the CTA's identity — so it probably needs the owner, not a
+     fix. Large-text AA (3:1) is also missed, narrowly.
+
+9. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-9. **Assets the owner owes**: real photographs for the six pages still on
-   `BAND_PLACEHOLDER` (The Team, Floor Plans, the three legal pages, and all 27
-   unit pages); a horizontal one-line logo and a white-on-transparent SVG (the
+10. **Assets the owner owes**: real photographs for the five templates still on
+   `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and all 27 unit
+   pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
    residences — only 702 had one. Also **`src/assets/team/Sergio Guzman &
    Mauricio Moya 77.jpg` is untracked and unreferenced** — it was dropped into
    the repo and nothing imports it; find out where it belongs.
-10. Smaller, all live and all deliberate for now:
+11. Smaller, all live and all deliberate for now:
    - The Gallery lede promises "photos and videos"; the page has no video.
    - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
      frame them better now that they are cut-outs rather than photographs.
@@ -429,6 +572,13 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
      if that becomes a problem.
    - `git` committed as `felixmendoza@CREs-MacBook-Pro.local`; `user.email` is
      unset globally.
+   - **25 ad-hoc `check-*/diag-*/test-*/verify-*.mjs` scripts still hardcode
+     `http://localhost:4321/v2/`.** They do not error — the redirect resolves
+     and Playwright follows it — so they now silently measure `/`. That is
+     harmless for most, but `check-hdr-v2.mjs` and `check-burger.mjs` compare
+     v1 against v2 and are therefore now comparing `/` against itself. They are
+     last-session scratch, not the documented suite; delete or repoint them
+     when convenient. The seven documented `measure-*` scripts were repointed.
 
 ## What has *not* been done
 

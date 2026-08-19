@@ -14,6 +14,48 @@ how the language reads.
 |---|---|
 | `src/content/copy.ts` | Page prose — hero, intro, inventory, presentation, all form labels |
 | `src/i18n/ui.ts` | Chrome — navigation, buttons, spec labels, validation messages |
+| `src/content/pages/*.ts` | Per-page prose, including the page heads listed below |
+
+### Newest, and least reviewed
+
+Added 2026-08-17 when The Team and Artefacto moved onto the `.page-head`
+treatment. **These are the freshest strings on the site — review them first.**
+
+| Key | Page |
+|---|---|
+| `the-team.ts` → `eyebrow`, `title`, `lede` | The Team |
+| `artefacto.ts` → `headline`, `headLede` | Artefacto |
+| `amenities.ts` → three `schedule` items | Amenities |
+
+Three renamed amenity lines, all owner-supplied in English:
+
+| English | es | pt-BR |
+|---|---|---|
+| Pet Zone | Zona para mascotas | Espaço pet |
+| Bicycle Rack Area | Zona de bicicleteros | Bicicletário *(unchanged)* |
+| EV-Ready infrastructure available | Infraestructura preparada para vehículos eléctricos | Infraestrutura preparada para veículos elétricos |
+
+Three things for the reviewer:
+
+- **`Bicicletário` was left as it was.** It is already the exact Portuguese term
+  for a bicycle rack area; *área de bicicletário* would be redundant.
+- ***bicicletero*** (es) is Latin American. Spain would say *aparcabicicletas*.
+  The build targets a Miami/LatAm readership, so the LatAm term was used.
+- **"EV-Ready" has no direct equivalent** in either language. Both render as
+  "infrastructure prepared for electric vehicles", which states the same fact
+  but loses the compact marketing coinage. If the sales team has a preferred
+  phrase, use theirs.
+
+Two notes for the reviewer:
+
+- The **English** here is owner-supplied, not scraped from the incumbent site,
+  so unlike the rest of the page copy there is no original to check it against.
+- The English capitalises mid-sentence for emphasis — *Sustainable Engineering*,
+  *Award-winning Architecture*, *Artefacto-branded Project*. That is the owner's
+  own styling and was preserved verbatim. Spanish and Portuguese mirror it
+  (*Ingeniería Sostenible*, *Engenharia Sustentável*), which is **less
+  conventional in both languages than it is in English marketing copy** — a
+  native reviewer should decide whether to keep the emphasis or lower-case it.
 
 English is the source of truth in both files. Review the `es` and `ptBr` blocks
 against it.

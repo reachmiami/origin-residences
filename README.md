@@ -41,7 +41,11 @@ responsive behaviour, AVIF/WebP imagery, and WCAG 2.1 AA.
 ```
 src/
   layouts/Base.astro       shell, SEO, hreflang, direction contract
-  components/PageBand      photographic page title band — used by 10 templates
+  components/PageBand      photographic page title band — used by 7 templates
+  styles/tokens.css        also holds .page-head, the flat sand title treatment
+                           used by Gallery, Amenities, Neighborhood, Artefacto
+                           and The Team
+  components/HomeHero      the homepage hero — sunset still, flying logo
   components/HomeStack     the homepage's three shuffling cards
   components/NeighborhoodMap  keyless locator — SVG basemap, filter, pins
   components/              Header (mega nav), Footer, Hero, forms, gallery
@@ -68,8 +72,9 @@ lists them and — more importantly — the ways a measurement can lie to you.
 1. **No Follow Up Boss API key in this repo, ever.** It grants full CRM
    read/write and this site is public by construction. See `FOLLOW-UP-BOSS.md`.
 2. **No second typeface, and no font-weight above 300** — with two sanctioned
-   exceptions: Montserrat Medium 500 (v2 header, both forms, the neighbourhood
-   locator's list) and SemiBold 600 (the locator's category filter). Both are
+   exceptions: Montserrat Medium 500 (the homepage header, both forms, the
+   neighbourhood locator's list) and SemiBold 600 (the locator's category
+   filter). Both are
    latin-subset files. The lightness is the brand signal; widening this further
    is the owner's call, not a styling decision. See open item 5 in `HANDOFF.md`.
 3. **Colours come from tokens**, never raw hex in components.
