@@ -1,0 +1,191 @@
+---
+import KenBurns from './KenBurns.astro';
+
+/**
+ * The amenities as edge-to-edge cards that shuffle, each backed by a Ken Burns
+ * slideshow of that amenity's photography.
+ *
+ * The sticky mechanic is the SAME ONE HomeStack.astro uses — sticky siblings at
+ * the header's lower edge, each `100svh - header`, so every card holds while
+ * the next rises and covers it. The two are deliberately NOT merged yet:
+ * HomeStack's media is a single <Image> whose `object-fit` has to out-specify
+ * Astro's responsive image styles from inside that component's own scope, and a
+ * shared global rule would silently lose that fight. This repo's own precedent
+ * is to extract at the third copy — `.page-head` moved into tokens.css only
+ * once Amenities, Gallery and Neighborhood each had one. **If a third stacking
+ * deck appears, extract the card geometry and scrim into tokens.css and put all
+ * three on it.**
+ *
+ * Ordering note, same as HomeStack: no explicit z-index. The cards are all
+ * positioned with `z-index: auto`, so they paint in DOM order and each covers
+ * the one before it.
+ */
+interface Props {
+  items: {
+    id: string;
+    title: string;
+    /** One supporting line under the rule. Optional. */
+    line?: string;
+    alt: string;
+    images: ImageMetadata[];
+  }[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="astack">
+  {items.map((item, i) => (
+    <section class="astack__card" id={item.id} aria-labelledby={`${item.id}-heading`}>
+      <KenBurns images={item.images} alt={item.alt} eager={i === 0} interval={6} />
+      <div class="astack__scrim" aria-hidden="true"></div>
+
+      <div class="astack__body">
+        <h2 class="astack__title" id={`${item.id}-heading`} data-reveal>{item.title}</h2>
+        <hr class="astack__rule" data-reveal="fade" />
+        {item.line && (
+          <p class="astack__line" data-reveal data-reveal-delay="0.08">{item.line}</p>
+        )}
+      </div>
+    </section>
+  ))}
+</div>
+
+<style>
+  /* No trailing pad, matching HomeStack: a sticky element may only stay stuck
+     while its box is inside its containing block's padding box, so the last
+     card reaches the top and moves on into whatever follows rather than
+     dwelling there. */
+  .astack { position: relative; }
+
+  .astack__card {
+    position: sticky;
+    top: var(--header-h);
+    /* svh, not vh, so mobile browser chrome does not crop the card. */
+    height: calc(100svh - var(--header-h));
+    min-height: 420px;
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    /* Opaque ground: each card must fully hide the one it covers, including
+       while a lazy photograph is still decoding. */
+    background: var(--navy);
+    scroll-margin-top: var(--header-h);
+    isolation: isolate;
+  }
+
+  .astack__scrim {
+    position: absolute;
+    inset: 0;
+    /* Above the drifting slideshow, below the type. */
+    z-index: 1;
+    pointer-events: none;
+    /* Heavier than HomeStack's. That scrim sits over ONE still frame chosen to
+       suit it; these cards cycle through up to five images that were never
+       graded together — the rooftop render is a bright sky, the pet photograph
+       is blown-out foliage — and the type has to hold against the lightest
+       moment of any of them, not an average. measure-amenity-stack.mjs samples
+       every slide, not just the first. */
+    /* Two layers. The radial pool seats the type; the flat veil under it is
+       what carries the worst case, because the pool's falloff is sized to the
+       copy and the copy is not the same height in every language. Spanish
+       wraps this title onto more lines than English, and at a short viewport
+       that pushed the last line into the falloff over a bright rooftop slide —
+       measured 4.08:1, below AA, while English passed at 5.05:1 on the same
+       card. The flat layer removes that dependency on line count.
+
+       Both layers are deliberately restrained. A first pass ran the pool at
+       76% over a 22% veil and cleared 9.66:1 — roughly twice what AA asks —
+       but flattened the rooftop render to grey. On a site whose photography is
+       the product, contrast past the threshold is bought at the image's
+       expense; these values keep the worst case comfortably clear with the
+       picture still readable. */
+    background:
+      radial-gradient(
+        ellipse 88% 74% at 50% 50%,
+        color-mix(in srgb, var(--navy-deep) 60%, transparent) 0%,
+        color-mix(in srgb, var(--navy-deep) 60%, transparent) 44%,
+        color-mix(in srgb, var(--navy-deep) 38%, transparent) 72%,
+        color-mix(in srgb, var(--navy-deep) 16%, transparent) 90%,
+        transparent 100%
+      ),
+      linear-gradient(
+        color-mix(in srgb, var(--navy-deep) 12%, transparent),
+        color-mix(in srgb, var(--navy-deep) 12%, transparent)
+      );
+  }
+
+  /* No max-width here. Capping the BODY at 24ch put it at 268px while its own
+     title needed 434px; the title then overflowed its parent and, because an
+     over-wide item under `justify-items: center` resolves to the start edge,
+     it sat 135px right of the card's centre at 1440px. The measurement caught
+     it — it reads as a slightly odd composition, not as a bug.
+
+     The cap belongs on the type instead, where `ch` is measured against the
+     element's own font size and therefore tracks the clamp. */
+  .astack__body {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    padding-inline: var(--gutter);
+    max-width: min(100%, 60rem);
+    text-align: center;
+  }
+
+  .astack__title {
+    /* Wraps to two or three lines rather than crossing the whole card. */
+    max-width: 16ch;
+    /* A grid item will not shrink below its own min-content, and for uppercase
+       type at this tracking that floor is one long word. */
+    min-width: 0;
+    /* The floor is 1.5rem, not 1.75rem. The old floor bound below 400px, so the
+       type stopped scaling exactly where the space ran out: at 320px the
+       pt-BR titles — `Brinquedoteca infantil`, `Club Room e lounge dos
+       proprietários` — measured 292px against 280px of room and were clipped
+       by the card's `overflow: clip`. Two pixels, invisible in a screenshot.
+       English never hit it. This floor only takes effect below ~347px, so
+       375px and up are unchanged. */
+    font-size: clamp(1.5rem, 1.1rem + 2.6vw, 3.4rem);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    line-height: 1.22;
+    text-transform: uppercase;
+    color: var(--ink-on-dark);
+  }
+
+  /* Gold is decorative here, never carrying text — the same call as the
+     homepage deck and the page heads. */
+  .astack__rule {
+    width: min(60vw, 180px);
+    height: 1px;
+    border: 0;
+    background: var(--gold);
+  }
+
+  .astack__line {
+    max-width: 34ch;
+    font-size: var(--t-body);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-body);
+    line-height: 1.6;
+    color: var(--ink-on-dark-muted);
+  }
+
+  /* Reduced motion gets the same edge-to-edge composition with none of the
+     scroll choreography: plain blocks in normal flow, no sticking, no dwell.
+     KenBurns independently stands its first slide still. */
+  @media (prefers-reduced-motion: reduce) {
+    .astack__card {
+      position: static;
+      height: auto;
+      min-height: 0;
+      padding-block: var(--section-y);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .astack__body { max-width: 30ch; }
+  }
+</style>

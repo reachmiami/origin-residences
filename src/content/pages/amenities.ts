@@ -6,8 +6,14 @@ import type { Locale } from '../../i18n/ui';
  * `en` is verbatim from originresidences.com. `es` and `pt-br` are AI-authored
  * and awaiting native review — see TRANSLATION-REVIEW.md.
  *
- * Images are locale-independent and stay in the page component; features are
- * matched to their artwork by `id`.
+ * Images are locale-independent and stay in the page component; each stack
+ * entry is matched to its FOLDER of photography by `id`.
+ *
+ * The stack replaced the old alternating `features` rows in August 2026. Its
+ * titles are owner-supplied. `line` is OPTIONAL and deliberately absent on
+ * three of the six: only rooftop, aqua club and pet zone had a supporting line
+ * in the incumbent copy, and inventing one for the club room, the fitness
+ * centre or the playroom would be exactly the fabrication this build refuses.
  */
 export interface AmenitiesCopy {
   metaTitle: string;
@@ -15,10 +21,11 @@ export interface AmenitiesCopy {
   eyebrow: string;
   title: string;
   lede: string;
-  bandAlt: string;
   scheduleTitle: string;
   schedule: string[];
-  features: { id: string; title: string; lines: string[]; alt: string }[];
+  /** The six stacking amenity cards, in render order. `id` also selects the
+      image folder in the page component, so it must not be translated. */
+  stack: { id: string; title: string; line?: string; alt: string }[];
 }
 
 export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
@@ -29,8 +36,6 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
     eyebrow: 'Amenities',
     title: 'Elegance for modern living',
     lede: 'Nestled away on Bay Harbor’s east island, ORIGIN by Artefacto offers a sanctuary where you can enjoy picturesque and peaceful sunset views while embodying the essence of the Miami Lifestyle.',
-    bandAlt:
-      'Living and dining room of an ORIGIN residence furnished by Artefacto, with floor-to-ceiling glass opening onto a terrace above the water.',
     scheduleTitle: 'Building amenities',
     schedule: [
       'Panoramic rooftop pool',
@@ -48,30 +53,42 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
       'Storage units conveniently located on every residential floor',
       'Pet Zone',
     ],
-    features: [
+    stack: [
+      {
+        id: 'rooftop-pool',
+        title: 'Panoramic Rooftop Pool',
+        line: 'With poolside summer kitchen and bar.',
+        alt: 'Rendering of the rooftop deck: a long pool edged with sun loungers and green-and-white parasols, a slatted timber bar pavilion behind, palms along the parapet and the low city skyline beyond.',
+      },
       {
         id: 'aqua-club',
         title: 'Waterfront Aqua Club',
-        lines: ['Water sports storage facility', 'Dive into the waterfront living at Origin'],
-        alt: 'Two kayakers paddling side by side across calm open water, a low skyline on the far horizon.',
+        line: 'Dive into the life aquatic at Origin from your own boat slip.',
+        alt: 'Rendering of Origin seen from the water at golden hour: the white terraced building framed by palms, with a classic wooden runabout and a modern motor launch passing the private docks.',
       },
       {
-        id: 'rooftop-pool',
-        title: 'Rooftop Pool',
-        lines: ['Panoramic rooftop pool with poolside summer kitchens and bar'],
-        alt: 'Rendering of the rooftop pool deck: a rectangular pool edged with sun loungers and parasols, palms along the parapet, and a covered summer kitchen and bar at the far end.',
+        id: 'clubroom',
+        title: 'Owner’s Clubroom and Lounge',
+        line: 'A space to share with family, friends, and neighbors.',
+        alt: 'Rendering of the owner’s lounge: cream bouclé armchairs and a curved sofa on a pale rug, low oak tables, a marble-topped bar beneath a sculpted timber wave, and slatted walnut walls.',
       },
       {
-        id: 'gym',
-        title: 'Gym',
-        lines: ['Gym with state-of-the-art equipment'],
-        alt: 'Rendering of the fitness room: weight machines and benches on pale timber flooring beneath a slatted wood ceiling, with a mirrored wall and cardio equipment beyond.',
+        id: 'fitness-center',
+        title: 'State-of-the-art Fitness Center',
+        line: 'Designed for Your Peak Performance.',
+        alt: 'Rendering of the fitness centre: weight machines and a bench on pale timber flooring, a row of treadmills and cross-trainers along a mirrored wall, under a slatted timber ceiling.',
       },
       {
-        id: 'pet-park',
-        title: 'Pet Park',
-        lines: ['For the extended family'],
-        alt: 'Two dogs running side by side along a paved path between tall grasses.',
+        id: 'kidsroom',
+        title: 'Children’s Playroom',
+        line: 'Inspired Spaces for Active Minds',
+        alt: 'Rendering of the children’s playroom: upholstered arched wall panels, a carpeted tiered step scattered with soft toys, house-shaped lit display niches and a cloud-shaped table with stools.',
+      },
+      {
+        id: 'pet-zone',
+        title: 'Pet Zone',
+        line: 'For the extended family.',
+        alt: 'Two dogs, a terrier and a corgi, running side by side along a path between tall grasses.',
       },
     ],
   },
@@ -83,8 +100,6 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
     eyebrow: 'Amenidades',
     title: 'Elegancia clásica para la vida moderna',
     lede: 'Ubicado en la isla este de Bay Harbor, ORIGIN by Artefacto ofrece un refugio donde disfrutar de atardeceres pintorescos y serenos, encarnando la esencia del estilo de vida de Miami.',
-    bandAlt:
-      'Salón y comedor de una residencia ORIGIN amueblada por Artefacto, con ventanales de piso a techo que se abren a una terraza sobre el agua.',
     scheduleTitle: 'Amenidades del edificio',
     schedule: [
       'Piscina panorámica en la azotea',
@@ -102,30 +117,42 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
       'Depósitos ubicados convenientemente en cada piso residencial',
       'Zona para mascotas',
     ],
-    features: [
+    stack: [
+      {
+        id: 'rooftop-pool',
+        title: 'Piscina panorámica en la azotea',
+        line: 'Con cocina de verano y bar junto a la piscina.',
+        alt: 'Render de la terraza de la azotea: una piscina alargada bordeada de tumbonas y sombrillas verdes y blancas, un pabellón bar de madera listonada detrás, palmeras a lo largo del parapeto y el perfil bajo de la ciudad al fondo.',
+      },
       {
         id: 'aqua-club',
         title: 'Aqua Club frente al mar',
-        lines: ['Depósito para deportes acuáticos', 'Sumérjase en la vida frente al mar en Origin'],
-        alt: 'Dos personas en kayak remando lado a lado sobre aguas abiertas y calmas, con un perfil urbano bajo en el horizonte.',
+        line: 'Sumérjase en la vida acuática en Origin desde su propio amarre.',
+        alt: 'Render de Origin visto desde el agua a la hora dorada: el edificio blanco de terrazas escalonadas enmarcado por palmeras, con una lancha clásica de madera y una embarcación a motor moderna pasando frente a los muelles privados.',
       },
       {
-        id: 'rooftop-pool',
-        title: 'Piscina en la azotea',
-        lines: ['Piscina panorámica en la azotea con cocinas de verano y bar junto a la piscina'],
-        alt: 'Render de la terraza de la piscina en la azotea: una piscina rectangular bordeada de tumbonas y sombrillas, palmeras a lo largo del parapeto y una cocina de verano cubierta con bar al fondo.',
+        id: 'clubroom',
+        title: 'Clubroom y salón de propietarios',
+        line: 'Un espacio para compartir con la familia, los amigos y los vecinos.',
+        alt: 'Render del salón de propietarios: sillones de bouclé color crema y un sofá curvo sobre una alfombra clara, mesas bajas de roble, una barra con encimera de mármol bajo una ola escultórica de madera y paredes de nogal listonado.',
       },
       {
-        id: 'gym',
-        title: 'Gimnasio',
-        lines: ['Gimnasio con equipamiento de última generación'],
-        alt: 'Render de la sala de fitness: máquinas de musculación y bancos sobre piso de madera clara bajo un cielorraso de listones, con una pared espejada y equipos de cardio al fondo.',
+        id: 'fitness-center',
+        title: 'Gimnasio de última generación',
+        line: 'Diseñado para su máximo rendimiento.',
+        alt: 'Render del gimnasio: máquinas de musculación y un banco sobre suelo de madera clara, una hilera de cintas de correr y elípticas junto a una pared con espejos, bajo un techo de madera listonada.',
       },
       {
-        id: 'pet-park',
-        title: 'Parque para mascotas',
-        lines: ['Para la familia extendida'],
-        alt: 'Dos perros corriendo lado a lado por un sendero pavimentado entre pastos altos.',
+        id: 'kidsroom',
+        title: 'Sala de juegos infantil',
+        line: 'Espacios inspirados para mentes activas',
+        alt: 'Render de la sala de juegos infantil: paneles de pared tapizados en arco, una grada alfombrada con peluches, hornacinas iluminadas en forma de casa y una mesa con forma de nube con taburetes.',
+      },
+      {
+        id: 'pet-zone',
+        title: 'Zona para mascotas',
+        line: 'Para la familia extendida.',
+        alt: 'Dos perros, un terrier y un corgi, corriendo lado a lado por un sendero entre hierbas altas.',
       },
     ],
   },
@@ -137,8 +164,6 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
     eyebrow: 'Comodidades',
     title: 'Elegância clássica para o viver moderno',
     lede: 'Situado na ilha leste de Bay Harbor, o ORIGIN by Artefacto oferece um refúgio onde se desfruta de pores do sol pitorescos e tranquilos, traduzindo a essência do estilo de vida de Miami.',
-    bandAlt:
-      'Sala de estar e jantar de uma residência ORIGIN mobiliada pela Artefacto, com vidros do piso ao teto abrindo para um terraço sobre a água.',
     scheduleTitle: 'Comodidades do edifício',
     schedule: [
       'Piscina panorâmica na cobertura',
@@ -156,30 +181,42 @@ export const amenitiesCopy: Record<Locale, AmenitiesCopy> = {
       'Depósitos convenientemente localizados em todos os andares residenciais',
       'Espaço pet',
     ],
-    features: [
+    stack: [
+      {
+        id: 'rooftop-pool',
+        title: 'Piscina panorâmica na cobertura',
+        line: 'Com cozinha de verão e bar à beira da piscina.',
+        alt: 'Render do deck da cobertura: uma piscina alongada cercada por espreguiçadeiras e guarda-sóis verdes e brancos, um pavilhão bar de madeira ripada ao fundo, palmeiras ao longo do parapeito e o horizonte baixo da cidade adiante.',
+      },
       {
         id: 'aqua-club',
         title: 'Aqua Club à beira-mar',
-        lines: ['Depósito para esportes aquáticos', 'Mergulhe na vida à beira-mar no Origin'],
-        alt: 'Dois caiaques lado a lado em águas abertas e calmas, com um horizonte urbano baixo ao fundo.',
+        line: 'Mergulhe na vida aquática no Origin a partir da sua própria vaga de atracação.',
+        alt: 'Render do Origin visto da água na hora dourada: o edifício branco de terraços escalonados emoldurado por palmeiras, com uma lancha clássica de madeira e uma embarcação a motor moderna passando pelos píeres privativos.',
       },
       {
-        id: 'rooftop-pool',
-        title: 'Piscina na cobertura',
-        lines: ['Piscina panorâmica na cobertura com cozinhas de verão e bar à beira da piscina'],
-        alt: 'Render do deck da piscina na cobertura: piscina retangular cercada por espreguiçadeiras e guarda-sóis, palmeiras ao longo do parapeito e uma cozinha de verão coberta com bar ao fundo.',
+        id: 'clubroom',
+        title: 'Clubroom e lounge dos proprietários',
+        line: 'Um espaço para compartilhar com a família, os amigos e os vizinhos.',
+        alt: 'Render do lounge dos proprietários: poltronas de bouclé creme e um sofá curvo sobre um tapete claro, mesas baixas de carvalho, um bar com tampo de mármore sob uma onda escultórica de madeira e paredes de nogueira ripada.',
       },
       {
-        id: 'gym',
-        title: 'Academia',
-        lines: ['Academia com equipamentos de última geração'],
-        alt: 'Render da sala de ginástica: aparelhos de musculação e bancos sobre piso de madeira clara sob forro ripado, com parede espelhada e equipamentos de cardio ao fundo.',
+        id: 'fitness-center',
+        title: 'Academia de última geração',
+        line: 'Projetada para o seu máximo desempenho.',
+        alt: 'Render da academia: aparelhos de musculação e um banco sobre piso de madeira clara, uma fileira de esteiras e elípticos junto a uma parede espelhada, sob um teto de madeira ripada.',
       },
       {
-        id: 'pet-park',
-        title: 'Parque para pets',
-        lines: ['Para a família estendida'],
-        alt: 'Dois cães correndo lado a lado por um caminho pavimentado entre gramíneas altas.',
+        id: 'kidsroom',
+        title: 'Brinquedoteca infantil',
+        line: 'Espaços inspiradores para mentes ativas',
+        alt: 'Render da brinquedoteca infantil: painéis de parede estofados em arco, uma arquibancada acarpetada com bichos de pelúcia, nichos iluminados em formato de casa e uma mesa em formato de nuvem com banquinhos.',
+      },
+      {
+        id: 'pet-zone',
+        title: 'Espaço pet',
+        line: 'Para a família estendida.',
+        alt: 'Dois cães, um terrier e um corgi, correndo lado a lado por um caminho entre gramíneas altas.',
       },
     ],
   },

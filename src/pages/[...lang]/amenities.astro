@@ -1,16 +1,37 @@
 ---
-import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
+import AmenityStack from '../../components/AmenityStack.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { amenitiesCopy } from '../../content/pages/amenities';
 
-import residenceInterior from '../../assets/amenities/residence-living-dining-bay-view.jpg';
-import aquaClub from '../../assets/amenities/aqua-club-kayaking.jpg';
-import rooftopPool from '../../assets/amenities/rooftop-pool-terrace.jpg';
-import fitness from '../../assets/amenities/fitness-centre.jpg';
-import petPark from '../../assets/amenities/pet-park-dogs.jpg';
+
+/* One glob per amenity folder, so dropping another photograph into a folder
+   puts it into that card's slideshow with no code change — which matters,
+   because four of the six currently hold a single image and the owner is still
+   supplying them.
+
+   Globbed per folder rather than once across `amenities/*`, deliberately:
+   `eager: true` imports every match, and a single wildcard would also pull in
+   `amenities/random/` — eight unused files including multi-megabyte brochure
+   PNGs — and put them through the image pipeline on every build. */
+const folders = {
+  'rooftop-pool': import.meta.glob<ImageMetadata>('../../assets/amenities/rooftop/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+  'aqua-club': import.meta.glob<ImageMetadata>('../../assets/amenities/aqua-club/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+  clubroom: import.meta.glob<ImageMetadata>('../../assets/amenities/clubroom/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+  'fitness-center': import.meta.glob<ImageMetadata>('../../assets/amenities/fitness-center/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+  kidsroom: import.meta.glob<ImageMetadata>('../../assets/amenities/kidsroom/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+  'pet-zone': import.meta.glob<ImageMetadata>('../../assets/amenities/pet-zone/*.{jpg,jpeg,png}', { eager: true, import: 'default' }),
+} as const;
+
+/* Sorted by filename, numerically, so `-2` precedes `-10` when the set grows
+   and the order is the same on every machine — glob key order is not a
+   guarantee worth relying on for something the visitor sees. */
+const imagesFor = (id: string): ImageMetadata[] =>
+  Object.entries(folders[id as keyof typeof folders] ?? {})
+    .sort(([a], [b]) => a.localeCompare(b, 'en', { numeric: true }))
+    .map(([, img]) => img);
 
 export function getStaticPaths() {
   return localeStaticPaths();
@@ -19,15 +40,15 @@ export function getStaticPaths() {
 const locale = localeFromParam(Astro.params?.lang);
 const c = amenitiesCopy[locale];
 
-/* Artwork is locale-independent, so it is matched to translated copy by id. */
-const artwork: Record<string, ImageMetadata> = {
-  'aqua-club': aquaClub,
-  'rooftop-pool': rooftopPool,
-  gym: fitness,
-  'pet-park': petPark,
-};
+/* Photography is locale-independent and matched to translated copy by id. */
+const stack = c.stack.map((item) => ({ ...item, images: imagesFor(item.id) }));
 
-const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
+/* A card with no photograph would render as a bare navy panel. Fail the build
+   instead: a missing folder is a content error, not something to ship. */
+const empty = stack.filter((s) => s.images.length === 0).map((s) => s.id);
+if (empty.length) {
+  throw new Error(`Amenity stack has no images for: ${empty.join(', ')}`);
+}
 ---
 
 
@@ -48,18 +69,6 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
     </div>
   </section>
 
-  <div class="band" data-reveal="fade">
-    <Image
-      class="band__img"
-      src={residenceInterior}
-      alt={c.bandAlt}
-      layout="full-width"
-      widths={[640, 1024, 1600, 1920]}
-      sizes="100vw"
-      loading="eager"
-    />
-  </div>
-
   {/* The full schedule, set as a spec sheet rather than a bulleted brochure —
       these are the facts a broker reads down before calling. */}
   <section class="section section--dark schedule" aria-labelledby="schedule-heading">
@@ -73,38 +82,10 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
     </div>
   </section>
 
-  {features.map((feature, i) => (
-    <section
-      class:list={['section', 'feature', i % 2 === 0 ? 'feature--alt' : 'feature--flip']}
-      id={feature.id}
-      aria-labelledby={`${feature.id}-heading`}
-    >
-      <div class="shell feature__inner">
-        <figure class="feature__figure" data-reveal="fade">
-          <Image
-            class="feature__img"
-            src={feature.image}
-            alt={feature.alt}
-            widths={[420, 720, 960]}
-            sizes="(max-width: 860px) 92vw, 46vw"
-            loading="lazy"
-          />
-        </figure>
-
-        <div class="feature__body">
-          <h2 class="heading feature__title" id={`${feature.id}-heading`} data-reveal>
-            {feature.title}
-          </h2>
-          <hr class="rule feature__rule" data-reveal="fade" />
-          {feature.lines.map((line, n) => (
-            <p class="prose feature__line" data-reveal data-reveal-delay={0.06 * (n + 1)}>
-              {line}
-            </p>
-          ))}
-        </div>
-      </div>
-    </section>
-  ))}
+  {/* Edge-to-edge cards that shuffle, each backed by a Ken Burns slideshow of
+      that amenity's photography — the same sticky mechanic as the homepage
+      deck. This replaced the alternating image/copy rows. */}
+  <AmenityStack items={stack} />
 
   <PresentationCTA locale={locale} />
 
@@ -117,13 +98,8 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
   </section>
 </Base>
 
-<style>/* The bar is fixed and transparent at rest, so the first band pays for it. */
+<style>
 
-
-  /* --- Full-bleed lead render -------------------------------------------- */
-
-  .band { background: var(--navy); }
-  .band__img { width: 100%; height: auto; }
 
   /* --- Schedule of amenities --------------------------------------------- */
 
@@ -154,36 +130,11 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
     text-transform: uppercase;
   }
 
-  /* --- Featured amenities ------------------------------------------------- */
-
-  .feature { scroll-margin-top: var(--header-h); }
-  .feature--alt { background: var(--ground-alt); }
-
-  .feature__inner {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(var(--s-5), 5vw, var(--s-9));
-    align-items: center;
-  }
-
-  .feature--flip .feature__figure { order: 2; }
-
-  .feature__img { width: 100%; height: auto; }
-
-  .feature__body { display: grid; justify-items: start; gap: var(--s-4); }
-
-  .feature__rule { max-width: 120px; background: var(--gold); }
-
-  .feature__line { color: var(--ink); }
+  /* The featured amenities are a stacking deck now — see AmenityStack.astro.
+     Its rules live there; nothing about them belongs to this page. */
 
   @media (max-width: 1024px) {
     .schedule__list { columns: 2; }
-  }
-
-  @media (max-width: 860px) {
-    .feature__inner { grid-template-columns: 1fr; }
-    /* Image first on every row once stacked — alternation only reads wide. */
-    .feature--flip .feature__figure { order: 0; }
   }
 
   @media (max-width: 560px) {

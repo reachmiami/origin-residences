@@ -1,0 +1,301 @@
+---
+import { getImage } from 'astro:assets';
+
+/**
+ * A slow crossfading slideshow with a Ken Burns drift, used as the background
+ * layer of a stacking card.
+ *
+ * Three deliberate choices:
+ *
+ * 1. The cycling is driven by script, not by CSS keyframe percentages. A
+ *    CSS-only crossfade needs the visible fraction (1/N) baked into the
+ *    keyframes, so it has to be regenerated per slide count. These folders hold
+ *    anywhere from one image to five and the owner will add more, so the
+ *    component adapts instead.
+ *
+ * 2. It only animates while on screen. Six of these on one page, each drifting
+ *    a full-bleed photograph, is real compositor work to leave running behind
+ *    the fold — an IntersectionObserver starts and stops each one.
+ *
+ * 3. Without script it degrades to the first slide, static and correct. The
+ *    first slide carries `is-active` in the markup rather than being switched
+ *    on at runtime, so a failed bundle still leaves a photograph on the card.
+ *
+ * The drift is `infinite alternate` rather than a one-shot, so a single-image
+ * section still reads as a Ken Burns rather than freezing after one pass.
+ *
+ * Only the LEAD slide of each card carries alt text. The rest illustrate the
+ * amenity the heading already names, and narrating five near-identical
+ * renderings of one room is noise rather than information.
+ *
+ * A warning worth keeping, because it cost real time and the build stayed
+ * green throughout: a bare block comment placed among a component's attributes
+ * is NOT a comment in Astro. It is parsed as attributes — the text arrived in
+ * the HTML as `*="true" Only="true" the="true"` — and it silently swallowed
+ * every attribute that followed it. `alt`, `loading`, `sizes` and `decoding`
+ * all vanished, so all fourteen images loaded eagerly with no alt text and the
+ * page pulled 2.8MB before a single scroll. Nothing errored. Comment ABOVE the
+ * tag, never inside it.
+ */
+interface Props {
+  images: ImageMetadata[];
+  /** Describes the FIRST slide. The rest are decorative — see the note below. */
+  alt: string;
+  /** Only the first card on a page should be eager. */
+  eager?: boolean;
+  /** Seconds each slide holds before crossfading. */
+  interval?: number;
+}
+
+const { images, alt, eager = false, interval = 6 } = Astro.props;
+
+/* One source of truth for the crossfade length: the CSS transitions on it and
+   the script holds the outgoing slide for exactly as long. */
+const FADE_MS = 1400;
+
+/* Resolved here rather than left to <Image> so the non-lead slides can ship
+   WITHOUT a src.
+ *
+ * `loading="lazy"` is not enough for a slideshow. Every slide of a card is
+ * absolutely positioned at that card's own box, so they all share one position
+ * in the document — the browser sees five images at the top of card one and,
+ * once that card is anywhere near its generous viewport-distance threshold,
+ * fetches all five. Measured: 11 of 14 slides decoded before a single scroll,
+ * 2.8MB, on a page whose lead card needs exactly one of them.
+ *
+ * So the lead slide renders as a normal <img> and the rest carry their URLs in
+ * data-* until the card is approached. Without script they simply never load,
+ * which is correct: they are also never made visible without script. */
+const built = await Promise.all(
+  images.map((img) =>
+    getImage({ src: img, widths: [768, 1280, 1920], sizes: '100vw', format: 'webp' }),
+  ),
+);
+---
+
+<div
+  class="kb"
+  data-kb
+  data-interval={interval}
+  data-fade={FADE_MS}
+  style={`--kb-interval:${interval}s; --kb-fade:${FADE_MS}ms`}
+>
+  {images.map((img, i) => (
+    <img
+      class:list={['kb__slide', { 'is-active': i === 0, 'kb__slide--alt': i % 2 === 1 }]}
+      src={i === 0 ? built[i].src : undefined}
+      srcset={i === 0 ? built[i].srcSet.attribute : undefined}
+      data-src={i === 0 ? undefined : built[i].src}
+      data-srcset={i === 0 ? undefined : built[i].srcSet.attribute}
+      sizes="100vw"
+      width={built[i].attributes.width}
+      height={built[i].attributes.height}
+      alt={i === 0 ? alt : ''}
+      loading={eager && i === 0 ? 'eager' : 'lazy'}
+      fetchpriority={eager && i === 0 ? 'high' : undefined}
+      decoding="async"
+    />
+  ))}
+</div>
+
+<style>
+  .kb {
+    position: absolute;
+    inset: 0;
+    overflow: clip;
+    /* Opaque behind the slides: a card must never show the one beneath it
+       through a gap while a lazy image is still decoding. */
+    background: var(--navy);
+    /* CONTAINS the slides' z-index. Without a stacking context here, `z-index`
+       on a slide is resolved against the CARD instead, where it competes with
+       the scrim (z-index 1) and the copy (2) — the active slide painted over
+       the scrim and the headline was left on bare photography. It measured
+       1.00:1 and it is invisible on the darker slides.
+       `isolation` rather than a z-index, so nothing about the card's own
+       layering has to change. */
+    isolation: isolate;
+    z-index: 0;
+  }
+
+  /* The transition had two visible faults, both fixed here.
+
+     ONE — a dip in the middle of every crossfade. Fading both slides at once
+     leaves each at ~50% at the midpoint, and because they composite over this
+     container's opaque navy the result was 25% navy showing THROUGH the
+     picture: a grey pulse on every change. Only the INCOMING slide fades now.
+     It is lifted above the outgoing one, which holds full opacity underneath
+     for the whole fade, so at every instant something fully opaque covers the
+     ground and there is nothing to dip through.
+
+     TWO — a jump at the moment of the swap. The drift ran on `.is-active`
+     alone, so the outgoing slide lost its animation the instant it lost that
+     class and its transform snapped from mid-drift back to the base scale
+     while still fully visible. `.is-leaving` carries the same animation, with
+     the same name and duration, so the animation is never re-resolved and the
+     outgoing image keeps drifting all the way out. */
+  .kb__slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    z-index: 0;
+    /* Held slightly over 1 so the drift never exposes an edge. */
+    transform: scale(1.04);
+    transform-origin: 50% 50%;
+  }
+
+  /* Incoming: on top, and the only thing that fades. */
+  .kb__slide.is-active {
+    opacity: 1;
+    z-index: 2;
+    transition: opacity var(--kb-fade) linear;
+    will-change: transform, opacity;
+  }
+
+  /* Outgoing: fully opaque, directly beneath, for exactly as long as the fade.
+     Dropping it costs nothing visually — by then it is behind an opaque slide. */
+  .kb__slide.is-leaving {
+    opacity: 1;
+    z-index: 1;
+    transition: none;
+    will-change: transform;
+  }
+
+  /* The drift runs on the visible slide AND on the one still fading out.
+     Naming the same animation in both keeps it running across the swap. */
+  .kb.is-playing .kb__slide.is-active,
+  .kb.is-playing .kb__slide.is-leaving {
+    animation: kb-drift var(--kb-pan, calc(var(--kb-interval) * 2.4)) ease-in-out infinite alternate;
+  }
+
+  /* Alternating slides pull the opposite way, so consecutive images do not
+     read as one continuous move. */
+  .kb.is-playing .kb__slide--alt.is-active,
+  .kb.is-playing .kb__slide--alt.is-leaving { animation-name: kb-drift-alt; }
+
+  @keyframes kb-drift {
+    from { transform: scale(1.04) translate3d(0, 0, 0); }
+    to   { transform: scale(1.13) translate3d(-1.6%, -1.2%, 0); }
+  }
+
+  @keyframes kb-drift-alt {
+    from { transform: scale(1.13) translate3d(1.4%, 1%, 0); }
+    to   { transform: scale(1.04) translate3d(0, 0, 0); }
+  }
+
+  /* No drift, no crossfade, no cycling. The script also refuses to advance
+     under this query, so the first slide simply stands. */
+  @media (prefers-reduced-motion: reduce) {
+    .kb__slide {
+      transition: none;
+      transform: none;
+      animation: none !important;
+      will-change: auto;
+    }
+  }
+</style>
+
+<script>
+  /* One bundle serves every instance on the page, so this walks them all. */
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-kb]').forEach((kb) => {
+    const slides = [...kb.querySelectorAll<HTMLElement>('.kb__slide')];
+    if (!slides.length) return;
+
+    const interval = (Number(kb.dataset.interval) || 6) * 1000;
+    const FADE = Number(kb.dataset.fade) || 1400;
+    let index = 0;
+    let timer: number | undefined;
+    let leaveTimer: number | undefined;
+
+    const advance = async () => {
+      const current = slides[index];
+      const nextIndex = (index + 1) % slides.length;
+      const next = slides[nextIndex] as HTMLImageElement;
+
+      /* Decode before showing. A slide that is still being decoded when it is
+         made visible stalls the compositor mid-fade — the same stutter the CSS
+         above was blamed for at first. decode() is cheap once cached. */
+      try { await next.decode?.(); } catch { /* a failed decode still fades */ }
+
+      current.classList.add('is-leaving');
+      current.classList.remove('is-active');
+      next.classList.add('is-active');
+      index = nextIndex;
+
+      /* Release the outgoing slide only once the incoming one is fully opaque.
+         A little margin, because the class change and the transition do not
+         start on precisely the same frame. */
+      window.clearTimeout(leaveTimer);
+      leaveTimer = window.setTimeout(() => current.classList.remove('is-leaving'), FADE + 80);
+    };
+
+    /* Promote the deferred slides to real images. Called on first approach, so
+       they are in place well before the first crossfade six seconds later. */
+    let hydrated = false;
+    const hydrate = () => {
+      if (hydrated) return;
+      hydrated = true;
+      slides.forEach((s) => {
+        const img = s as HTMLImageElement;
+        if (!img.dataset.src) return;
+        if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+        img.src = img.dataset.src;
+        delete img.dataset.src;
+        delete img.dataset.srcset;
+      });
+    };
+
+    const start = () => {
+      hydrate();
+      kb.classList.add('is-playing');
+      /* A single image still drifts — it just has nothing to advance to, and a
+         timer that only ever re-activates the same slide would restart its
+         animation and cause a visible jump. */
+      if (timer || slides.length < 2 || reduced.matches) return;
+      /* Chained, not setInterval: advance() awaits a decode, and an interval
+         could stack calls on top of a slow one. */
+      const tick = async () => {
+        await advance();
+        if (timer !== undefined) timer = window.setTimeout(tick, interval);
+      };
+      timer = window.setTimeout(tick, interval);
+    };
+
+    const stop = () => {
+      kb.classList.remove('is-playing');
+      window.clearTimeout(timer);
+      window.clearTimeout(leaveTimer);
+      timer = undefined;
+      /* Leave no slide stranded at full opacity beneath the active one. */
+      slides.forEach((s) => s.classList.remove('is-leaving'));
+    };
+
+    if (reduced.matches) return; // leaves slide 0 visible and static
+
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => (e.isIntersecting ? start() : stop())),
+      /* rootMargin pulls the deferred slides in slightly ahead of the card, so
+         they are decoded before the first crossfade — which is a further six
+         seconds away, so a quarter of a viewport is ample lead.
+
+         It was one full viewport until the lead render above the deck was
+         removed; the page lost ~800px and three more cards fell inside the
+         margin, taking the initial load from 1129KB to 2026KB. The lead slide
+         of each card is a plain lazy <img> and arrives on the browser's own
+         threshold regardless — this governs only slides two onward. */
+      { threshold: 0.15, rootMargin: '25% 0px' },
+    );
+    io.observe(kb);
+
+    /* A tab in the background still fires intervals; advancing there only
+       burns work and lands the visitor mid-dissolve on return. */
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop();
+      else if (kb.getBoundingClientRect().top < window.innerHeight) start();
+    });
+  });
+</script>
