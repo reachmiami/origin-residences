@@ -36,9 +36,9 @@
 }
 
 /* Medium sits OUTSIDE the incumbent brand kit, which ships Thin/ExtraLight/
-   Light only. It arrived for the v2 header, where light weights were illegible
-   over the sunset photograph, and has since spread to the forms and the
-   neighbourhood locator. Do not use it elsewhere without deciding that the
+   Light only. It arrived for the homepage header, where light weights were
+   illegible over the sunset photograph, and has since spread to the forms and
+   the neighbourhood locator. Do not use it elsewhere without deciding that the
    brand's weight range has genuinely changed. */
 @font-face {
   font-family: 'Montserrat';
@@ -67,7 +67,7 @@
 }
 
 /* Typed so it can be transitioned. A plain custom property would jump, taking
-   the v2 header's background and accent with it. */
+   the homepage header's background and accent with it. */
 @property --header-bg {
   syntax: '<number>';
   inherits: true;
@@ -504,16 +504,22 @@ ul, ol {
 
 .page-head__lede { color: var(--ink); }
 
-.page-head__all {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  font-size: var(--t-micro);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--gold-ink);
-}
-.page-head__all:hover { color: var(--ink); }
+/* `.eyebrow` resolves to --accent, which is raw --gold. That is a DECORATIVE
+   value: as text on this sand ground it measures 2.14:1, against the 4.5 AA
+   needs. The rule three tokens up says so — gold and warm-grey are for rules,
+   borders and large display, and --gold-ink is the text-safe member of the
+   family at 4.88:1 on sand. The eyebrow was raw gold on all five page-head
+   pages; measure-page-head.mjs guards it now.
+
+   Scoped to .page-head deliberately: the SAME .eyebrow class carries raw gold
+   correctly on navy grounds, where it measures 5.59:1. Changing the global
+   rule would fix this ground and break that one. */
+.page-head .eyebrow { color: var(--gold-ink); }
+
+/* `.page-head__all` — the "view available units →" link — lived here. Amenities
+   was its only user and the owner removed it, so the rule went with it rather
+   than staying behind as a class nothing references. It is in git history if a
+   page-head ever wants that link back. */
 
 @media (max-width: 860px) {
   .page-head__title { font-size: 2.5rem; }

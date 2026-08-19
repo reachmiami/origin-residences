@@ -1,8 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import PageBand from '../../components/PageBand.astro';
-import { BAND_PLACEHOLDER, BAND_PLACEHOLDER_ALT } from '../../data/band-art';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
@@ -54,17 +52,22 @@ const partners = c.partners.map((p) => ({ ...p, ...firms[p.id] }));
   description={c.metaDescription}
   locale={locale}
   path="the-team"
-  darkHeader
 >
-  {/* PLACEHOLDER artwork — this page owns only portraits, which cannot carry a
-      full-bleed band. See src/data/band-art.ts. */}
-  <PageBand
-    image={BAND_PLACEHOLDER}
-    alt={BAND_PLACEHOLDER_ALT[locale]}
-    eyebrow={c.eyebrow}
-    title={c.title}
-    headingId="page-heading"
-  />
+  {/* Same page-head treatment as Neighborhood, Amenities and Gallery — centred,
+      on the sand ground. This page owns only portraits, which cannot carry a
+      full-bleed band, so it stood on BAND_PLACEHOLDER until now; the head
+      removes that dependency rather than waiting on a photograph.
+
+      `darkHeader` went with the band: the bar now opens over a light ground
+      and needs its dark ink. */}
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
+      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.title}</h1>
+      <hr class="page-head__rule" data-reveal="fade" />
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.lede}</p>
+    </div>
+  </section>
 
   {/* Out of the .shell on purpose: these are edge-to-edge cards that shuffle,
       the same mechanic as the homepage feature bands, so nothing may constrain
@@ -117,7 +120,7 @@ const partners = c.partners.map((p) => ({ ...p, ...firms[p.id] }));
 </Base>
 
 <style>
-  /* The page title band lives in PageBand.astro now. */
+  /* The page title is a `.page-head`, styled in tokens.css. */
 
   /* --- Partner cards -------------------------------------------------------
      Edge-to-edge cards that shuffle, exactly as the homepage feature bands do:

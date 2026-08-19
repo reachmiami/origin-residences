@@ -4,7 +4,12 @@ import type { Locale } from '../../i18n/ui';
  * Artefacto page copy.
  *
  * `en` is verbatim from originresidences.com — this is the brand's one
- * uncopyable claim, so nothing there is paraphrased. `es` and `pt-br` are
+ * uncopyable claim, so nothing there is paraphrased. The EXCEPTION is the page
+ * head: `headline` and `headLede` were supplied by the owner in August 2026
+ * when this page moved from a photographic band onto `.page-head`, replacing
+ * the incumbent's 'The perfect synergy…' title. They carry two factual claims
+ * that are NOT in the scraped copy — three generations since 1976, and first
+ * Artefacto-branded project in the United States — both owner-asserted. `es` and `pt-br` are
  * AI-authored and awaiting native review — see TRANSLATION-REVIEW.md. The
  * pt-br reading is written for the Brazilian buyer, who knows ARTEFACTO as a
  * house rather than as a licensed name.
@@ -18,6 +23,9 @@ export interface ArtefactoCopy {
   metaDescription: string;
   eyebrow: string;
   headline: string;
+  /** Standfirst under the rule in the page head. Distinct from `lede`, which
+      belongs to the editorial section further down the page. Owner-supplied. */
+  headLede: string;
   editorialTitle: string;
   lede: string;
   body: string;
@@ -41,8 +49,9 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     metaDescription:
       'The perfect synergy to create innovative and surprising spaces — Origin’s interiors in collaboration with Artefacto and interior designer Carla Guilhem.',
     eyebrow: 'Artefacto',
-    headline: 'The perfect synergy to create innovative and surprising spaces',
-    editorialTitle: 'Interiors by Artefacto',
+    headline: 'Crafting Luxury Across Three Generations Since 1976.',
+    headLede:
+      'For over 50 years, Artefacto has been decoding a lifestyle that is highly regarded amongst the biggest names in architecture and décor. Now, the iconic brand proudly brings their first branded residence to the US, translating decades of visionary design into an extraordinary living experience',
     lede: 'Designed for the modern family, ORIGIN offers large floor plans with flexible layouts and unit sizes. With floor-to-ceiling windows and expansive water views, the building aesthetics evoke elegance.',
     body: 'ARTEFACTO decodes a lifestyle that is highly regarded amongst the biggest names in architecture and décor. Behind every accessory and piece of furniture is a carefully thought-out concept that aims to establish connections between the home and the owner.',
     bacchiQuote:
@@ -74,7 +83,9 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     metaDescription:
       'La sinergia perfecta para crear espacios innovadores y sorprendentes: los interiores de Origin en colaboración con Artefacto y la diseñadora de interiores Carla Guilhem.',
     eyebrow: 'Artefacto',
-    headline: 'La sinergia perfecta para crear espacios innovadores y sorprendentes',
+    headline: 'Creando lujo a lo largo de tres generaciones desde 1976.',
+    headLede:
+      'Durante más de 50 años, Artefacto ha estado decodificado un estilo de vida muy apreciado entre los nombres más importantes de la arquitectura y la decoración. Ahora, la marca icónica trae con orgullo su primera residencia de marca a los EE. UU., traduciendo décadas de diseño visionario en una experiencia de vida extraordinaria.',
     editorialTitle: 'Interiores por Artefacto',
     lede: 'Concebido para la familia moderna, ORIGIN ofrece plantas amplias con distribuciones y superficies flexibles. Con ventanales de piso a techo y extensas vistas al agua, la estética del edificio evoca elegancia.',
     body: 'ARTEFACTO descifra un estilo de vida muy valorado entre los grandes nombres de la arquitectura y la decoración. Detrás de cada accesorio y cada pieza de mobiliario hay un concepto cuidadosamente pensado, que busca establecer vínculos entre la casa y quien la habita.',
@@ -107,7 +118,9 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     metaDescription:
       'A sinergia perfeita para criar espaços inovadores e surpreendentes: os interiores do Origin em parceria com a Artefacto e a designer de interiores Carla Guilhem.',
     eyebrow: 'Artefacto',
-    headline: 'A sinergia perfeita para criar espaços inovadores e surpreendentes',
+    headline: 'Criando luxo ao longo de três gerações desde 1976.',
+    headLede:
+      'Há mais de 50 anos, a Artefacto decodifica um estilo de vida muito conceituado entre os maiores nomes da arquitetura e da decoração. Agora, a marca icônica traz orgulhosamente sua primeira residência assinada para os EUA, traduzindo décadas de design visionário em uma experiência de vida extraordinária.',
     editorialTitle: 'Interiores pela Artefacto',
     lede: 'Pensado para a família contemporânea, o ORIGIN oferece plantas amplas, com layouts e metragens flexíveis. Com janelas do piso ao teto e vistas generosas para a água, a estética do edifício evoca elegância.',
     body: 'A ARTEFACTO decifra um estilo de vida altamente valorizado entre os maiores nomes da arquitetura e da decoração. Por trás de cada objeto e de cada peça de mobiliário há um conceito cuidadosamente concebido, que busca criar conexões entre a casa e quem nela vive.',

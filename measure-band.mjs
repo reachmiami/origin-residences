@@ -18,12 +18,11 @@ import sharp from 'sharp';
 
 const BASE = process.argv[2] || 'http://localhost:4321';
 
-/* Every page whose title section is a PageBand. Gallery, Amenities and
-   Neighborhood are absent on purpose — they carry the flat `page-head`. */
+/* Every page whose title section is a PageBand. Gallery, Amenities,
+   Neighborhood, Artefacto and The Team are absent on purpose — they carry the
+   flat `page-head`, which is measured by measure-page-head.mjs instead. */
 const PAGES = [
   ['residences', '/residences/'],
-  ['artefacto', '/artefacto/'],
-  ['the-team', '/the-team/'],
   ['floor-plans', '/floor-plans/'],
   ['schedule', '/schedule-virtual-tour/'],
   ['accessibility', '/accessibility/'],

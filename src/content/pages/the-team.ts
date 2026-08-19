@@ -3,8 +3,10 @@ import type { Locale } from '../../i18n/ui';
 /**
  * The Team page copy.
  *
- * `en` is verbatim from originresidences.com. `es` and `pt-br` are AI-authored
- * and awaiting native review — see TRANSLATION-REVIEW.md.
+ * `en` is verbatim from originresidences.com, EXCEPT the page head — `eyebrow`,
+ * `title` and `lede` were supplied by the owner in August 2026 when this page
+ * moved from a photographic band onto `.page-head`. `es` and `pt-br` are
+ * AI-authored and awaiting native review — see TRANSLATION-REVIEW.md.
  *
  * Firm names, outbound links and portraits are locale-independent and stay in
  * the page component; partners are matched to them by `id`. The order of this
@@ -15,6 +17,8 @@ export interface TeamCopy {
   metaDescription: string;
   eyebrow: string;
   title: string;
+  /** Standfirst under the rule in the page head. Owner-supplied. */
+  lede: string;
   visitWebsite: string;
   newTabNote: string;
   partners: { id: string; role: string; body: string; alt: string }[];
@@ -25,8 +29,10 @@ export const teamCopy: Record<Locale, TeamCopy> = {
     metaTitle: 'The Team | Origin Residences',
     metaDescription:
       'The partners behind Origin Residences: VDA, Revuelta Architecture International, Artefacto, Carla Guilhem Design and Cervera.',
-    eyebrow: 'Origin Residences',
-    title: 'The team',
+    eyebrow: 'The Team',
+    title: 'A Proven Track Record on all Fronts.',
+    lede:
+      'With decades of sustainable Engineering in South America, and award-winning Architecture in the U.S., our leadership team unites visionary developers, master architects, and seasoned industry experts to bring you the U.S.\'s first Artefacto-branded Residencial Project.',
     visitWebsite: 'Visit website',
     newTabNote: '(opens in a new tab)',
     partners: [
@@ -72,8 +78,10 @@ export const teamCopy: Record<Locale, TeamCopy> = {
     metaTitle: 'El equipo | Origin Residences',
     metaDescription:
       'Los socios detrás de Origin Residences: VDA, Revuelta Architecture International, Artefacto, Carla Guilhem Design y Cervera.',
-    eyebrow: 'Origin Residences',
-    title: 'El equipo',
+    eyebrow: 'El equipo',
+    title: 'Una trayectoria de desarrollo probada en todos los frentes.',
+    lede:
+      'Con décadas de ingeniería sostenible en América del Sur y arquitectura galardonada en los EE. UU., nuestro equipo directivo une a desarrolladores visionarios, arquitectos maestros y expertos consolidados de la industria para ofrecerles el primer proyecto residencial de la marca Artefacto en los Estados Unidos.',
     visitWebsite: 'Visitar sitio web',
     newTabNote: '(se abre en una pestaña nueva)',
     partners: [
@@ -119,8 +127,10 @@ export const teamCopy: Record<Locale, TeamCopy> = {
     metaTitle: 'A equipe | Origin Residences',
     metaDescription:
       'Os parceiros por trás do Origin Residences: VDA, Revuelta Architecture International, Artefacto, Carla Guilhem Design e Cervera.',
-    eyebrow: 'Origin Residences',
-    title: 'A equipe',
+    eyebrow: 'A equipe',
+    title: 'Um histórico comprovado de incorporação em todas as frentes.',
+    lede:
+      'Com décadas de engenharia sustentável na América do Sul e arquitetura premiada nos EUA, nossa equipe de liderança une desenvolvedores visionários, arquitetos mestres e especialistas experientes do setor para trazer a você o primeiro projeto residencial com a marca Artefacto dos EUA.',
     visitWebsite: 'Visitar site',
     newTabNote: '(abre em uma nova aba)',
     partners: [

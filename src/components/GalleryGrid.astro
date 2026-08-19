@@ -171,6 +171,11 @@ const SIZES = '(max-width: 640px) 94vw, (max-width: 1080px) 48vw, 32vw';
     background: var(--ground);
     /* The expanded figure bleeds past the shell padding; keep it contained. */
     overflow-x: clip;
+    /* The grid sits directly under the page-head, which brings its own bottom
+       padding on the same sand ground — so the `.section` top padding stacked
+       into one oversized gap with no edge to justify it. Bottom padding is
+       kept: below the grid is the CTA band, a different ground. */
+    padding-block-start: 0;
   }
 
   /* --- Mosaic ------------------------------------------------------------

@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import PageBand from '../../components/PageBand.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
@@ -28,21 +27,23 @@ const c = artefactoCopy[locale];
   description={c.metaDescription}
   locale={locale}
   path="artefacto"
-  darkHeader
 >
-  {/* Uses `lobby`, not `terrace` — the terrace photograph is the full-bleed
-      figure directly below, and the same image twice in a row reads as a bug. */}
-  <PageBand
-    image={lobby}
-    alt={c.alt.lobby}
-    eyebrow={c.eyebrow}
-    title={c.headline}
-    headingId="page-heading"
-    {/* This headline wraps to three lines, so its copy climbs 720px up a 904px
-        band — past the veil's default hold, which left the title on a bright
-        lobby at 1.82:1. Only this page needs the taller hold. */}
-    veilHold="760px"
-  />
+  {/* Same page-head treatment as Neighborhood, Amenities and Gallery — centred,
+      on the sand ground. It replaces the photographic title band, which took
+      the `lobby` image and a hand-tuned 760px veil hold to keep the three-line
+      headline off a bright lobby; type on sand needs neither.
+
+      `darkHeader` went with the band: the bar now opens over a light ground
+      and needs its dark ink. The terrace figure below is unchanged, and is now
+      the first photograph on the page. */}
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
+      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.headline}</h1>
+      <hr class="page-head__rule" data-reveal="fade" />
+      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.headLede}</p>
+    </div>
+  </section>
 
   <figure class="band band--hero">
     <Image
@@ -173,8 +174,9 @@ const c = artefactoCopy[locale];
 </Base>
 
 <style>
-  /* The page title band lives in PageBand.astro now. The `.band` rules below
-     are a DIFFERENT thing — this page's own full-bleed figures — and stay. */
+  /* The page title is a `.page-head`, styled in tokens.css. The `.band` rules
+     below are a DIFFERENT thing — this page's own full-bleed figures — and
+     stay. */
 
   /* --- Full-bleed bands ---------------------------------------------------
      The wrapper owns the crop; the image overfills it and drifts inside the

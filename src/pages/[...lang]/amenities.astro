@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import PresentationCTA from '../../components/PresentationCTA.astro';
-import { useTranslations, localizePath, localeStaticPaths, localeFromParam } from '../../i18n/ui';
+import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { amenitiesCopy } from '../../content/pages/amenities';
 
 import residenceInterior from '../../assets/amenities/residence-living-dining-bay-view.jpg';
@@ -17,8 +17,6 @@ export function getStaticPaths() {
 }
 
 const locale = localeFromParam(Astro.params?.lang);
-const t = useTranslations(locale);
-const L = (p: string) => localizePath(p, locale);
 const c = amenitiesCopy[locale];
 
 /* Artwork is locale-independent, so it is matched to translated copy by id. */
@@ -47,9 +45,6 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
       </h1>
       <hr class="page-head__rule" data-reveal="fade" />
       <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.lede}</p>
-      <a class="page-head__all" href={L('residences')} data-reveal="fade">
-        {t('viewAvailable')} &rarr;
-      </a>
     </div>
   </section>
 
@@ -67,7 +62,7 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
 
   {/* The full schedule, set as a spec sheet rather than a bulleted brochure —
       these are the facts a broker reads down before calling. */}
-  <section class="section schedule" aria-labelledby="schedule-heading">
+  <section class="section section--dark schedule" aria-labelledby="schedule-heading">
     <div class="shell">
       <h2 class="heading schedule__title" id="schedule-heading" data-reveal>
         {c.scheduleTitle}
@@ -132,7 +127,10 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
 
   /* --- Schedule of amenities --------------------------------------------- */
 
-  .schedule { background: var(--ground); }
+  /* No background here on purpose: `.section--dark` in tokens.css supplies both
+     the navy ground and --ink-on-dark, exactly as it does for PresentationCTA.
+     A scoped `.schedule { background: … }` would carry Astro's cid attribute
+     and so out-specify the shared modifier, silently winning. */
 
   .schedule__title { margin-bottom: var(--s-6); }
 
@@ -140,13 +138,15 @@ const features = c.features.map((f) => ({ ...f, image: artwork[f.id] }));
   .schedule__list {
     columns: 3;
     column-gap: clamp(var(--s-5), 4vw, var(--s-8));
-    border-top: 1px solid var(--rule);
+    /* --rule is 16% navy: invisible on a navy ground. The on-dark value is the
+       same gesture inverted. */
+    border-top: 1px solid var(--rule-on-dark);
   }
 
   .schedule__item {
     break-inside: avoid;
     padding-block: var(--s-3);
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule-on-dark);
     font-size: var(--t-small);
     font-weight: var(--w-light);
     letter-spacing: var(--track-body);
