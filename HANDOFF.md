@@ -318,6 +318,15 @@ The client reviews the site on GitHub Pages while the real domain is still
 being decided. `.github/workflows/deploy.yml` builds on every push to
 `homepage-stack-hero-scrim-forms` and publishes `dist/`.
 
+- **Live review copy:** https://reachmiami.github.io/origin-residences/
+- **Repo:** https://github.com/reachmiami/origin-residences (public)
+
+The repo is PUBLIC, which is what makes Pages free. `src/data/` pricing and the
+full photography set are readable by anyone who finds it, and Pages offers no
+password on any plan — the URL is the only thing gating access. If that stops
+being acceptable, going private means a paid plan before the site will build
+at all.
+
 **Nothing in the repo names the deployment target.** `actions/configure-pages`
 reports where Pages actually serves this repo from, and the workflow feeds
 those outputs to the build as `SITE_URL` and `BASE_PATH`. A plain
