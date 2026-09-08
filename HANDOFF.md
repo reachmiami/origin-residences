@@ -348,6 +348,10 @@ origin is a `github.io` address:
 - **Every page is `noindex, nofollow`.** A `robots.txt` cannot do this from a
   project page — it would sit at `/<repo>/robots.txt`, and crawlers only read
   the one at the domain root, which this repo does not own.
+- **No sitemap is generated.** Publishing a machine-readable list of all 120
+  URLs is the opposite of what noindex is for — it is precisely the file a
+  crawler reads to find pages it would not otherwise reach. Production keeps
+  its sitemap; the integration is simply not registered on a review build.
 - **The Follow Up Boss pixel is omitted** (`src/components/FubPixel.astro`).
   It writes to the live CRM. A client clicking through the forms on a review
   build would otherwise create real person records and start action plans

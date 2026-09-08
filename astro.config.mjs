@@ -38,6 +38,9 @@ const BASE = BASE_FOLDER ? `/${BASE_FOLDER}/` : '/';
 /** BASE without its trailing slash — '' at a domain root — for joining. */
 const BASE_CLEAN = BASE_FOLDER ? `/${BASE_FOLDER}` : '';
 
+/* The github.io review copy. Set by the workflow; never set for production. */
+const REVIEW_DEPLOY = process.env.REVIEW_DEPLOY === 'true';
+
 export default defineConfig({
   site: SITE,
   base: BASE,
@@ -77,7 +80,11 @@ export default defineConfig({
     format: 'directory',
   },
 
-  integrations: [
+  /* No sitemap on the review copy. Every page there is noindex, and publishing
+     a machine-readable index of all 120 URLs alongside that is working against
+     itself — it is exactly the file a crawler reads to discover pages it would
+     not otherwise find. Production keeps its sitemap. */
+  integrations: REVIEW_DEPLOY ? [] : [
     sitemap({
       filter: (page) => !hiddenUnitSlugs.some((slug) => page.includes(`/${slug}/`)),
       i18n: {
