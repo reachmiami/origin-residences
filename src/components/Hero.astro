@@ -1,5 +1,5 @@
 ---
-import { localizePath, type Locale } from '../i18n/ui';
+import { localizePath, asset, type Locale } from '../i18n/ui';
 import { getCopy } from '../content/copy';
 
 /**
@@ -38,11 +38,11 @@ const L = (p: string) => localizePath(p, locale);
     loop
     playsinline
     preload="metadata"
-    poster="/hero-poster.jpg"
+    poster={asset("hero-poster.jpg")}
     aria-hidden="true"
     tabindex="-1"
   >
-    <source src="/video/origin-hero.mp4" type="video/mp4" />
+    <source src={asset("video/origin-hero.mp4")} type="video/mp4" />
   </video>
 
   <div class="hero__veil" aria-hidden="true"></div>

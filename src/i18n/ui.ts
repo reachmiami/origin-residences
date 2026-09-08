@@ -219,11 +219,40 @@ export function useTranslations(locale: Locale) {
  */
 export const HOME_PATH = '';
 
-/** Build a locale-aware absolute path. English stays at the root. */
+/**
+ * The folder this build is served from, without its trailing slash.
+ *
+ * Empty for the production site, which sits at the root of its own domain.
+ * `/origin-residences` for the GitHub Pages review deploy, which is a project
+ * page one folder down. Astro derives BASE_URL from `base` in astro.config.mjs
+ * and inlines it at build time, so this costs nothing at runtime.
+ *
+ * Every internal path in the site is built by localizePath() or asset(), which
+ * means this constant is the single place the deployment folder is applied.
+ */
+const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '');
+
+/**
+ * Build a locale-aware absolute path. English stays at the root of the site.
+ *
+ * Returns a path already prefixed with the deployment base, so the result can
+ * be used directly as an href — callers must not add the base themselves.
+ */
 export function localizePath(path: string, locale: Locale): string {
   const clean = path.replace(/^\/+/, '').replace(/\/+$/, '');
   const suffix = clean ? `${clean}/` : '';
-  return locale === defaultLocale ? `/${suffix}` : `/${locale}/${suffix}`;
+  return locale === defaultLocale ? `${BASE}/${suffix}` : `${BASE}/${locale}/${suffix}`;
+}
+
+/**
+ * Build a path to a file in `public/` — the logo, the hero video, the favicon.
+ *
+ * These are copied verbatim rather than processed by Vite, so nothing rewrites
+ * their URLs for the deployment folder and they must be routed through here.
+ * Anything imported from `src/assets/` is handled by Vite and needs no help.
+ */
+export function asset(path: string): string {
+  return `${BASE}/${path.replace(/^\/+/, '')}`;
 }
 
 /**
@@ -247,8 +276,19 @@ export function localeFromParam(lang?: string): Locale {
   return lang === 'es' || lang === 'pt-br' ? lang : defaultLocale;
 }
 
-/** Strip a locale prefix back off a pathname, for the language switcher. */
+/**
+ * Strip the deployment folder and any locale prefix back off a pathname,
+ * leaving the bare page path — for the language switcher, which rebuilds the
+ * same page's URL in each locale.
+ *
+ * The base has to come off first: on the review deploy a pathname reads
+ * `/origin-residences/es/amenities/`, and the locale is only recognisable once
+ * the folder in front of it is gone.
+ */
 export function depath(pathname: string): string {
-  const stripped = pathname.replace(/^\/(es|pt-br)(?=\/|$)/, '');
+  const unbased = BASE && pathname.startsWith(`${BASE}/`)
+    ? pathname.slice(BASE.length)
+    : pathname;
+  const stripped = unbased.replace(/^\/(es|pt-br)(?=\/|$)/, '');
   return stripped.replace(/^\/+/, '').replace(/\/+$/, '');
 }

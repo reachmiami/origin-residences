@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, asset, HOME_PATH, type Locale } from '../i18n/ui';
 import { getCopy } from '../content/copy';
 import sunset from '../assets/home/origin-sunset.jpg';
 
@@ -30,7 +30,7 @@ const t = useTranslations(locale);
 {/* The travelling logo sits OUTSIDE the hero: the section clips its overflow,
     which would crop a fixed child the moment the hero scrolled away. */}
 <a class="hero2__logo" href={L(HOME_PATH)} data-flying-logo aria-label="Origin Residences — home">
-  <img src="/logo-origin.svg" alt="" width="300" height="91" decoding="async" />
+  <img src={asset("logo-origin.svg")} alt="" width="300" height="91" decoding="async" />
 </a>
 
 {/* Full-viewport trailer viewer. Outside the hero for the same reason the
@@ -44,7 +44,7 @@ const t = useTranslations(locale);
   </button>
 
   <video class="trailer__video" data-trailer-video playsinline controls preload="none">
-    <source src="/video/origin-hero.mp4" type="video/mp4" />
+    <source src={asset("video/origin-hero.mp4")} type="video/mp4" />
   </video>
 </div>
 

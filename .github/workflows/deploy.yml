@@ -1,0 +1,74 @@
+# Builds the site and publishes it to GitHub Pages for client review.
+#
+# The deployment target is not written down here. `actions/configure-pages`
+# reports where Pages will actually serve this repo from, and the build takes
+# its site URL and base folder from that. So:
+#
+#   * today, on a project page, it builds for
+#     https://<owner>.github.io/<repo>/ and marks every page noindex;
+#   * the day a custom domain is set in Settings → Pages, the same workflow
+#     builds for that domain at the root and drops the noindex.
+#
+# Attaching the domain is therefore a change in the GitHub UI, not a code
+# change. Nothing in this file names the repository or the domain.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [homepage-stack-hero-scrim-forms]
+  workflow_dispatch:
+
+# GITHUB_TOKEN needs to write a Pages deployment, nothing more.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; let a newer commit finish rather than cancelling
+# it, so the published site always matches the newest push.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve the Pages URL this repo publishes to
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build
+        env:
+          # Both come from the step above, so a custom domain is picked up the
+          # moment it is configured — see the note at the top of this file.
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Keep the github.io review copy out of search results; a real domain
+          # is a real launch and is indexed normally.
+          REVIEW_DEPLOY: ${{ contains(steps.pages.outputs.origin, 'github.io') }}
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

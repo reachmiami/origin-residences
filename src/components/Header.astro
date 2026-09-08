@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, asset, HOME_PATH, type Locale } from '../i18n/ui';
 import { unitsByLevel, unitCount } from '../data/units';
 import { exploreLinks } from '../data/nav';
 import SalesContact from './SalesContact.astro';
@@ -50,13 +50,13 @@ const isCurrent = (p: string) => current === L(p);
         {/* Phones: no flight — 375px cannot hold a centred logo between the
             controls, so it simply sits in the bar as it does on v1. */}
         <a class="header__brand header__brand--static" href={L(HOME_PATH)} aria-label="Origin Residences — home">
-          <img src="/logo-origin.svg" alt="" width="300" height="91" decoding="async" />
+          <img src={asset("logo-origin.svg")} alt="" width="300" height="91" decoding="async" />
         </a>
       </>
     ) : (
     <a class="header__brand" href={L(HOME_PATH)} aria-label="Origin Residences — home">
       <img
-        src="/logo-origin.svg"
+        src={asset("logo-origin.svg")}
         alt="Origin Residences · Bay Harbor, by Artefacto"
         width="300"
         height="91"

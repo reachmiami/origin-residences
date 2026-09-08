@@ -13,8 +13,34 @@ const hiddenUnitSlugs = rawUnits
     return number && !released.releasedUnitNumbers.includes(number);
   });
 
+/* Where this build will be served from.
+   ---------------------------------------------------------------------------
+   The production site is the apex domain at the root. The GitHub Pages review
+   deploy is a *project* page, so it lives one folder down at
+   `https://<owner>.github.io/<repo>/` and every internal path needs that
+   prefix. Both are read from the environment so the same source tree builds
+   for either target — CI sets them, and a plain `npm run build` still produces
+   the production shape.
+
+   When the client's real domain is pointed at Pages, drop the two variables
+   from the workflow and this reverts to the root build with no code change.
+   `base` is threaded through localizePath() and asset() in src/i18n/ui.ts —
+   those are the only two places a path is built, so nothing else needs to
+   know. */
+const SITE = process.env.SITE_URL ?? 'https://originresidences.com';
+
+/* Normalised so the workflow can pass whatever GitHub hands it — `/repo`,
+   `/repo/` or a bare `/` on a custom domain — without a trailing-slash bug
+   turning into a site-wide 404. */
+const BASE_FOLDER = (process.env.BASE_PATH ?? '/').replace(/^\/+|\/+$/g, '');
+const BASE = BASE_FOLDER ? `/${BASE_FOLDER}/` : '/';
+
+/** BASE without its trailing slash — '' at a domain root — for joining. */
+const BASE_CLEAN = BASE_FOLDER ? `/${BASE_FOLDER}` : '';
+
 export default defineConfig({
-  site: 'https://originresidences.com',
+  site: SITE,
+  base: BASE,
   output: 'static',
   trailingSlash: 'always',
 
@@ -37,10 +63,13 @@ export default defineConfig({
      out of the sitemap — but a reviewer may still hold the URL, so it points
      at the real homepage rather than 404ing. Static output emits these as
      small meta-refresh pages. Safe to delete once no one is using them. */
+  /* Astro applies `base` to the redirect SOURCE but leaves the TARGET verbatim,
+     so these are written through BASE by hand — otherwise the review deploy
+     sends /origin-residences/v2/ to the github.io root, off the site. */
   redirects: {
-    '/v2/': '/',
-    '/es/v2/': '/es/',
-    '/pt-br/v2/': '/pt-br/',
+    '/v2/': `${BASE_CLEAN}/`,
+    '/es/v2/': `${BASE_CLEAN}/es/`,
+    '/pt-br/v2/': `${BASE_CLEAN}/pt-br/`,
   },
 
   build: {

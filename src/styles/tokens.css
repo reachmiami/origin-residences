@@ -11,9 +11,15 @@
    Regular on the origin server; do not add one.
    -------------------------------------------------------------------------- */
 
+/* The faces live in src/assets/, not public/, so Vite rewrites these URLs with
+   whatever folder the build is served from — the site is deployed both at a
+   domain root and, for client review, inside a /origin-residences/ subfolder.
+   A plain /fonts/... path is correct in only one of those and silently drops
+   the brand face in the other. */
+
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-Thin.woff2') format('woff2');
+  src: url('../assets/fonts/Montserrat-Thin.woff2') format('woff2');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
@@ -21,7 +27,7 @@
 
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-ExtraLight.woff2') format('woff2');
+  src: url('../assets/fonts/Montserrat-ExtraLight.woff2') format('woff2');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
@@ -29,7 +35,7 @@
 
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-Light.woff2') format('woff2');
+  src: url('../assets/fonts/Montserrat-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -42,7 +48,7 @@
    brand's weight range has genuinely changed. */
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-Medium.woff2') format('woff2');
+  src: url('../assets/fonts/Montserrat-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -60,7 +66,7 @@
    600, which today is `.chip` alone. */
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/Montserrat-SemiBold.woff2') format('woff2');
+  src: url('../assets/fonts/Montserrat-SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;

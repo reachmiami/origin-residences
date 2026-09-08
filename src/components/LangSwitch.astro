@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, localeNames, locales, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, depath, localeNames, locales, type Locale } from '../i18n/ui';
 
 /**
  * Language switcher. Lives in the header bar on desktop and tablet, and moves
@@ -12,11 +12,11 @@ interface Props {
 
 const { locale, class: className } = Astro.props;
 
-/* Strip any existing locale prefix so each link points at the same page in
-   its own language rather than nesting prefixes. */
-const bare = Astro.url.pathname
-  .replace(/^\/(es|pt-br)(?=\/|$)/, '')
-  .replace(/^\/+|\/+$/g, '');
+/* Strip the deployment folder and any existing locale prefix so each link
+   points at the same page in its own language rather than nesting prefixes.
+   depath() owns both steps — doing it by hand here missed the folder and made
+   every switcher link 404 on the review deploy. */
+const bare = depath(Astro.url.pathname);
 
 const t = useTranslations(locale);
 ---

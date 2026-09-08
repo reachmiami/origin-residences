@@ -3,7 +3,14 @@ import '../styles/tokens.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FubPixel from '../components/FubPixel.astro';
-import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, asset, type Locale } from '../i18n/ui';
+
+/* Imported rather than written as paths so Vite emits them with the same
+   content hash and deployment folder it gives the @font-face rules in
+   tokens.css. A preload whose URL differs from the one the stylesheet asks for
+   downloads the face twice and warns in the console. */
+import montserratThin from '../assets/fonts/Montserrat-Thin.woff2?url';
+import montserratLight from '../assets/fonts/Montserrat-Light.woff2?url';
 
 interface Props {
   title: string;
@@ -33,6 +40,15 @@ const {
   ogImage = '/og-default.jpg',
 } = Astro.props;
 
+/* The GitHub Pages review deploy must not be indexed — it would compete with
+   the real site and show the client's pre-launch pricing in search results.
+   A robots.txt cannot do this job: the deploy is a *project* page, so its
+   robots.txt would sit at /origin-residences/robots.txt, and crawlers only
+   read the one at the domain root, which this repo does not control. The meta
+   tag is per-page and therefore the only reliable lever. CI sets the variable;
+   a production build leaves it unset and is indexed normally. */
+const reviewDeploy = process.env.REVIEW_DEPLOY === 'true';
+
 const t = useTranslations(locale);
 const site = Astro.site?.toString().replace(/\/$/, '') ?? 'https://originresidences.com';
 const canonical = `${site}${localizePath(path, locale)}`;
@@ -49,7 +65,7 @@ const hreflangFor: Record<Locale, string> = { en: 'en-US', es: 'es-ES', 'pt-br':
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {(noindex || reviewDeploy) && <meta name="robots" content="noindex, nofollow" />}
 
     {locales.map((l) => (
       <link rel="alternate" hreflang={hreflangFor[l]} href={`${site}${localizePath(path, l)}`} />
@@ -61,16 +77,16 @@ const hreflangFor: Record<Locale, string> = { en: 'en-US', es: 'es-ES', 'pt-br':
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={`${site}${ogImage}`} />
+    <meta property="og:image" content={`${site}${asset(ogImage)}`} />
     <meta name="twitter:card" content="summary_large_image" />
 
     <meta name="theme-color" content="#082341" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={asset("favicon.svg")} type="image/svg+xml" />
 
     {/* The brand face carries every glyph on the page — preload the two
         weights that appear above the fold, not the whole kit. */}
-    <link rel="preload" href="/fonts/Montserrat-Thin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Montserrat-Light.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={montserratThin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={montserratLight} as="font" type="font/woff2" crossorigin />
 
     {/* Lead delivery. Must load in <head> so it is listening before the
         visitor can reach a form. */}

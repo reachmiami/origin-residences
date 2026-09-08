@@ -25,11 +25,26 @@
  * This snippet is public by design. A Follow Up Boss API key is not, and must
  * never appear in this project — scripts/check-env.mjs blocks the build if one
  * is found in a PUBLIC_* variable.
+ *
+ * ─── OFF ON THE REVIEW DEPLOY ──────────────────────────────────────────────
+ * The tracker is LIVE: it writes straight into the production CRM. On the
+ * GitHub Pages review copy that is not what anyone wants — a client clicking
+ * through the forms to check the wording would create real person records,
+ * trigger lead-flow rules and start action plans, and their click-through
+ * would land in the site's real visitor traffic.
+ *
+ * So it is omitted whenever REVIEW_DEPLOY is set, which is exactly when the
+ * pages are also marked noindex. Production builds are unaffected and carry
+ * the tracker as before. To capture leads from the review site after all,
+ * clear REVIEW_DEPLOY in .github/workflows/deploy.yml — but note that also
+ * makes the review copy indexable.
  */
+const reviewDeploy = process.env.REVIEW_DEPLOY === 'true';
 ---
 
 {/* begin Widget Tracker Code */}
-<script is:inline>
+{!reviewDeploy && (
+  <script is:inline>
   (function (w, i, d, g, e, t) {
     w['WidgetTrackerObject'] = g;
     (w[g] =
@@ -46,4 +61,5 @@
   window.widgetTracker('create', 'WT-FBRKNWTI');
   window.widgetTracker('send', 'pageview');
 </script>
+)}
 {/* end Widget Tracker Code */}
