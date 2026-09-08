@@ -312,9 +312,56 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
 
 ---
 
+## Deployment — GitHub Pages review copy
+
+The client reviews the site on GitHub Pages while the real domain is still
+being decided. `.github/workflows/deploy.yml` builds on every push to
+`homepage-stack-hero-scrim-forms` and publishes `dist/`.
+
+**Nothing in the repo names the deployment target.** `actions/configure-pages`
+reports where Pages actually serves this repo from, and the workflow feeds
+those outputs to the build as `SITE_URL` and `BASE_PATH`. A plain
+`npm run build` with neither variable set produces the production shape —
+apex domain, at the root — exactly as before.
+
+### Attaching the real domain
+
+Set it in **Settings → Pages → Custom domain**. That is the whole change.
+`configure-pages` then reports the custom domain at the root, so the next
+build drops the subfolder and the noindex on its own. Do not edit
+`astro.config.mjs` for this.
+
+### What the review copy deliberately does not do
+
+Both keyed off `REVIEW_DEPLOY`, which the workflow sets only when the Pages
+origin is a `github.io` address:
+
+- **Every page is `noindex, nofollow`.** A `robots.txt` cannot do this from a
+  project page — it would sit at `/<repo>/robots.txt`, and crawlers only read
+  the one at the domain root, which this repo does not own.
+- **The Follow Up Boss pixel is omitted** (`src/components/FubPixel.astro`).
+  It writes to the live CRM. A client clicking through the forms on a review
+  build would otherwise create real person records and start action plans
+  against them. Forms still submit and still report success — `leads.ts` treats
+  the relay copy as optional — they just do not reach the CRM.
+
+Both are off the moment a real domain is attached, which is the correct
+behaviour for a launch but worth knowing before you attach one.
+
 ## Gotchas that cost real debugging time
 
 Do not rediscover these.
+
+**Never write a root-absolute path by hand.** The site builds for two
+different roots — the apex domain, and a `/<repo>/` subfolder on the Pages
+review copy. An `href="/amenities/"` or `src="/logo-origin.svg"` is correct in
+only one of them and 404s in the other. Internal links go through
+`localizePath()`; `public/` files go through `asset()`; anything imported from
+`src/assets/` is rewritten by Vite and needs neither. This is also why the
+Montserrat faces live in `src/assets/fonts/` rather than `public/` — CSS cannot
+read the base, so `url('/fonts/...')` had no correct spelling. To catch a
+regression, build with `BASE_PATH=/x/ npm run build` and grep `dist` for
+`="/` — every hit should start `="/x/`.
 
 **`.header.is-condensed` rules keep winning.** They set `color`/`background` at
 the same specificity as the homepage header's rules and apply from 40px of
