@@ -321,6 +321,27 @@ inquiry form alongside. Structure follows a property portal, because that is
 what a buyer and a buyer's agent can already read. The rendering is the
 brand's — Montserrat light, tracked caps, gold hairlines, sand and navy.
 
+### What is currently listed
+
+**701 is withdrawn.** `src/data/released.json` holds `["302", "401"]`, so the
+grid shows two cards in two columns and nothing on the site links to 701. Its
+data, price, photography assignment and floor plan are all still in the
+project, untouched — put `"701"` back in that array and it returns everywhere
+at once. Nothing else needs editing.
+
+Two things survive a withdrawal, by design rather than by oversight:
+
+- **The page still builds and is reachable by direct URL**, carrying its price.
+  That is deliberate — see `src/data/released.ts`, which keeps hidden pages
+  live precisely so one can be shared with a broker before release. It is
+  unlinked, `noindex, nofollow` and out of the sitemap, so nothing finds it.
+- **`/floorplans/floor-plan-701.pdf` stays served**, because `public/` is
+  copied wholesale.
+
+If a residence is ever pulled for a reason that makes a discoverable price a
+problem — under contract, a repricing, a legal hold — hiding it is not enough
+and the page and PDF have to stop being built.
+
 ### Where the numbers live
 
 | File | Holds |
@@ -330,7 +351,7 @@ brand's — Montserrat light, tracked caps, gold hairlines, sand and navy.
 | `src/data/listing-media.ts` | Which photographs each residence shows. |
 | `src/content/pages/listings.ts` | Every label, in three languages. |
 
-All three residences carry an asking price. **Only 302 has a full sheet**,
+Every listed residence carries an asking price. **Only 302 has a full sheet**,
 transcribed from MLS A11783461; 401 and 701 have price and nothing else,
 because no MLS sheet has been supplied for them. Those fields stay `null`
 rather than guessed — a figure invented for a real property is a false
@@ -385,8 +406,9 @@ not invent a fourth description of the same photograph.
 `src/assets/floorplans/*.png` are rasterised at 2400px from the developer's
 PDFs via `qlmanage`; the PDFs themselves are in `public/floorplans/` and linked
 for download through `asset()`, so they survive the base-path switch. Only the
-released three have their own drawing — every other residence falls back to its
-level keyplan, exactly as before.
+residences with a drawing of their own use it — 302, 401 and 701 — and every
+other one falls back to its level keyplan, exactly as before. A residence keeps
+its drawing whether or not it is currently released.
 
 ### The form is the site's form, sticky beside the specification
 

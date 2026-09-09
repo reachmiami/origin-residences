@@ -1,4 +1,7 @@
 {
-  "releasedUnitNumbers": ["302", "401", "701"],
+  "releasedUnitNumbers": [
+    "302",
+    "401"
+  ],
   "totalResidences": 27
 }
