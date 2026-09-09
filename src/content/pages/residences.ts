@@ -46,14 +46,14 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
   en: {
     metaTitle: 'Residences | Developer Inventory — Origin Residences',
     metaDescription: (count) =>
-      `Explore all ${count} residences at ORIGIN by Artefacto in Bay Harbor Islands — 2, 3 and 4 bedroom floor plans with interior and total areas, level by level.`,
+      `Explore all ${count} residences at ORIGIN by Artefacto in Bay Harbor Islands — 3 and 4 bedroom floor plans with interior and total areas, level by level.`,
     title: 'Residences',
     bandAlt:
       'An ORIGIN living room opening through floor-to-ceiling glass onto a private balcony, with the bay and the low rooflines of Bay Harbor Islands beyond.',
     discoverTitle: 'Discover your dream home',
     discoverParagraphs: [
       'The residencies of Origin by Artefacto are an example of how functionality and design can come together to create contemporary and sophisticated spaces.',
-      'We invite you to explore this magnificent collection of 2, 3, and 4 bedroom residences with all the amenities and services for a memorable experience.',
+      'We invite you to explore this magnificent collection of 3 and 4 bedroom residences with all the amenities and services for a memorable experience.',
     ],
     featuresTitle: 'Residences features',
     featuresAlt:
@@ -99,14 +99,14 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
   es: {
     metaTitle: 'Residencias | Inventario del desarrollador — Origin Residences',
     metaDescription: (count) =>
-      `Explore las ${count} residencias de ORIGIN by Artefacto en Bay Harbor Islands: plantas de 2, 3 y 4 habitaciones con superficies interiores y totales, nivel por nivel.`,
+      `Explore las ${count} residencias de ORIGIN by Artefacto en Bay Harbor Islands: plantas de 3 y 4 habitaciones con superficies interiores y totales, nivel por nivel.`,
     title: 'Residencias',
     bandAlt:
       'Un salón de ORIGIN que se abre, a través de ventanales de piso a techo, a un balcón privado, con la bahía y los tejados bajos de Bay Harbor Islands al fondo.',
     discoverTitle: 'Descubra el hogar de sus sueños',
     discoverParagraphs: [
       'Las residencias de Origin by Artefacto son un ejemplo de cómo la funcionalidad y el diseño pueden unirse para crear espacios contemporáneos y sofisticados.',
-      'Lo invitamos a explorar esta magnífica colección de residencias de 2, 3 y 4 habitaciones, con todas las amenidades y servicios para una experiencia memorable.',
+      'Lo invitamos a explorar esta magnífica colección de residencias de 3 y 4 habitaciones, con todas las amenidades y servicios para una experiencia memorable.',
     ],
     featuresTitle: 'Características de las residencias',
     featuresAlt:
@@ -152,14 +152,14 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
   'pt-br': {
     metaTitle: 'Residências | Inventário do incorporador — Origin Residences',
     metaDescription: (count) =>
-      `Explore as ${count} residências do ORIGIN by Artefacto em Bay Harbor Islands: plantas de 2, 3 e 4 quartos com áreas internas e totais, nível por nível.`,
+      `Explore as ${count} residências do ORIGIN by Artefacto em Bay Harbor Islands: plantas de 3 e 4 quartos com áreas internas e totais, nível por nível.`,
     title: 'Residências',
     bandAlt:
       'Uma sala de estar do ORIGIN que se abre, por vidros do piso ao teto, para uma varanda privativa, com a baía e os telhados baixos de Bay Harbor Islands ao fundo.',
     discoverTitle: 'Descubra a casa dos seus sonhos',
     discoverParagraphs: [
       'As residências do Origin by Artefacto são um exemplo de como funcionalidade e design podem se unir para criar espaços contemporâneos e sofisticados.',
-      'Convidamos você a explorar esta magnífica coleção de residências de 2, 3 e 4 quartos, com todas as comodidades e serviços para uma experiência memorável.',
+      'Convidamos você a explorar esta magnífica coleção de residências de 3 e 4 quartos, com todas as comodidades e serviços para uma experiência memorável.',
     ],
     featuresTitle: 'Características das residências',
     featuresAlt:

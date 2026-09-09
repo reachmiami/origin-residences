@@ -79,7 +79,7 @@ const en: Copy = {
       'This elegant boutique residential building embodies the ultimate Miami lifestyle, enticing views and expansive floor plans. Just steps away from Miami’s pristine beaches and the world-renowned Bal Harbour Shops, ORIGIN is the ultimate in urban island living while being just steps away from every comfort of city life. ARTEFACTO decodes a lifestyle that is highly regarded amongst the biggest names in architecture and décor creating the epitome of warm, contemporary living.',
     inventoryTitle: 'Developer inventory',
     inventoryLede:
-      'Multiple residence floor plan options from 2 bed / 2.5 bath up to 4 bed + den / 4.5 bath',
+      'Multiple residence floor plan options from 3 bed / 3.5 bath up to 4 bed + den / 4.5 bath',
     inventoryLimited: 'Limited units available',
     inventoryCta: 'View available units',
     presentationTitle: 'Schedule private presentation',
@@ -155,7 +155,7 @@ const es: Copy = {
       'Este elegante edificio residencial boutique encarna el máximo estilo de vida de Miami, con vistas cautivadoras y amplias plantas. A pocos pasos de las playas vírgenes de Miami y de las mundialmente reconocidas Bal Harbour Shops, ORIGIN representa la máxima expresión de la vida urbana en la isla, sin renunciar a ninguna comodidad de la ciudad. ARTEFACTO descifra un estilo de vida muy valorado entre los grandes nombres de la arquitectura y la decoración, creando la máxima expresión de una vida cálida y contemporánea.',
     inventoryTitle: 'Inventario del desarrollador',
     inventoryLede:
-      'Múltiples opciones de planta, desde 2 habitaciones / 2.5 baños hasta 4 habitaciones + estudio / 4.5 baños',
+      'Múltiples opciones de planta, desde 3 habitaciones / 3.5 baños hasta 4 habitaciones + estudio / 4.5 baños',
     inventoryLimited: 'Unidades limitadas disponibles',
     inventoryCta: 'Ver unidades disponibles',
     presentationTitle: 'Agendar presentación privada',
@@ -231,7 +231,7 @@ const ptBr: Copy = {
       'Este elegante edifício residencial boutique traduz o melhor do estilo de vida de Miami, com vistas envolventes e plantas amplas. A poucos passos das praias intocadas de Miami e das mundialmente reconhecidas Bal Harbour Shops, o ORIGIN é o ápice da vida urbana na ilha, sem abrir mão de nenhum conforto da cidade. A ARTEFACTO decifra um estilo de vida altamente valorizado entre os maiores nomes da arquitetura e da decoração, criando a expressão máxima de um viver acolhedor e contemporâneo.',
     inventoryTitle: 'Inventário do incorporador',
     inventoryLede:
-      'Diversas opções de planta, de 2 quartos / 2,5 banheiros até 4 quartos + escritório / 4,5 banheiros',
+      'Diversas opções de planta, de 3 quartos / 3,5 banheiros até 4 quartos + escritório / 4,5 banheiros',
     inventoryLimited: 'Unidades limitadas disponíveis',
     inventoryCta: 'Ver unidades disponíveis',
     presentationTitle: 'Agendar apresentação privada',

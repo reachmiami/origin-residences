@@ -42,7 +42,7 @@ export const floorPlansCopy: Record<Locale, FloorPlansCopy> = {
   en: {
     metaTitle: 'Floor Plans | Origin Residences',
     metaDescription:
-      'Key plans for all 27 residences at ORIGIN by Artefacto — the 2, 3 and 4 bedroom collections across levels 3 to 7 in Bay Harbor Islands, Florida.',
+      'Key plans for all 27 residences at ORIGIN by Artefacto — the 3 and 4 bedroom collections across levels 3 to 7 in Bay Harbor Islands, Florida.',
     title: 'Floor Plans',
     familiesTitle: 'Plan families',
     den: ' + Den',
@@ -64,7 +64,7 @@ export const floorPlansCopy: Record<Locale, FloorPlansCopy> = {
   es: {
     metaTitle: 'Planos | Origin Residences',
     metaDescription:
-      'Planos clave de las 27 residencias de ORIGIN by Artefacto: las colecciones de 2, 3 y 4 habitaciones, de los niveles 3 al 7, en Bay Harbor Islands, Florida.',
+      'Planos clave de las 27 residencias de ORIGIN by Artefacto: las colecciones de 3 y 4 habitaciones, de los niveles 3 al 7, en Bay Harbor Islands, Florida.',
     title: 'Planos',
     familiesTitle: 'Familias de planos',
     den: ' + estudio',
@@ -86,7 +86,7 @@ export const floorPlansCopy: Record<Locale, FloorPlansCopy> = {
   'pt-br': {
     metaTitle: 'Plantas | Origin Residences',
     metaDescription:
-      'Plantas-chave das 27 residências do ORIGIN by Artefacto: as coleções de 2, 3 e 4 quartos, dos níveis 3 ao 7, em Bay Harbor Islands, Flórida.',
+      'Plantas-chave das 27 residências do ORIGIN by Artefacto: as coleções de 3 e 4 quartos, dos níveis 3 ao 7, em Bay Harbor Islands, Flórida.',
     title: 'Plantas',
     familiesTitle: 'Famílias de plantas',
     den: ' + escritório',
