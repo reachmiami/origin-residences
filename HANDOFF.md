@@ -312,6 +312,78 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
 
 ---
 
+## Listings — the inventory grid and the residence pages
+
+The Residences page's filter-and-accordion inventory browser is gone, replaced
+by a grid of listing cards; the residence pages are now listing sheets with a
+photographic carousel, an MLS-style specification, the drawn floor plan and an
+inquiry form alongside. Structure follows a property portal, because that is
+what a buyer and a buyer's agent can already read. The rendering is the
+brand's — Montserrat light, tracked caps, gold hairlines, sand and navy.
+
+### Where the numbers live
+
+| File | Holds |
+| --- | --- |
+| `src/data/units.raw.json` | Architecture — beds, baths, areas. True whether or not a residence is for sale. |
+| `src/data/listings.ts` | **Sales facts** — price, MLS #, HOA, taxes, parking. Only true while listed. |
+| `src/data/listing-media.ts` | Which photographs each residence shows. |
+| `src/content/pages/listings.ts` | Every label, in three languages. |
+
+**Only residence 302 has real sales data**, transcribed from MLS A11783461.
+401 and 701 are `null` and marked TODO. That is deliberate: a price invented
+for a real property is a false statement, not a placeholder. A null renders as
+"Price Upon Request" and makes its specification row vanish — `ListingSpecs`
+drops an empty row, and a block whose rows all vanish drops itself. Fill in
+`LISTINGS` in `src/data/listings.ts` and the rows appear; nothing else needs
+touching.
+
+There is deliberately **no "Est. Payment"** row, though the reference sheet has
+one. A monthly figure is a function of rate, term and down payment, none of
+which were supplied, and inventing them to print a number on a $4m listing is
+not a rounding error. Supply the assumptions and it can be added.
+
+### Two things that are derived, not stored
+
+- **Days on market** is computed from `dateListed` at build. The MLS sheet
+  prints a number that is wrong the next morning; the listing date is durable.
+- **$/sq. ft.** is price ÷ interior area, and disappears when there is no
+  price. For 302 it comes to $1,931, which is what the MLS sheet prints — so
+  price and area agree and neither was mistyped.
+
+### The photography is representative, not per-residence
+
+Every unit in `units.raw.json` points at the same three URLs on the old CMS,
+and the building is not standing, so no per-residence photography exists.
+`listing-media.ts` assigns each residence its own sequence from the gallery so
+the three cards do not read as one listing posted three times. Alt text is
+reused from `src/content/pages/gallery.ts`, where it was already written in
+three languages after looking at the actual files — a listing carousel must
+not invent a fourth description of the same photograph.
+
+### Floor plans
+
+`src/assets/floorplans/*.png` are rasterised at 2400px from the developer's
+PDFs via `qlmanage`; the PDFs themselves are in `public/floorplans/` and linked
+for download through `asset()`, so they survive the base-path switch. Only the
+released three have their own drawing — every other residence falls back to its
+level keyplan, exactly as before.
+
+### The form is the site's form
+
+`InquiryForm` with `unit={unit.slug}`, the same component as the footer and
+every other page, so a lead arrives already attached to the residence it came
+from (`data-unit`, read by `src/scripts/leads.ts`). There is no second form
+implementation to keep in step. Follow Up Boss delivery therefore needs no
+listing-specific work — whatever makes the footer form deliver makes these
+deliver.
+
+### `InventoryGrid.astro` is now unused
+
+Nothing imports it. It is left in place rather than deleted because it is the
+only implementation of the bedroom/level filter, which is worth having back if
+the developer releases enough inventory to need filtering again.
+
 ## Deployment — GitHub Pages review copy
 
 The client reviews the site on GitHub Pages while the real domain is still
@@ -364,6 +436,14 @@ behaviour for a launch but worth knowing before you attach one.
 ## Gotchas that cost real debugging time
 
 Do not rediscover these.
+
+**Astro scopes component styles, so page-level markup does not inherit them.**
+The amenities and floor-plan blocks were first written as `<section
+class="specs">` inside `[unit].astro`, reusing ListingSpecs' class names. They
+came out in a different size and case from every block around them, because
+those styles are scoped to ListingSpecs and a page cannot borrow them by class
+name. Both now render *through* the component via its `<slot>`. If a block has
+to look like another component's block, put it inside that component.
 
 **Never write a root-absolute path by hand.** The site builds for two
 different roots — the apex domain, and a `/<repo>/` subfolder on the Pages

@@ -1,0 +1,295 @@
+---
+/**
+ * The photographic hero of a listing page.
+ *
+ * ─── WHY NOT FeatureBand ───────────────────────────────────────────────────
+ * FeatureBand already carries a cross-fade carousel, and the mechanism here is
+ * deliberately the same one: first slide rendered visible, arrows only when
+ * there is more than one frame, inactive slides taken out of the accessibility
+ * tree, cross-fade suppressed under reduced motion. What differs is the
+ * furniture — a listing hero needs a frame counter and a thumbnail strip so a
+ * buyer can see how many photographs there are and jump between them, and
+ * FeatureBand is a content band with headline and prose beside the figure.
+ * Bending it to do both would have made one component serve two jobs badly.
+ *
+ * The hook is `data-listing-carousel`, not `data-carousel`, so that if a page
+ * ever carries both components their scripts cannot bind to each other's
+ * markup and step the same slide twice per click.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { type Locale } from '../i18n/ui';
+import { listingsCopy, fillCounter } from '../content/pages/listings';
+
+export interface Slide {
+  src: ImageMetadata;
+  alt: string;
+}
+
+interface Props {
+  slides: Slide[];
+  locale: Locale;
+  /** Residence number, for the group's accessible name. */
+  residence: string;
+}
+
+const { slides, locale, residence } = Astro.props;
+const l = listingsCopy[locale];
+const isCarousel = slides.length > 1;
+---
+
+<section
+  class="lcar"
+  aria-roledescription="carousel"
+  aria-label={l.galleryLabel(residence)}
+  data-listing-carousel={isCarousel ? '' : undefined}
+>
+  <div class="lcar__stage">
+    {slides.map((slide, i) => (
+      <figure
+        class:list={['lcar__slide', { 'is-active': i === 0 }]}
+        data-slide
+        aria-hidden={isCarousel && i !== 0 ? 'true' : undefined}
+        aria-roledescription={isCarousel ? 'slide' : undefined}
+        aria-label={isCarousel ? fillCounter(l.imageCounterTemplate, i + 1, slides.length) : undefined}
+      >
+        <Image
+          src={slide.src}
+          alt={slide.alt}
+          widths={[720, 1080, 1600, 2000]}
+          sizes="(max-width: 1080px) 100vw, 66vw"
+          loading={i === 0 ? 'eager' : 'lazy'}
+          fetchpriority={i === 0 ? 'high' : undefined}
+          class="lcar__img"
+        />
+      </figure>
+    ))}
+
+    {isCarousel && (
+      <>
+        <button type="button" class="lcar__arrow lcar__arrow--prev" data-prev aria-label={l.previousImage}>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+               stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 5 8 12l7 7" />
+          </svg>
+        </button>
+
+        <button type="button" class="lcar__arrow lcar__arrow--next" data-next aria-label={l.nextImage}>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+               stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 5 7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Announced on change, so a screen-reader user who steps the carousel
+            hears where they now are rather than silence. */}
+        <p
+          class="lcar__counter"
+          data-counter
+          data-template={l.imageCounterTemplate}
+          role="status"
+          aria-live="polite"
+        >
+          {fillCounter(l.imageCounterTemplate, 1, slides.length)}
+        </p>
+      </>
+    )}
+  </div>
+
+  {isCarousel && (
+    <ul class="lcar__thumbs" data-thumbs>
+      {slides.map((slide, i) => (
+        <li>
+          <button
+            type="button"
+            class:list={['lcar__thumb', { 'is-active': i === 0 }]}
+            data-thumb
+            aria-label={l.goToImage(i + 1)}
+            aria-current={i === 0 ? 'true' : undefined}
+          >
+            <Image src={slide.src} alt="" widths={[160, 320]} sizes="120px" loading="lazy" />
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
+</section>
+
+<style>
+  .lcar {
+    display: grid;
+    gap: var(--s-3);
+  }
+
+  .lcar__stage {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    background: var(--navy);
+  }
+
+  .lcar__slide {
+    margin: 0;
+    height: 100%;
+  }
+
+  /* Every frame is stacked; only the active one is painted. Without the script
+     the first slide is simply the photograph and the rest never appear. */
+  .lcar__slide:not(:first-child) {
+    position: absolute;
+    inset: 0;
+  }
+
+  .lcar[data-listing-carousel] .lcar__slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .lcar[data-listing-carousel] .lcar__slide.is-active {
+    opacity: 1;
+  }
+
+  .lcar__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lcar__arrow {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid var(--rule-on-dark);
+    background: color-mix(in srgb, var(--navy) 55%, transparent);
+    color: var(--off-white);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+
+  .lcar__arrow:hover {
+    background: color-mix(in srgb, var(--navy) 80%, transparent);
+  }
+
+  .lcar__arrow--prev { left: var(--s-4); }
+  .lcar__arrow--next { right: var(--s-4); }
+
+  .lcar__counter {
+    position: absolute;
+    right: var(--s-4);
+    bottom: var(--s-4);
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
+    background: color-mix(in srgb, var(--navy) 70%, transparent);
+    color: var(--off-white);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+  }
+
+  .lcar__thumbs {
+    display: flex;
+    gap: var(--s-2);
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: thin;
+  }
+
+  .lcar__thumb {
+    display: block;
+    width: 96px;
+    padding: 0;
+    border: 1px solid transparent;
+    background: none;
+    aspect-ratio: 3 / 2;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .lcar__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .lcar__thumb:hover,
+  .lcar__thumb.is-active {
+    opacity: 1;
+  }
+
+  .lcar__thumb.is-active {
+    border-color: var(--accent);
+  }
+
+  @media (max-width: 700px) {
+    .lcar__stage { aspect-ratio: 4 / 3; }
+    .lcar__thumb { width: 72px; }
+    .lcar__arrow { width: 38px; height: 38px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lcar[data-listing-carousel] .lcar__slide { transition: none; }
+    .lcar__arrow, .lcar__thumb { transition: none; }
+  }
+</style>
+
+<script>
+  /* Cross-fade, progressively enhanced. The markup renders the first frame
+     visible on its own; this only adds the stepping. Mirrors the mechanism in
+     FeatureBand.astro — see the note at the top of this file for why the two
+     are separate components. */
+  document.querySelectorAll<HTMLElement>('[data-listing-carousel]').forEach((root) => {
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    if (slides.length < 2) return;
+
+    const thumbs = [...root.querySelectorAll<HTMLElement>('[data-thumb]')];
+    const counter = root.querySelector<HTMLElement>('[data-counter]');
+    let index = 0;
+
+    const show = (next: number) => {
+      index = (next + slides.length) % slides.length;
+
+      slides.forEach((slide, i) => {
+        const active = i === index;
+        slide.classList.toggle('is-active', active);
+        /* Inactive frames leave the accessibility tree entirely, so a screen
+           reader walks one photograph rather than six stacked ones. */
+        if (active) slide.removeAttribute('aria-hidden');
+        else slide.setAttribute('aria-hidden', 'true');
+      });
+
+      thumbs.forEach((thumb, i) => {
+        const active = i === index;
+        thumb.classList.toggle('is-active', active);
+        if (active) thumb.setAttribute('aria-current', 'true');
+        else thumb.removeAttribute('aria-current');
+      });
+
+      /* The template travels in a data attribute because the copy module is
+         a build-time import — the browser only ever sees the rendered string.
+         Substituting here keeps the counter in the reader's language. */
+      if (counter) {
+        const tpl = counter.dataset.template ?? '{current} of {total}';
+        counter.textContent = tpl
+          .replace('{current}', String(index + 1))
+          .replace('{total}', String(slides.length));
+      }
+    };
+
+    root.querySelector('[data-prev]')?.addEventListener('click', () => show(index - 1));
+    root.querySelector('[data-next]')?.addEventListener('click', () => show(index + 1));
+    thumbs.forEach((thumb, i) => thumb.addEventListener('click', () => show(i)));
+
+    root.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); }
+    });
+  });
+</script>

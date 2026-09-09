@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import InventoryGrid from '../../components/InventoryGrid.astro';
+import ListingGrid from '../../components/ListingGrid.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import FeatureBand from '../../components/FeatureBand.astro';
 import PageBand from '../../components/PageBand.astro';
@@ -72,7 +72,7 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
     </div>
   </section>
 
-  <InventoryGrid locale={locale} />
+  <ListingGrid locale={locale} />
 
   <section class="section features" aria-labelledby="features-heading">
     <div class="shell features__inner">

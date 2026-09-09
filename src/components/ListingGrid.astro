@@ -1,0 +1,90 @@
+---
+/**
+ * DEVELOPER INVENTORY — the residences currently for sale, as a grid of cards.
+ *
+ * Replaces the filter-and-accordion inventory browser that stood here before.
+ * That interface was built to make 27 residences tractable; with three on the
+ * market it asked the visitor to narrow a list they could already see in one
+ * glance, and a bedroom filter over three items mostly produces empty results.
+ * The cards say everything the filters were there to reveal.
+ *
+ * The column count follows the number of residences rather than a fixed three,
+ * so releasing a fourth does not leave one card stranded on its own row, and
+ * dropping to two does not leave a gap where the third used to be.
+ */
+import { type Locale } from '../i18n/ui';
+import { listingsCopy } from '../content/pages/listings';
+import ListingCard from './ListingCard.astro';
+import { listings } from '../data/listings';
+
+interface Props {
+  locale: Locale;
+  headingId?: string;
+}
+
+const { locale, headingId = 'inventory-heading' } = Astro.props;
+const l = listingsCopy[locale];
+
+/* Beyond three the grid wraps rather than growing thinner columns — a card
+   narrower than this stops holding its price on one line. */
+const columns = Math.min(listings.length, 3);
+---
+
+<section class="linv section" id="inventory" aria-labelledby={headingId}>
+  <div class="shell">
+    <header class="linv__head">
+      <h2 class="heading" id={headingId} data-reveal>{l.gridTitle}</h2>
+      <hr class="rule linv__rule" data-reveal="fade" />
+      <p class="linv__lede" data-reveal data-reveal-delay="0.06">
+        {l.gridLede(listings.length)}
+      </p>
+    </header>
+
+    <div class="linv__grid" style={`--cols:${columns}`} data-reveal-group>
+      {listings.map((listing, i) => (
+        <ListingCard listing={listing} locale={locale} eager={i === 0} />
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .linv {
+    background: var(--ground-alt);
+  }
+
+  .linv__head {
+    max-width: var(--measure);
+    margin-bottom: var(--s-8);
+  }
+
+  .linv__rule {
+    margin: var(--s-4) 0;
+  }
+
+  .linv__lede {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--t-body);
+    line-height: var(--leading-body);
+  }
+
+  .linv__grid {
+    display: grid;
+    gap: var(--s-5);
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  }
+
+  /* Two abreast on tablets, whatever the desktop column count is. */
+  @media (max-width: 1080px) {
+    .linv__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 700px) {
+    .linv__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

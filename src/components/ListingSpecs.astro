@@ -1,0 +1,144 @@
+---
+/**
+ * One labelled block of a listing sheet — "Basic Information", "Exterior
+ * Features" and so on.
+ *
+ * ─── THE ONE RULE THIS COMPONENT OWNS ──────────────────────────────────────
+ * A row with no value is not rendered, and a block with no surviving rows is
+ * not rendered either. Sales data for two of the three residences has not been
+ * supplied yet (see src/data/listings.ts), and the alternative to dropping the
+ * row is a page full of "HOA Fees —" and "MLS # N/A", which tells a buyer the
+ * site is broken rather than that the figure is pending.
+ *
+ * Because the rule lives here, the page can pass every row it knows about and
+ * stay readable no matter how much of it is filled in. Callers never test for
+ * null themselves.
+ *
+ * `0` is a value. Unit 302's tax amount really is $0 and must print.
+ */
+
+export interface SpecRow {
+  label: string;
+  /** Null, undefined or '' drops the row. Zero does not. */
+  value: string | number | null | undefined;
+}
+
+interface Props {
+  title: string;
+  /** Label/value pairs. Omit entirely when passing children instead. */
+  rows?: SpecRow[];
+  headingId: string;
+}
+
+const { title, rows = [], headingId } = Astro.props;
+
+const shown = rows.filter(
+  (r) => r.value !== null && r.value !== undefined && r.value !== '',
+);
+
+/* Blocks whose content is not a list of pairs — the amenities run and the
+   floor plan — pass children instead. They render through this component
+   rather than hand-rolling a <section class="specs"> in the page, because
+   Astro scopes styles per component: markup written in the page would not
+   receive the heading and rule styling below and would silently come out in a
+   different size and case from every block around it. */
+const hasChildren = Astro.slots.has('default');
+---
+
+{(shown.length > 0 || hasChildren) && (
+  <section class="specs" aria-labelledby={headingId}>
+    <h2 class="specs__title" id={headingId}>{title}</h2>
+    <hr class="specs__rule" />
+
+    {shown.length > 0 && (
+      <dl class="specs__list">
+        {shown.map((row) => (
+          <div class="specs__row">
+            <dt class="specs__label">{row.label}</dt>
+            <dd class="specs__value">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
+
+    <slot />
+  </section>
+)}
+
+<style>
+  .specs {
+    padding-block: var(--s-6);
+    border-top: 1px solid var(--rule);
+  }
+
+  .specs__title {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--t-h4);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-heading);
+    text-transform: uppercase;
+  }
+
+  .specs__rule {
+    width: var(--s-7);
+    margin: var(--s-3) 0 var(--s-5);
+    border: 0;
+    border-top: 1px solid var(--accent);
+  }
+
+  /* Two columns of pairs on wide screens, as an MLS sheet sets them; one
+     column below, where a label and its value need the full measure. */
+  .specs__list {
+    display: grid;
+    margin: 0;
+    gap: var(--s-3) var(--s-8);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .specs__row {
+    display: grid;
+    align-items: baseline;
+    gap: var(--s-4);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    padding-block: var(--s-2);
+  }
+
+  /* Tracking is reduced from --track-label. At 0.26em a label like
+     "Subdivision/Complex" is half again as wide as the words in it and ran
+     straight over its own value; these sit in a narrow column and need to
+     stay inside it. They are still tracked caps, just not display-tracked. */
+  .specs__label {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--t-micro);
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    /* Wrap between words only. `anywhere` broke "Urbanización/Complejo" into
+       "URBANIZACIÓN/COMPLE" + "JO" — a hyphen-less mid-word split that reads
+       as a rendering fault. The compound labels were shortened instead, so
+       nothing needs to break mid-word any more. */
+    overflow-wrap: normal;
+    text-transform: uppercase;
+  }
+
+  .specs__value {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--t-small);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .specs__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .specs__row {
+      gap: var(--s-1);
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

@@ -1,0 +1,206 @@
+---
+/**
+ * One residence in the developer-inventory grid.
+ *
+ * Follows the shape of a portal listing card — photograph, price, the bed /
+ * bath / area line, address, listing brokerage — because that is the order a
+ * buyer already knows how to read. The rendering is Origin's: Montserrat in
+ * light weights, tracked caps for the small print, a gold hairline under the
+ * price. Hierarchy comes from scale and tracking, never from weight.
+ *
+ * The whole card is one link. A card with a link in the middle of it gives
+ * keyboard users a target the size of a few words and leaves the rest of a
+ * large, obviously clickable rectangle dead.
+ */
+import { Image } from 'astro:assets';
+import { localizePath, type Locale } from '../i18n/ui';
+import { listingsCopy } from '../content/pages/listings';
+import { BUILDING, formatPrice, type Listing } from '../data/listings';
+import { formatSqft } from '../data/units';
+import { galleryArt } from '../data/gallery-art';
+import { mediaFor } from '../data/listing-media';
+import { galleryCopy } from '../content/pages/gallery';
+
+interface Props {
+  listing: Listing;
+  locale: Locale;
+  /** Cards above the fold should not lazy-load their photograph. */
+  eager?: boolean;
+}
+
+const { listing, locale, eager = false } = Astro.props;
+const l = listingsCopy[locale];
+const { unit, facts } = listing;
+
+const media = mediaFor(unit.number);
+const art = galleryArt[media.card];
+
+/* Alt text is translated copy and is reused from the gallery, where it was
+   written after looking at the actual file. Falling back to the residence
+   label keeps the image described even if an id is ever mistyped. */
+const alt =
+  galleryCopy[locale].photos.find((p) => p.id === media.card)?.alt ??
+  `${BUILDING.subdivision} — ${unit.number}`;
+
+/* A card counts baths the way a listing card does: four full and one half
+   reads as "5 ba". The listing page below breaks them apart again, because
+   there the distinction is the point. */
+const bathCount = listing.bathsFull + listing.bathsHalf;
+---
+
+<article class="lcard" data-reveal>
+  <a class="lcard__link" href={localizePath(unit.slug, locale)}>
+    <div class="lcard__media">
+      <Image
+        src={art}
+        alt={alt}
+        widths={[400, 640, 900]}
+        sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
+        loading={eager ? 'eager' : 'lazy'}
+        class="lcard__img"
+      />
+    </div>
+
+    <div class="lcard__body">
+      <p class="lcard__price">
+        {facts.price ? formatPrice(facts.price) : l.priceOnRequest}
+      </p>
+
+      <hr class="lcard__rule" />
+
+      <ul class="lcard__specs">
+        <li><b>{unit.beds}</b> {l.cardBeds}</li>
+        <li><b>{bathCount}</b> {l.cardBaths}</li>
+        <li><b>{formatSqft(unit.interiorSqft)}</b> {l.cardSqft}</li>
+      </ul>
+
+      <p class="lcard__address">
+        {listing.addressLine}, {BUILDING.cityStateZip}
+      </p>
+
+      <p class="lcard__broker">{BUILDING.brokerage}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .lcard {
+    background: var(--off-white);
+    border: 1px solid var(--rule);
+    /* No radius and no drop shadow: the brand's surfaces are flat and square,
+       and a rounded, floating card is the one detail that would make this read
+       as a portal widget dropped onto the page. */
+  }
+
+  .lcard__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .lcard__media {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: var(--sand-pale);
+  }
+
+  .lcard__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .lcard__link:hover .lcard__img,
+  .lcard__link:focus-visible .lcard__img {
+    transform: scale(1.03);
+  }
+
+  .lcard__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-5) var(--s-5) var(--s-6);
+  }
+
+  .lcard__price {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--t-h3);
+    font-weight: var(--w-light);
+    letter-spacing: var(--track-display);
+    line-height: 1.1;
+  }
+
+  .lcard__rule {
+    width: var(--s-7);
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--accent);
+  }
+
+  .lcard__specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--ink-muted);
+    font-size: var(--t-small);
+    letter-spacing: var(--track-body);
+  }
+
+  /* Hairline dividers between the figures, as a listing card has — drawn as
+     borders rather than typed characters so a screen reader reads "3 bds,
+     5 ba" and not "3 bds pipe 5 ba". */
+  .lcard__specs li + li {
+    padding-inline-start: var(--s-3);
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .lcard__specs b {
+    color: var(--ink);
+    font-weight: var(--w-light);
+  }
+
+  .lcard__address {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: var(--t-small);
+    line-height: 1.5;
+  }
+
+  .lcard__broker {
+    margin-block-start: auto;
+    margin-bottom: 0;
+    color: var(--ink-muted);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+  }
+
+  /* The visible ring belongs on the card, not on the inline anchor box. */
+  .lcard:has(.lcard__link:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .lcard__link:focus-visible {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lcard__img {
+      transition: none;
+    }
+
+    .lcard__link:hover .lcard__img,
+    .lcard__link:focus-visible .lcard__img {
+      transform: none;
+    }
+  }
+</style>
