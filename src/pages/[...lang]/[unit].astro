@@ -9,16 +9,22 @@
  * light weights, tracked caps for the labels, gold hairlines, sand and navy.
  * The structure is borrowed; the visual world is not.
  *
- * ─── EVERY RESIDENCE GETS THIS TEMPLATE ────────────────────────────────────
- * All 27 build, released or not, exactly as before. What differs is how much
- * there is to show: the three released residences carry sales data and a
- * drawn floor plan, and the rest fall back to their level keyplan and simply
- * omit the blocks they have no data for — ListingSpecs drops an empty row and
- * an empty block on its own. Unreleased pages stay unlinked, out of the
- * sitemap and noindex, as they were.
+ * ─── ONLY RELEASED RESIDENCES GET A PAGE ───────────────────────────────────
+ * This used to build all 27 and leave the unreleased ones unlinked, noindex
+ * and out of the sitemap but still reachable by direct URL, so one could be
+ * sent to a broker ahead of release. That is no longer the rule: a residence
+ * that is not released is not on the website, and its asking price is not
+ * served to anyone who guesses the URL. Withdrawing one now 404s its page.
+ *
+ * The route is built from `units`, the released-only set, so the single switch
+ * in src/data/released.json decides what exists — the same switch that decides
+ * what is linked. What a page shows still varies with how much data a
+ * residence has: ListingSpecs drops an empty row, and a block whose rows all
+ * drop removes itself.
  */
-import type { ImageMetadata } from 'astro';
-import { Image } from 'astro:assets';
+import fs from 'node:fs';
+import path from 'node:path';
+import sharp from 'sharp';
 import Base from '../../layouts/Base.astro';
 import ListingCarousel, { type Slide } from '../../components/ListingCarousel.astro';
 import ListingSpecs, { type SpecRow } from '../../components/ListingSpecs.astro';
@@ -42,56 +48,11 @@ import {
   formatPrice,
   listingForUnit,
 } from '../../data/listings';
-import { allUnits, formatSqft, type Unit } from '../../data/units';
-
-/* Drawn floor plans, one per released residence — rasterised from the PDFs the
-   developer supplied. These are the real thing: the residence's own layout,
-   dimensions and balcony, with a keyplan marking where it sits on the floor.
-   The PDF itself is linked underneath for download. */
-import plan302 from '../../assets/floorplans/floor-plan-302.png';
-import plan401 from '../../assets/floorplans/floor-plan-401.png';
-import plan701 from '../../assets/floorplans/floor-plan-701.png';
-
-/* Floor-plate keyplans, as published on the incumbent Floor Plans page — the
-   FALLBACK for residences with no drawing of their own. One per level per
-   bedroom collection, with the residences in that collection filled in gold. */
-import keyplanL3Four from '../../assets/units/keyplan-level-3-four-bedroom.png';
-import keyplanL3Three from '../../assets/units/keyplan-level-3-three-bedroom.png';
-import keyplanL4Four from '../../assets/units/keyplan-level-4-four-bedroom.png';
-import keyplanL4Three from '../../assets/units/keyplan-level-4-three-bedroom.png';
-import keyplanL4Two from '../../assets/units/keyplan-level-4-two-bedroom.png';
-import keyplanL5Three from '../../assets/units/keyplan-level-5-three-bedroom.png';
-import keyplanL5Two from '../../assets/units/keyplan-level-5-two-bedroom.png';
-import keyplanL6Four from '../../assets/units/keyplan-level-6-four-bedroom.png';
-import keyplanL6Two from '../../assets/units/keyplan-level-6-two-bedroom.png';
-import keyplanL7Four from '../../assets/units/keyplan-ph-level-7-four-bedroom.png';
-import keyplanL7Two from '../../assets/units/keyplan-ph-level-7-two-bedroom.png';
-
-/** Residence number → its own drawn plan. Only the released three have one. */
-const unitPlans: Record<string, ImageMetadata> = {
-  '302': plan302,
-  '401': plan401,
-  '701': plan701,
-};
-
-/** Keyed `${level}-${beds}` — exactly the grouping the keyplans are cut on. */
-const keyplans: Record<string, ImageMetadata> = {
-  '3-4': keyplanL3Four,
-  '3-3': keyplanL3Three,
-  '4-4': keyplanL4Four,
-  '4-3': keyplanL4Three,
-  '4-2': keyplanL4Two,
-  '5-3': keyplanL5Three,
-  '5-2': keyplanL5Two,
-  '6-4': keyplanL6Four,
-  '6-2': keyplanL6Two,
-  '7-4': keyplanL7Four,
-  '7-2': keyplanL7Two,
-};
+import { units, formatSqft, type Unit } from '../../data/units';
 
 export function getStaticPaths() {
   return locales.flatMap((l) =>
-    allUnits.map((unit) => ({
+    units.map((unit) => ({
       params: { lang: l === defaultLocale ? undefined : l, unit: unit.slug },
       props: { unit },
     })),
@@ -143,13 +104,33 @@ const slides: Slide[] = media.carousel
   .filter((id) => galleryArt[id])
   .map((id) => ({ src: galleryArt[id], alt: altFor(id) }));
 
-/* The residence's own drawing when one exists, else the level keyplan. */
-const ownPlan = unitPlans[unit.number];
-const planImage = ownPlan ?? keyplans[`${unit.level}-${unit.beds}`];
-const planPdf = ownPlan ? asset(`floorplans/floor-plan-${unit.number}.pdf`) : null;
-const planAlt = ownPlan
-  ? l.floorPlanAlt(unit.number)
-  : u.keyplanAlt(levelLabel, unit.number, false);
+/* The residence's own drawing, if the developer supplied one.
+   ---------------------------------------------------------------------------
+   The image and the PDF both come from routes under /floorplans/ rather than
+   from imports, so a residence withdrawn from src/data/released.json loses
+   them along with its page — see src/pages/floorplans/[plan].webp.ts for why
+   an import cannot be made to do that. The source file is consulted here only
+   to learn whether a drawing exists and what shape it is; it is never bundled.
+
+   The level keyplan that used to stand in when a residence had no drawing of
+   its own is gone. It was a drawing of the FLOOR offered in place of a drawing
+   of the RESIDENCE, it survives on the Floor Plans page where it belongs, and
+   keeping it here meant importing eleven drawings so that one might be used. */
+const planSource = path.resolve(
+  'src/listings/floorplans/previews',
+  `floor-plan-${unit.number}.png`,
+);
+const hasPlan = fs.existsSync(planSource);
+
+/* Read at build so the <img> reserves its exact box and the specification
+   below it does not jump when the drawing arrives. */
+const planRatio = hasPlan
+  ? await sharp(planSource).metadata().then((m) => `${m.width} / ${m.height}`)
+  : null;
+
+const planImage = hasPlan ? asset(`floorplans/floor-plan-${unit.number}.webp`) : null;
+const planPdf = hasPlan ? asset(`floorplans/floor-plan-${unit.number}.pdf`) : null;
+const planAlt = l.floorPlanAlt(unit.number);
 
 const money = (n: number | null) => (n === null ? null : formatPrice(n));
 
@@ -210,7 +191,6 @@ const stats = [
   title={l.metaTitle(unit.number, bedBath)}
   description={l.metaDescription(unit.number, bedBath, formatSqft(unit.interiorSqft))}
   locale={locale}
-  noindex={!unit.isReleased}
   path={unit.slug}
   darkHeader
 >
@@ -262,12 +242,12 @@ const stats = [
           {planImage && (
             <ListingSpecs title={l.floorPlan} headingId="spec-plan">
               <figure class="plan__figure">
-                <Image
+                <img
                   src={planImage}
                   alt={planAlt}
-                  widths={[720, 1080, 1600]}
-                  sizes="(max-width: 1080px) 92vw, 60vw"
+                  style={`aspect-ratio: ${planRatio}`}
                   loading="lazy"
+                  decoding="async"
                   class="plan__img"
                 />
               </figure>

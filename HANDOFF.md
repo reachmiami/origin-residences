@@ -321,26 +321,39 @@ inquiry form alongside. Structure follows a property portal, because that is
 what a buyer and a buyer's agent can already read. The rendering is the
 brand's — Montserrat light, tracked caps, gold hairlines, sand and navy.
 
-### What is currently listed
+### What is currently listed, and what withdrawal means
 
-**701 is withdrawn.** `src/data/released.json` holds `["302", "401"]`, so the
-grid shows two cards in two columns and nothing on the site links to 701. Its
-data, price, photography assignment and floor plan are all still in the
-project, untouched — put `"701"` back in that array and it returns everywhere
-at once. Nothing else needs editing.
+**701 is withdrawn.** `src/data/released.json` holds `["302", "401"]`. The grid
+shows two cards in two columns, nothing links to 701, **and nothing serves it**:
 
-Two things survive a withdrawal, by design rather than by oversight:
+| | Before | Now |
+| --- | --- | --- |
+| Page | built, unlinked, noindex, HTTP 200 | **not built — 404** |
+| Floor-plan PDF | served from `public/` | **not built** |
+| Floor-plan drawing | emitted by Vite, 287KB, unreferenced | **not built** |
 
-- **The page still builds and is reachable by direct URL**, carrying its price.
-  That is deliberate — see `src/data/released.ts`, which keeps hidden pages
-  live precisely so one can be shared with a broker before release. It is
-  unlinked, `noindex, nofollow` and out of the sitemap, so nothing finds it.
-- **`/floorplans/floor-plan-701.pdf` stays served**, because `public/` is
-  copied wholesale.
+Withdrawing is still one edit and restoring is still one edit; the file stays
+in the project, untouched, the whole time.
 
-If a residence is ever pulled for a reason that makes a discoverable price a
-problem — under contract, a repricing, a legal hold — hiding it is not enough
-and the page and PDF have to stop being built.
+Three things had to change to make that true, and each is a trap worth knowing:
+
+1. **`[unit].astro` builds from `units`, not `allUnits`.** Page generation now
+   follows the same switch as linking. The build drops from 117 pages to 42.
+2. **`public/` cannot be conditional.** Everything in it is copied wholesale,
+   so the PDFs moved to a route — `src/pages/floorplans/[plan].pdf.ts` — whose
+   `getStaticPaths` reads the released set.
+3. **Vite emits every statically imported asset, used or not.** `import plan701
+   from '.../floor-plan-701.png'` kept shipping the drawing after its page
+   stopped existing, and a dynamic import does not help — Vite globs the
+   matches and emits them all. The drawings therefore live outside the bundled
+   tree, in `src/listings/floorplans/previews/`, and are encoded to WebP at
+   build by `src/pages/floorplans/[plan].webp.ts`.
+
+The level-keyplan fallback on unit pages is gone with it. It offered a drawing
+of the FLOOR where a drawing of the RESIDENCE was missing, and keeping it meant
+importing eleven drawings — 780KB, all emitted — so that one might be used. The
+keyplans remain on the Floor Plans page, which is what they were drawn for. A
+residence with no plan of its own now omits the section.
 
 ### Where the numbers live
 
