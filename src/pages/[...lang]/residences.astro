@@ -4,7 +4,6 @@ import Base from '../../layouts/Base.astro';
 import ListingGrid from '../../components/ListingGrid.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import FeatureBand from '../../components/FeatureBand.astro';
-import PageBand from '../../components/PageBand.astro';
 
 import slidingGlass from '../../assets/residences/sliding-glass-living-bay-view.jpg';
 import greatRoomGlass from '../../assets/residences/great-room-kitchen-through-glass.jpg';
@@ -16,7 +15,6 @@ import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { getCopy } from '../../content/copy';
 import { residencesCopy } from '../../content/pages/residences';
 import { unitCount } from '../../data/units';
-import bandImage from '../../assets/inventory/living-room-balcony-bay-view.jpg';
 import featureImage from '../../assets/inventory/primary-bath-marble-and-cabinetry.jpg';
 
 export function getStaticPaths() {
@@ -32,7 +30,7 @@ const features = r.features;
 
 /* Written out rather than computed — 0.08 + 0.06 is 0.14000000000000001 in
    binary floating point, and that lands in the attribute verbatim. */
-const discoverDelays = ['0.08', '0.14'];
+const ledeDelays = ['0.08', '0.14', '0.20'];
 
 /* Artwork is locale-independent and matched to translated copy by id, the same
    way the homepage bands do it. */
@@ -51,24 +49,41 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
   description={r.metaDescription(unitCount)}
   locale={locale}
   path="residences"
-  darkHeader
 >
-  <PageBand
-    image={bandImage}
-    alt={r.bandAlt}
-    eyebrow={c.home.inventoryTitle}
-    title={r.title}
-    lede={c.home.inventoryLede}
-    headingId="page-title"
-  />
+  {/* A type-set page head, as Amenities and the other interior pages have,
+      rather than the photographic band this page used to open with. It absorbs
+      what was a separate "Discover your dream home" section below the band —
+      that section carried this exact heading and these exact paragraphs, so
+      leaving it in place would have printed both twice.
 
-  <section class="section discover" aria-labelledby="discover-heading">
-    <div class="shell shell--narrow discover__inner">
-      <h2 class="heading" id="discover-heading" data-reveal>{r.discoverTitle}</h2>
-      <hr class="rule discover__rule" data-reveal="fade" />
+      The floor-plan range closes the head as a third lede. It is the same
+      string the band used to carry, and it still reads as the last line of the
+      introduction rather than as a caption under a photograph. */}
+  <section class="page-head" aria-labelledby="page-heading">
+    <div class="shell shell--narrow page-head__inner">
+      <p class="eyebrow" data-reveal="fade">{r.title}</p>
+
+      <h1 class="display page-head__title" id="page-heading" data-reveal>
+        {r.discoverTitle}
+      </h1>
+
+      <hr class="page-head__rule" data-reveal="fade" />
+
+      {/* Two paragraphs, so two <p>s — they cannot share one, and each carries
+          the lede class so both read at lede weight. */}
       {r.discoverParagraphs.map((para, n) => (
-        <p class="prose" data-reveal data-reveal-delay={discoverDelays[n] ?? '0.14'}>{para}</p>
+        <p class="prose page-head__lede" data-reveal data-reveal-delay={ledeDelays[n] ?? '0.14'}>
+          {para}
+        </p>
       ))}
+
+      <p
+        class="prose page-head__lede"
+        data-reveal
+        data-reveal-delay={ledeDelays[r.discoverParagraphs.length] ?? '0.20'}
+      >
+        {c.home.inventoryLede}
+      </p>
     </div>
   </section>
 
@@ -156,16 +171,8 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
 
   /* --- Discover -------------------------------------------------------------- */
 
-  .discover { background: var(--ground); }
 
-  .discover__inner {
-    display: grid;
-    justify-items: center;
-    gap: var(--s-5);
-    text-align: center;
-  }
 
-  .discover__rule { max-width: 120px; background: var(--gold); }
 
   /* --- Features -------------------------------------------------------------- */
 
