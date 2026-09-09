@@ -330,13 +330,14 @@ brand's — Montserrat light, tracked caps, gold hairlines, sand and navy.
 | `src/data/listing-media.ts` | Which photographs each residence shows. |
 | `src/content/pages/listings.ts` | Every label, in three languages. |
 
-**Only residence 302 has real sales data**, transcribed from MLS A11783461.
-401 and 701 are `null` and marked TODO. That is deliberate: a price invented
-for a real property is a false statement, not a placeholder. A null renders as
-"Price Upon Request" and makes its specification row vanish — `ListingSpecs`
-drops an empty row, and a block whose rows all vanish drops itself. Fill in
-`LISTINGS` in `src/data/listings.ts` and the rows appear; nothing else needs
-touching.
+All three residences carry an asking price. **Only 302 has a full sheet**,
+transcribed from MLS A11783461; 401 and 701 have price and nothing else,
+because no MLS sheet has been supplied for them. Those fields stay `null`
+rather than guessed — a figure invented for a real property is a false
+statement, not a placeholder. A null makes its specification row vanish:
+`ListingSpecs` drops an empty row, and a block whose rows all vanish drops
+itself, so the pages read as finished. Fill in `LISTINGS` in
+`src/data/listings.ts` and the rows appear; nothing else needs touching.
 
 There is deliberately **no "Est. Payment"** row, though the reference sheet has
 one. A monthly figure is a function of rate, term and down payment, none of
@@ -350,6 +351,24 @@ not a rounding error. Supply the assumptions and it can be added.
 - **$/sq. ft.** is price ÷ interior area, and disappears when there is no
   price. For 302 it comes to $1,931, which is what the MLS sheet prints — so
   price and area agree and neither was mistyped.
+
+### The hero is a filmstrip, not a slideshow
+
+`ListingCarousel` is a native `overflow-x` scroller with scroll snapping, 70vh
+tall, one row of frames separated by a 2px seam. Swipe, trackpad and arrow keys
+are the browser's own — the buttons only call `scrollBy`, and they ship
+`hidden` and are revealed by the script, so a control never appears before it
+works. Frames are sized from the viewport (`62vw`, `88vw` on phones) rather
+than from an aspect ratio, so a slice of the next one always shows; that peek
+is the only thing telling a visitor the row continues.
+
+Snapping is `proximity`, not `mandatory` — with frames narrower than the window
+a mandatory snap fights anyone resting between two of them.
+
+The hero carries a deeper top scrim than the homepage's. Both hold a
+transparent header, but the homepage opens on a sunset and this opens on a
+sunlit facade against open sky, which is the brightest ground the wordmark
+ever has to survive.
 
 ### The photography is representative, not per-residence
 
@@ -369,7 +388,7 @@ for download through `asset()`, so they survive the base-path switch. Only the
 released three have their own drawing — every other residence falls back to its
 level keyplan, exactly as before.
 
-### The form is the site's form
+### The form is the site's form, sticky beside the specification
 
 `InquiryForm` with `unit={unit.slug}`, the same component as the footer and
 every other page, so a lead arrives already attached to the residence it came
@@ -377,6 +396,11 @@ from (`data-unit`, read by `src/scripts/leads.ts`). There is no second form
 implementation to keep in step. Follow Up Boss delivery therefore needs no
 listing-specific work — whatever makes the footer form deliver makes these
 deliver.
+
+Its heading and lede are left-ranged and the heading is stepped down, via
+`:global()` rules nested inside `.listing__form` — the component's own styles
+are scoped to it and unreachable by class name from the page, and nesting them
+means they cannot touch the same component anywhere else on the site.
 
 ### `InventoryGrid.astro` is now unused
 
@@ -436,6 +460,15 @@ behaviour for a launch but worth knowing before you attach one.
 ## Gotchas that cost real debugging time
 
 Do not rediscover these.
+
+**`align-items: start` on a grid kills `position: sticky` inside it.** The
+listing form would not stay put however the sticky rules were written, because
+`.listing__cols` sets `align-items: start`, which shrinks every column to its
+own content — and a sticky element cannot travel further than its parent. The
+column was only as tall as the form. `.listing__aside` now sets `align-self:
+stretch` to take the full row height back; the left column keeps `start`. A
+sticky child needs a tall parent, and a grid item is only as tall as you let it
+be.
 
 **Astro scopes component styles, so page-level markup does not inherit them.**
 The amenities and floor-plan blocks were first written as `<section

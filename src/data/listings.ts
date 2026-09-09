@@ -11,16 +11,16 @@
  * hold you to. They are therefore kept apart from the unit data and are
  * written down here by hand from the MLS sheet.
  *
- * ─── ADDING THE MISSING NUMBERS ────────────────────────────────────────────
- * Unit 302 is complete, transcribed from its live MLS listing (A11783461).
- * Units 401 and 701 are NOT — every sales figure below is `null` and marked
- * TODO, because inventing a price for a real residence is not a placeholder,
- * it is a false statement about someone's property.
+ * ─── WHAT IS AND IS NOT FILLED IN ──────────────────────────────────────────
+ * All three residences now carry an asking price. Unit 302 is COMPLETE,
+ * transcribed from its live MLS listing (A11783461); 401 and 701 have their
+ * price and nothing else, because no MLS sheet has been supplied for them.
  *
- * A null renders as "Price Upon Request" in the headline slots, and makes its
- * row disappear entirely in the specification tables — no empty labels, no
- * "N/A". So the site is publishable as it stands; fill these in and the rows
- * appear on their own. Nothing else needs editing.
+ * The remaining fields on those two stay `null` rather than being guessed. A
+ * null renders as "Price Upon Request" in the headline slots and makes its row
+ * disappear from the specification tables — no empty labels, no "N/A" — so the
+ * pages read as finished rather than broken. Fill a field in and its row
+ * appears on its own. Nothing else needs editing.
  *
  * ─── WHAT NOT TO PUT HERE ──────────────────────────────────────────────────
  * Anything true of the BUILDING rather than of one sale belongs in `BUILDING`
@@ -111,10 +111,10 @@ export const LISTINGS: Record<string, ListingFacts> = {
     ],
   },
 
-  /* TODO — awaiting the MLS sheet for residence 401. Renders as
-     "Price Upon Request" with the sales rows omitted until filled in. */
+  /* Price supplied by the owner. The remaining MLS fields are still awaited —
+     they stay null and their rows stay hidden. */
   '401': {
-    price: null,
+    price: 4_161_500,
     mls: null,
     dateListed: null,
     hoaFees: null,
@@ -128,9 +128,9 @@ export const LISTINGS: Record<string, ListingFacts> = {
     interiorFeatures: [],
   },
 
-  /* TODO — awaiting the MLS sheet for residence 701. */
+  /* Price supplied by the owner; remaining MLS fields still awaited. */
   '701': {
-    price: null,
+    price: 4_622_750,
     mls: null,
     dateListed: null,
     hoaFees: null,

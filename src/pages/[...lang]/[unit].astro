@@ -238,10 +238,15 @@ const stats = [
         </dl>
       </div>
 
-      <p class="listing__lede">{l.description}</p>
-
       <div class="listing__cols">
         <div class="listing__main">
+          {/* The building description opens the left column rather than
+              spanning the page, so it shares a measure with the specification
+              under it and the form beside it starts at the same height. */}
+          <section class="listing__intro" aria-label={BUILDING.subdivision}>
+            <p class="listing__lede">{l.description}</p>
+          </section>
+
           <ListingSpecs title={l.basicInformation} rows={basicRows} headingId="spec-basic" />
 
           <ListingSpecs title={l.amenities} headingId="spec-amenities">
@@ -365,9 +370,12 @@ const stats = [
     text-transform: uppercase;
   }
 
+  .listing__intro {
+    padding-bottom: var(--s-6);
+  }
+
   .listing__lede {
-    max-width: var(--measure);
-    margin: var(--s-6) 0 0;
+    margin: 0;
     color: var(--ink-muted);
     font-size: var(--t-body);
     line-height: var(--leading-body);
@@ -383,6 +391,18 @@ const stats = [
     grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   }
 
+  /* THE reason the sticky form would not stick.
+     `align-items: start` on the grid shrinks each item to its own content, so
+     the column holding the form was only as tall as the form — and a sticky
+     element can never travel further than its own parent. Stretching this one
+     item back to the full row height gives it the whole specification to
+     travel alongside. The left column keeps `start`. */
+  .listing__aside {
+    align-self: stretch;
+    height: 100%;
+  }
+
+  .listing__main > .listing__intro:first-child,
   .listing__main > :global(.specs:first-child) {
     border-top: 0;
     padding-top: 0;
@@ -391,6 +411,35 @@ const stats = [
   .listing__form {
     position: sticky;
     top: calc(var(--header-h, 80px) + var(--s-4));
+    /* A form taller than the gap below the header can never come to rest —
+       it scrolls with the page forever because its bottom is always still
+       below the fold. Capping it at the remaining viewport and letting it
+       scroll internally is what actually makes it stay in view. */
+    max-height: calc(100vh - var(--header-h, 80px) - var(--s-6));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  /* ── Form, in this column only ──────────────────────────────────────────
+     InquiryForm centres its heading and lede, which is right where it runs
+     full width at the foot of a page. In a narrow column beside a left-ranged
+     specification, centred type reads as a different document. These are
+     :global because the component's own styles are scoped to it and cannot be
+     reached by class name — and they are nested inside .listing__form so they
+     cannot touch the same component anywhere else on the site. */
+  .listing__form :global(.form-block__head) {
+    justify-items: start;
+    text-align: start;
+  }
+
+  .listing__form :global(.form-block__head .heading) {
+    font-size: var(--t-h4);
+    letter-spacing: var(--track-heading);
+  }
+
+  .listing__form :global(.form-block__lede) {
+    text-align: start;
   }
 
   /* ── Amenities and floor plan ───────────────────────────────────────── */

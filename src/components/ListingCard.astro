@@ -13,7 +13,7 @@
  * large, obviously clickable rectangle dead.
  */
 import { Image } from 'astro:assets';
-import { localizePath, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, type Locale } from '../i18n/ui';
 import { listingsCopy } from '../content/pages/listings';
 import { BUILDING, formatPrice, type Listing } from '../data/listings';
 import { formatSqft } from '../data/units';
@@ -30,6 +30,7 @@ interface Props {
 
 const { listing, locale, eager = false } = Astro.props;
 const l = listingsCopy[locale];
+const t = useTranslations(locale);
 const { unit, facts } = listing;
 
 const media = mediaFor(unit.number);
@@ -51,6 +52,13 @@ const bathCount = listing.bathsFull + listing.bathsHalf;
 <article class="lcard" data-reveal>
   <a class="lcard__link" href={localizePath(unit.slug, locale)}>
     <div class="lcard__media">
+      {/* The residence number, over the photograph. The photography is
+          representative rather than per-residence (see listing-media.ts), so
+          three cards can show the same building from different angles — this
+          is what tells a visitor which residence they are looking at before
+          they reach the address line. */}
+      <p class="lcard__badge">{t('unit')} {unit.number}</p>
+
       <Image
         src={art}
         alt={alt}
@@ -101,9 +109,24 @@ const bathCount = listing.bathsFull + listing.bathsHalf;
   }
 
   .lcard__media {
+    position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 3;
     background: var(--sand-pale);
+  }
+
+  .lcard__badge {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: var(--s-2) var(--s-4);
+    background: color-mix(in srgb, var(--navy) 82%, transparent);
+    color: var(--off-white);
+    font-size: var(--t-micro);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
   }
 
   .lcard__img {

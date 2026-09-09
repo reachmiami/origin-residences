@@ -1,20 +1,23 @@
 ---
 /**
- * The photographic hero of a listing page.
+ * The photographic hero of a listing page — a filmstrip.
  *
- * ─── WHY NOT FeatureBand ───────────────────────────────────────────────────
- * FeatureBand already carries a cross-fade carousel, and the mechanism here is
- * deliberately the same one: first slide rendered visible, arrows only when
- * there is more than one frame, inactive slides taken out of the accessibility
- * tree, cross-fade suppressed under reduced motion. What differs is the
- * furniture — a listing hero needs a frame counter and a thumbnail strip so a
- * buyer can see how many photographs there are and jump between them, and
- * FeatureBand is a content band with headline and prose beside the figure.
- * Bending it to do both would have made one component serve two jobs badly.
+ * One row of photographs side by side, separated by a hairline gap, scrolled
+ * left and right. Not a stack that cross-fades: the point of the row is that a
+ * visitor sees there is more to look at without being told, because the next
+ * frame is already half in view.
  *
- * The hook is `data-listing-carousel`, not `data-carousel`, so that if a page
- * ever carries both components their scripts cannot bind to each other's
- * markup and step the same slide twice per click.
+ * ─── WHY A NATIVE SCROLLER ─────────────────────────────────────────────────
+ * The track is an ordinary overflow-x container with scroll snapping. That is
+ * what makes swipe work — on a touch screen and on a trackpad — with real
+ * momentum and rubber-banding, none of which a JavaScript slider reproduces
+ * convincingly. The buttons only call `scrollBy`. So the hero works with the
+ * script disabled, works with a finger, works with a trackpad, and works from
+ * the keyboard because the track itself is focusable.
+ *
+ * The arrows ship `hidden` and are revealed by the script, the same way the
+ * inventory filter bar used to: a control that promises to do something must
+ * not appear until it can.
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -36,119 +39,152 @@ interface Props {
 const { slides, locale, residence } = Astro.props;
 const l = listingsCopy[locale];
 const isCarousel = slides.length > 1;
+const label = l.galleryLabel(residence);
 ---
 
-<section
-  class="lcar"
-  aria-roledescription="carousel"
-  aria-label={l.galleryLabel(residence)}
-  data-listing-carousel={isCarousel ? '' : undefined}
->
-  <div class="lcar__stage">
+<section class="lcar" aria-roledescription="carousel" aria-label={label}>
+  {/* tabindex makes the scroll region reachable from the keyboard, which is
+      what lets arrow keys pan it — a scrollable box that cannot be focused is
+      unreachable without a mouse. It carries its own name because it is now a
+      landmark a screen reader will stop on. */}
+  <ul
+    class="lcar__track"
+    data-track
+    tabindex="0"
+    role="group"
+    aria-label={label}
+  >
     {slides.map((slide, i) => (
-      <figure
-        class:list={['lcar__slide', { 'is-active': i === 0 }]}
-        data-slide
-        aria-hidden={isCarousel && i !== 0 ? 'true' : undefined}
-        aria-roledescription={isCarousel ? 'slide' : undefined}
-        aria-label={isCarousel ? fillCounter(l.imageCounterTemplate, i + 1, slides.length) : undefined}
-      >
+      <li class="lcar__slide" data-slide>
         <Image
           src={slide.src}
           alt={slide.alt}
-          widths={[720, 1080, 1600, 2000]}
-          sizes="(max-width: 1080px) 100vw, 66vw"
+          widths={[600, 900, 1200, 1600]}
+          sizes="(max-width: 700px) 88vw, 62vw"
           loading={i === 0 ? 'eager' : 'lazy'}
           fetchpriority={i === 0 ? 'high' : undefined}
           class="lcar__img"
         />
-      </figure>
+      </li>
     ))}
-
-    {isCarousel && (
-      <>
-        <button type="button" class="lcar__arrow lcar__arrow--prev" data-prev aria-label={l.previousImage}>
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
-               stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 5 8 12l7 7" />
-          </svg>
-        </button>
-
-        <button type="button" class="lcar__arrow lcar__arrow--next" data-next aria-label={l.nextImage}>
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
-               stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m9 5 7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Announced on change, so a screen-reader user who steps the carousel
-            hears where they now are rather than silence. */}
-        <p
-          class="lcar__counter"
-          data-counter
-          data-template={l.imageCounterTemplate}
-          role="status"
-          aria-live="polite"
-        >
-          {fillCounter(l.imageCounterTemplate, 1, slides.length)}
-        </p>
-      </>
-    )}
-  </div>
+  </ul>
 
   {isCarousel && (
-    <ul class="lcar__thumbs" data-thumbs>
-      {slides.map((slide, i) => (
-        <li>
-          <button
-            type="button"
-            class:list={['lcar__thumb', { 'is-active': i === 0 }]}
-            data-thumb
-            aria-label={l.goToImage(i + 1)}
-            aria-current={i === 0 ? 'true' : undefined}
-          >
-            <Image src={slide.src} alt="" widths={[160, 320]} sizes="120px" loading="lazy" />
-          </button>
-        </li>
-      ))}
-    </ul>
+    <>
+      <button
+        type="button"
+        class="lcar__arrow lcar__arrow--prev"
+        data-prev
+        hidden
+        aria-label={l.previousImage}
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 5 8 12l7 7" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="lcar__arrow lcar__arrow--next"
+        data-next
+        hidden
+        aria-label={l.nextImage}
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 5 7 7-7 7" />
+        </svg>
+      </button>
+
+      <p
+        class="lcar__counter"
+        data-counter
+        data-template={l.imageCounterTemplate}
+        role="status"
+        aria-live="polite"
+      >
+        {fillCounter(l.imageCounterTemplate, 1, slides.length)}
+      </p>
+    </>
   )}
 </section>
 
 <style>
   .lcar {
-    display: grid;
-    gap: var(--s-3);
-  }
-
-  .lcar__stage {
     position: relative;
-    overflow: hidden;
-    aspect-ratio: 3 / 2;
     background: var(--navy);
   }
 
-  .lcar__slide {
+  /* The page carries a transparent header over this hero, and the first frame
+     is a sunlit exterior — the wordmark and the language switcher were washing
+     out against the sky. Same top-down scrim the homepage hero uses, and the
+     same stops, so the two heroes hold the bar the same way. It sits above the
+     photographs and below the controls, and takes no pointer events, so a
+     swipe still reaches the track underneath.
+
+     It is carried deeper than the homepage's: that hero opens on a sunset,
+     which is dark where the bar sits, while the first frame here is a sunlit
+     facade against open sky — the brightest ground the wordmark ever has to
+     hold against. */
+  .lcar::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 46%;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--navy-deep) 52%, transparent) 0%,
+      color-mix(in srgb, var(--navy-deep) 30%, transparent) 30%,
+      color-mix(in srgb, var(--navy-deep) 10%, transparent) 62%,
+      transparent 100%
+    );
+  }
+
+  .lcar__track {
+    display: flex;
+    /* The hairline between frames. The navy ground behind shows through it,
+       so the gap reads as a seam rather than as empty page. */
+    gap: 2px;
+    height: 70vh;
+    min-height: 300px;
     margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    /* Snapping is `proximity`, not `mandatory`: with frames narrower than the
+       viewport a mandatory snap fights a visitor who wants to rest between
+       two of them, and yanks the strip about on every small trackpad nudge. */
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    /* The arrows and the half-visible next frame are the affordance; a
+       scrollbar under a full-bleed hero is not part of the picture. */
+    scrollbar-width: none;
+  }
+
+  .lcar__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lcar__track:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: -2px;
+  }
+
+  /* Sized from the VIEWPORT, not from an aspect ratio, so that a slice of the
+     next frame is always showing whatever the window is — that peek is what
+     tells a visitor the row continues. */
+  .lcar__slide {
+    flex: 0 0 auto;
+    width: min(62vw, 1040px);
     height: 100%;
-  }
-
-  /* Every frame is stacked; only the active one is painted. Without the script
-     the first slide is simply the photograph and the rest never appear. */
-  .lcar__slide:not(:first-child) {
-    position: absolute;
-    inset: 0;
-  }
-
-  .lcar[data-listing-carousel] .lcar__slide {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity var(--dur-base) var(--ease-out);
-  }
-
-  .lcar[data-listing-carousel] .lcar__slide.is-active {
-    opacity: 1;
+    scroll-snap-align: start;
   }
 
   .lcar__img {
@@ -159,6 +195,7 @@ const isCarousel = slides.length > 1;
 
   .lcar__arrow {
     position: absolute;
+    z-index: 2;
     top: 50%;
     display: grid;
     width: 44px;
@@ -169,11 +206,18 @@ const isCarousel = slides.length > 1;
     color: var(--off-white);
     cursor: pointer;
     transform: translateY(-50%);
-    transition: background var(--dur-fast) var(--ease-out);
+    transition: background var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
   }
 
   .lcar__arrow:hover {
     background: color-mix(in srgb, var(--navy) 80%, transparent);
+  }
+
+  /* At either end the button stays in place but stops inviting a press —
+     removing it would shift the other one and make the pair jump. */
+  .lcar__arrow[disabled] {
+    cursor: default;
+    opacity: 0.3;
   }
 
   .lcar__arrow--prev { left: var(--s-4); }
@@ -181,6 +225,7 @@ const isCarousel = slides.length > 1;
 
   .lcar__counter {
     position: absolute;
+    z-index: 2;
     right: var(--s-4);
     bottom: var(--s-4);
     margin: 0;
@@ -191,91 +236,63 @@ const isCarousel = slides.length > 1;
     letter-spacing: var(--track-label);
   }
 
-  .lcar__thumbs {
-    display: flex;
-    gap: var(--s-2);
-    margin: 0;
-    padding: 0;
-    overflow-x: auto;
-    list-style: none;
-    scrollbar-width: thin;
-  }
-
-  .lcar__thumb {
-    display: block;
-    width: 96px;
-    padding: 0;
-    border: 1px solid transparent;
-    background: none;
-    aspect-ratio: 3 / 2;
-    cursor: pointer;
-    opacity: 0.55;
-    transition: opacity var(--dur-fast) var(--ease-out);
-  }
-
-  .lcar__thumb :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .lcar__thumb:hover,
-  .lcar__thumb.is-active {
-    opacity: 1;
-  }
-
-  .lcar__thumb.is-active {
-    border-color: var(--accent);
-  }
-
   @media (max-width: 700px) {
-    .lcar__stage { aspect-ratio: 4 / 3; }
-    .lcar__thumb { width: 72px; }
+    .lcar__slide { width: 88vw; }
     .lcar__arrow { width: 38px; height: 38px; }
+    .lcar__arrow--prev { left: var(--s-2); }
+    .lcar__arrow--next { right: var(--s-2); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .lcar[data-listing-carousel] .lcar__slide { transition: none; }
-    .lcar__arrow, .lcar__thumb { transition: none; }
+    .lcar__track { scroll-behavior: auto; }
+    .lcar__arrow { transition: none; }
   }
 </style>
 
 <script>
-  /* Cross-fade, progressively enhanced. The markup renders the first frame
-     visible on its own; this only adds the stepping. Mirrors the mechanism in
-     FeatureBand.astro — see the note at the top of this file for why the two
-     are separate components. */
-  document.querySelectorAll<HTMLElement>('[data-listing-carousel]').forEach((root) => {
+  /* The track scrolls on its own — swipe, trackpad and arrow keys all work
+     with this file absent. Everything below is addition: the buttons, the
+     frame counter, and disabling a button at the end of the row. */
+  document.querySelectorAll<HTMLElement>('.lcar').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]');
     const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
-    if (slides.length < 2) return;
+    if (!track || slides.length < 2) return;
 
-    const thumbs = [...root.querySelectorAll<HTMLElement>('[data-thumb]')];
+    const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+    const next = root.querySelector<HTMLButtonElement>('[data-next]');
     const counter = root.querySelector<HTMLElement>('[data-counter]');
-    let index = 0;
 
-    const show = (next: number) => {
-      index = (next + slides.length) % slides.length;
+    // The controls do something now, so they may appear.
+    if (prev) prev.hidden = false;
+    if (next) next.hidden = false;
 
-      slides.forEach((slide, i) => {
-        const active = i === index;
-        slide.classList.toggle('is-active', active);
-        /* Inactive frames leave the accessibility tree entirely, so a screen
-           reader walks one photograph rather than six stacked ones. */
-        if (active) slide.removeAttribute('aria-hidden');
-        else slide.setAttribute('aria-hidden', 'true');
-      });
+    /** One frame plus the seam — the distance a press should travel. */
+    const step = () => {
+      const a = slides[0].getBoundingClientRect();
+      const b = slides[1]?.getBoundingClientRect();
+      return b ? b.left - a.left : a.width;
+    };
 
-      thumbs.forEach((thumb, i) => {
-        const active = i === index;
-        thumb.classList.toggle('is-active', active);
-        if (active) thumb.setAttribute('aria-current', 'true');
-        else thumb.removeAttribute('aria-current');
-      });
+    const update = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      /* A pixel of tolerance: fractional layout widths mean scrollLeft rarely
+         reaches `max` exactly, and without it the last frame never disables
+         the forward button. */
+      if (prev) prev.disabled = track.scrollLeft <= 1;
+      if (next) next.disabled = track.scrollLeft >= max - 1;
 
-      /* The template travels in a data attribute because the copy module is
-         a build-time import — the browser only ever sees the rendered string.
-         Substituting here keeps the counter in the reader's language. */
       if (counter) {
+        /* At the far right the track stops with the last frame flush to the
+           edge, which by division is still the second-to-last index — the
+           counter would sit on "5 of 6" and never reach the end of its own
+           row. Resting against the end means you are on the last frame. */
+        const index =
+          track.scrollLeft >= max - 1
+            ? slides.length - 1
+            : Math.min(
+                slides.length - 1,
+                Math.round(track.scrollLeft / Math.max(1, step())),
+              );
         const tpl = counter.dataset.template ?? '{current} of {total}';
         counter.textContent = tpl
           .replace('{current}', String(index + 1))
@@ -283,13 +300,22 @@ const isCarousel = slides.length > 1;
       }
     };
 
-    root.querySelector('[data-prev]')?.addEventListener('click', () => show(index - 1));
-    root.querySelector('[data-next]')?.addEventListener('click', () => show(index + 1));
-    thumbs.forEach((thumb, i) => thumb.addEventListener('click', () => show(i)));
+    prev?.addEventListener('click', () => track.scrollBy({ left: -step() }));
+    next?.addEventListener('click', () => track.scrollBy({ left: step() }));
 
-    root.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); show(index - 1); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); show(index + 1); }
-    });
+    /* Scroll fires continuously through a swipe; the counter only needs the
+       resting value, so the work is deferred to the next frame. */
+    let queued = false;
+    track.addEventListener('scroll', () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        update();
+      });
+    }, { passive: true });
+
+    window.addEventListener('resize', update, { passive: true });
+    update();
   });
 </script>

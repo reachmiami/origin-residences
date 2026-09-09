@@ -99,7 +99,6 @@ export interface ListingsCopy {
    * an arrow. `fillCounter` below is the one place it is substituted.
    */
   imageCounterTemplate: string;
-  goToImage: (n: number) => string;
 
   /** Floor plan block. */
   floorPlanAlt: (residence: string) => string;
@@ -179,7 +178,6 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
     previousImage: 'Previous image',
     nextImage: 'Next image',
     imageCounterTemplate: '{current} of {total}',
-    goToImage: (n) => `Go to image ${n}`,
 
     floorPlanAlt: (r) =>
       `Floor plan for residence ${r}, showing room layout, dimensions and the balcony, with a keyplan marking the residence within the floor.`,
@@ -247,7 +245,6 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
     previousImage: 'Imagen anterior',
     nextImage: 'Imagen siguiente',
     imageCounterTemplate: '{current} de {total}',
-    goToImage: (n) => `Ir a la imagen ${n}`,
 
     floorPlanAlt: (r) =>
       `Plano de la residencia ${r}, con la distribución de las estancias, las dimensiones y la terraza, junto a un plano de ubicación que señala la residencia dentro de la planta.`,
@@ -315,7 +312,6 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
     previousImage: 'Imagem anterior',
     nextImage: 'Próxima imagem',
     imageCounterTemplate: '{current} de {total}',
-    goToImage: (n) => `Ir para a imagem ${n}`,
 
     floorPlanAlt: (r) =>
       `Planta da residência ${r}, com a distribuição dos ambientes, as dimensões e a varanda, ao lado de um diagrama que assinala a residência dentro do pavimento.`,
