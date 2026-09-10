@@ -56,12 +56,23 @@ function initReveals(): void {
     const kind = el.dataset.reveal || 'up';
     const delay = Number(el.dataset.revealDelay ?? 0);
 
+    /* How far the element travels. 34px is the site's default and every
+       existing reveal keeps it; `data-reveal-shift` exists because a large
+       photograph needs a longer run than a paragraph does before the movement
+       reads as movement at all. */
+    const shift = Number(el.dataset.revealShift ?? 34);
+
     const from: gsap.TweenVars =
       kind === 'fade'
         ? { opacity: 0 }
         : kind === 'scale'
           ? { opacity: 0, scale: 1.06 }
-          : { opacity: 0, y: 34 };
+          : /* `down` enters from ABOVE — a negative offset closing to zero.
+               Added for paired images that should arrive from opposite
+               directions; nothing else uses it, and `up` is unchanged. */
+            kind === 'down'
+            ? { opacity: 0, y: -shift }
+            : { opacity: 0, y: shift };
 
     gsap.fromTo(el, from, {
       opacity: 1,

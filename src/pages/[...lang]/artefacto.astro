@@ -7,6 +7,8 @@ import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { artefactoCopy } from '../../content/pages/artefacto';
 
 import terrace from '../../assets/artefacto/terrace-lounge.jpg';
+/* The firm's own portrait, shared with the Team page's Artefacto card. */
+import artefactoPortrait from '../../assets/team/artefacto-portrait.png';
 import livingRoom from '../../assets/artefacto/living-room-curved-sofa.jpg';
 import lobby from '../../assets/artefacto/lobby-double-height.jpg';
 import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
@@ -47,6 +49,21 @@ const c = artefactoCopy[locale];
         <h1 class="display page-head__title" id="page-heading" data-reveal>{c.headline}</h1>
         <hr class="page-head__rule" data-reveal="fade" />
         <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.headLede}</p>
+
+        {/* Only the top of the portrait shows. The frame is cut to 65% of the
+            image's own height and clips the rest, so the picture meets the
+            band below it rather than ending on a hard edge of its own. Sized
+            from the file's real proportions, so replacing it with a
+            differently shaped image does not silently change the crop. */}
+        <figure class="portrait" data-reveal="fade" data-reveal-delay="0.14">
+          <Image
+            src={artefactoPortrait}
+            alt={c.portraitAlt}
+            widths={[520, 780, 1040]}
+            sizes="(max-width: 700px) 88vw, 520px"
+            loading="lazy"
+          />
+        </figure>
       </div>
     </section>
 
@@ -75,8 +92,12 @@ const c = artefactoCopy[locale];
 
     {/* Asymmetric pair — the wider room leads, the lobby rides low beside it. */}
     <div class="section section--alt pair">
-      <div class="shell pair__grid" data-reveal-group>
-        <figure class="pair__major">
+      {/* The two frames arrive from opposite directions — left from below,
+          right from above — so the pair assembles rather than sliding in as a
+          block. `data-reveal-group` is gone from the grid: it staggers its
+          children on one shared direction, which is the effect being replaced. */}
+      <div class="shell pair__grid">
+        <figure class="pair__major" data-reveal data-reveal-shift="80">
           <Image
             src={livingRoom}
             alt={c.alt.livingRoom}
@@ -84,7 +105,7 @@ const c = artefactoCopy[locale];
             sizes="(max-width: 900px) 100vw, 62vw"
           />
         </figure>
-        <figure class="pair__minor">
+        <figure class="pair__minor" data-reveal="down" data-reveal-shift="80">
           <Image
             src={lobby}
             alt={c.alt.lobby}
@@ -147,8 +168,10 @@ const c = artefactoCopy[locale];
         below its neighbour on the right, here it drops on the left, so the two
         asymmetries lean opposite ways instead of repeating. */}
     <div class="section section--alt pair pair--mirrored">
-      <div class="shell pair__grid" data-reveal-group>
-        <figure class="pair__minor">
+      {/* Directions swap with the layout: here the left frame drops in from
+          above and the right rises from below. */}
+      <div class="shell pair__grid">
+        <figure class="pair__minor" data-reveal="down" data-reveal-shift="80">
           <Image
             src={kitchen}
             alt={c.alt.kitchen}
@@ -156,7 +179,7 @@ const c = artefactoCopy[locale];
             sizes="(max-width: 900px) 100vw, 34vw"
           />
         </figure>
-        <figure class="pair__major">
+        <figure class="pair__major" data-reveal data-reveal-shift="80">
           <Image
             src={openPlan}
             alt={c.alt.openPlan}
@@ -167,14 +190,23 @@ const c = artefactoCopy[locale];
       </div>
     </div>
 
-    <PresentationCTA locale={locale} />
-
-    <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
-      <div class="shell">
-        <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
-      </div>
-    </section>
   </div>
+
+  {/* OUTSIDE the dark wrapper, deliberately.
+
+      The lead-capture band is the same on every page of the site and has to
+      stay that way — its veil is mixed from `--ground-alt`, so while it sat
+      inside the wrapper it inherited this page's dark ground and the form came
+      out a different colour here than anywhere else. The presentation call to
+      action keeps its own navy for the same reason: both belong to the site's
+      closing sequence rather than to this page's dark treatment. */}
+  <PresentationCTA locale={locale} />
+
+  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+    <div class="shell">
+      <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
+    </div>
+  </section>
 </Base>
 
 <style>
@@ -192,8 +224,14 @@ const c = artefactoCopy[locale];
      `--ground-dark` is untouched, so the quote bands keep the navy the owner
      asked to leave alone. */
   .dark-page {
+    /* ONE ground for the whole page. `--ground-alt` and `--ground-dark` are
+       pointed at the same charcoal rather than at the sand-pale and navy they
+       normally carry, so the page reads as a single dark surface instead of
+       alternating bands — no blue anywhere between the head and the closing
+       call to action, which keeps its own navy outside this wrapper. */
     --ground: var(--charcoal);
-    --ground-alt: var(--navy-deep);
+    --ground-alt: var(--charcoal);
+    --ground-dark: var(--charcoal);
     --ink: var(--ink-on-dark);
     --ink-muted: var(--ink-on-dark-muted);
     --rule: var(--rule-on-dark);
@@ -201,6 +239,32 @@ const c = artefactoCopy[locale];
 
     background: var(--ground);
     color: var(--ink);
+  }
+
+  /* With every section on the same ground the seams between them disappear,
+     which is the point — but the quote bands then need their own breathing
+     room rather than a colour change to set them apart. */
+  .dark-page .quoteband { padding-block: var(--s-9); }
+
+  /* --- The firm's portrait -------------------------------------------------
+     Cut to the top 65% of the picture. The frame's ratio is the image's own
+     width over 65% of its height (1342 x 816), and the picture inside sits at
+     its natural proportions, so the frame clips the bottom third rather than
+     the image being squashed into it. Change the file and this stays honest
+     only if the numbers change with it. */
+  .portrait {
+    --portrait-visible: 0.65;
+
+    width: min(520px, 100%);
+    margin: var(--s-6) 0 0;
+    overflow: hidden;
+    aspect-ratio: 1342 / calc(816 * var(--portrait-visible));
+  }
+
+  .portrait :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
   /* tokens.css sets this eyebrow to --gold-ink, a dark gold chosen for the

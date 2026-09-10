@@ -30,6 +30,15 @@ export interface ArtefactoCopy {
   lede: string;
   body: string;
   bacchiQuote: string;
+  /**
+   * The firm's portrait under the page head.
+   *
+   * Same photograph the Team page shows on its Artefacto card, so it carries
+   * that page's description rather than a second one written for the same
+   * image. The crop hides the lower third; the alt describes the picture, not
+   * the crop, because that is what a reader is being told about.
+   */
+  portraitAlt: string;
   /** Her role, over her name on the card — the wording the Team page uses. */
   guilhemRole: string;
   guilhemBody: string;
@@ -62,6 +71,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     body: 'ARTEFACTO decodes a lifestyle that is highly regarded amongst the biggest names in architecture and décor. Behind every accessory and piece of furniture is a carefully thought-out concept that aims to establish connections between the home and the owner.',
     bacchiQuote:
       '“It’s an incredible honor and opportunity to design a truly branded lifestyle for VDA Origin Miami and deliver a bespoke condominium experience.”',
+    portraitAlt:
+      'Artefacto — black-and-white portrait of four men dressed in black against a dark backdrop.',
     guilhemRole: 'Design by',
     guilhemBody:
       'The setting by the renowned interior designer Carla Guilhem, in collaboration with the firm ARTEFACTO, is one of the main reasons for the great appeal of ORIGIN. Guilhem’s distinctive style, her ability to combine elements and her meticulous eye for detail, is appreciated in every corner of the settings, from common spaces to individual apartments. Guilhem’s decoration becomes a reflection of the good taste and quality that characterize this exceptional residence.',
@@ -96,6 +107,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     body: 'ARTEFACTO descifra un estilo de vida muy valorado entre los grandes nombres de la arquitectura y la decoración. Detrás de cada accesorio y cada pieza de mobiliario hay un concepto cuidadosamente pensado, que busca establecer vínculos entre la casa y quien la habita.',
     bacchiQuote:
       '“Es un honor y una oportunidad extraordinarios diseñar un verdadero estilo de vida de marca para VDA Origin Miami y ofrecer una experiencia de condominio hecha a medida.”',
+    portraitAlt:
+      'Artefacto — retrato en blanco y negro de cuatro hombres vestidos de negro sobre un fondo oscuro.',
     guilhemRole: 'Diseño por',
     guilhemBody:
       'La ambientación de la reconocida diseñadora de interiores Carla Guilhem, en colaboración con la firma ARTEFACTO, es una de las principales razones del gran atractivo de ORIGIN. El estilo inconfundible de Guilhem, su capacidad para combinar elementos y su meticulosa atención al detalle se aprecian en cada rincón de los ambientes, desde los espacios comunes hasta cada apartamento. Su decoración se convierte en un reflejo del buen gusto y la calidad que caracterizan a esta residencia excepcional.',
@@ -130,6 +143,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     body: 'A ARTEFACTO decifra um estilo de vida altamente valorizado entre os maiores nomes da arquitetura e da decoração. Por trás de cada objeto e de cada peça de mobiliário há um conceito cuidadosamente concebido, que busca criar conexões entre a casa e quem nela vive.',
     bacchiQuote:
       '“É uma honra e uma oportunidade incríveis projetar um estilo de vida verdadeiramente autoral para o VDA Origin Miami e entregar uma experiência de condomínio sob medida.”',
+    portraitAlt:
+      'Artefacto — retrato em preto e branco de quatro homens vestidos de preto sobre um fundo escuro.',
     guilhemRole: 'Design por',
     guilhemBody:
       'A ambientação assinada pela renomada designer de interiores Carla Guilhem, em parceria com a ARTEFACTO, é uma das principais razões do enorme apelo do ORIGIN. O estilo inconfundível de Guilhem, sua habilidade para combinar elementos e seu olhar minucioso para os detalhes se revelam em cada canto dos ambientes, dos espaços comuns a cada apartamento. Sua decoração torna-se reflexo do bom gosto e da qualidade que caracterizam esta residência excepcional.',
