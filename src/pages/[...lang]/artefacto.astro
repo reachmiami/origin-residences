@@ -10,7 +10,7 @@ import terrace from '../../assets/artefacto/terrace-lounge.jpg';
 /* Both supplied as cut-outs on transparency, which is why they sit on the
    charcoal without a frame around them. */
 import artefactoPortrait from '../../assets/team/artefacto-portrait-clipped.png';
-import guilhemPortrait from '../../assets/team/carla-guilhem-portrait.png';
+import guilhemPortrait from '../../assets/team/carla-guilhem-portrait-clipped.png';
 import livingRoom from '../../assets/artefacto/living-room-curved-sofa.jpg';
 import lobby from '../../assets/artefacto/lobby-double-height.jpg';
 import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
@@ -154,16 +154,16 @@ const c = artefactoCopy[locale];
           </div>
         </div>
 
-        {/* The supplied file is mostly empty — she occupies x 412-861 of a
-            1342-wide canvas — so dropped in as-is she would float well short
-            of the edge. The frame in the stylesheet carries her proportions
-            and the offset that brings her shoulder to the window. */}
+        {/* The clipped file is trimmed to her — 474x816 around a 450x773
+            subject — so it needs no crop of its own, only the hair of a nudge
+            in the stylesheet that closes the 15px of transparency on her right
+            against the window. */}
         <figure class="firm__portrait" data-reveal="fade" data-reveal-delay="0.1">
           <Image
             src={guilhemPortrait}
             alt={c.guilhemPortraitAlt}
-            widths={[160, 240, 320]}
-            sizes="(max-width: 1080px) 26vw, 150px"
+            widths={[440, 660, 880]}
+            sizes="(max-width: 1080px) 40vw, 440px"
             loading="lazy"
           />
         </figure>
@@ -350,7 +350,7 @@ const c = artefactoCopy[locale];
      stack — it is the treatment that is shared, not the mechanic.
 
      MEASURED across three languages and ten viewport sizes, sampling the
-     lightest pixel behind every line: worst case 5.52:1, against AA's 4.5.
+     lightest pixel behind every line: worst case 5.03:1, against AA's 4.5.
 
      THREE corrections carry that, because three different things push the copy
      out of the core, and no one media query catches another's case:
@@ -568,40 +568,43 @@ const c = artefactoCopy[locale];
      the file already sits flush against. The single number is measured, not
      guessed — verified in the browser against the subject's own bounding box. */
   /* --- Her portrait, against the window's right edge ------------------------
-     The supplied PNG is a cut-out on a 1342x816 canvas and two thirds of it is
-     empty: she occupies x 412-861, y 43-815. Dropped in whole she stands a
-     third of the way in from the edge with a wide transparent gap beside her.
+     The clipped file is already trimmed to her: a 450x773 subject on a 474x816
+     canvas, leaving 9px of transparency to her left and 15px to her right.
 
-     So the frame takes HER proportions — a little wider, so she has air on one
-     side rather than filling it corner to corner — and object-position slides
-     the canvas until her right shoulder meets the frame's right edge, which is
-     the window's. `100%` on the vertical pins her to the bottom, which the file
-     already sits flush against.
+     That replaces the whole crop this rule used to carry. The previous file was
+     a 450px subject adrift on a 1342px canvas, which needed a frame cut to her
+     proportions and an object-position computed to slide the canvas until her
+     shoulder reached the edge. None of that applies to an image that is
+     already her own size — and worse, it would now fight the file: `cover`
+     against a frame wider than this canvas crops her head and feet instead.
 
-     39.3% is arithmetic, not taste: the frame crops 0.972 of its own height
-     from the canvas width, and her right edge sits 0.382 of that in. Both
-     numbers move if the file is replaced — measure the new one's subject box
-     before changing it. */
-  /* She held a 360px column before this; 110px is the seventy per cent
-     reduction asked for. It is deliberately ONE number — change
-     `--portrait-w` and nothing else moves, because the proportions and the
-     offset that keeps her against the window are both expressed relative to
-     the frame rather than in pixels of their own. */
+     So the picture simply renders at its natural proportions, and the only
+     adjustment left is the 15px of transparency on her right, pulled off the
+     edge so she meets the window rather than stopping a few pixels short. It
+     is expressed as a fraction of her own displayed width, so it stays correct
+     at any `--portrait-w`. `.firm` clips the overhang. */
   .firm__portrait {
-    --portrait-w: 110px;
+    /* 440px is what was asked for and what she is on a full-width screen. It
+       cannot be a flat 440 all the way down, though: her column is `auto`, so
+       every pixel she takes comes out of the copy beside her, and the half she
+       shares is only 550px wide at 1100px of viewport. Measured there, the
+       paragraph was squeezed under her and printed straight over her hair and
+       dress — 1.17:1, which is not low contrast so much as unreadable.
+
+       So the width is 440px wherever half the window can spare it and tracks
+       the window below that, holding roughly 280px of measure for the copy.
+       At 1440 and wider this evaluates to exactly 440. */
+    --portrait-w: clamp(160px, calc(50vw - 280px), 440px);
 
     align-self: end;
     width: var(--portrait-w);
-    margin: 0;
-    aspect-ratio: 520 / 773;
+    margin: 0 calc(var(--portrait-w) * -15 / 474) 0 0;
   }
 
   .firm__portrait :global(img) {
     display: block;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 39.3% 100%;
+    height: auto;
   }
 
   @media (max-width: 900px) {
@@ -629,12 +632,13 @@ const c = artefactoCopy[locale];
      fade — the same correction HomeStack makes, for the same reason. Measured:
      at the desktop radii the body text fell to 2.94:1 on a Portuguese phone,
      where the paragraph wraps widest. */
-  /* 1080, not 900. A 1024x768 tablet fell into the gap between this rule and
-     the short-window one below — too wide for one, too tall for the other —
-     and measured 4.40:1 there, just under AA, on desktop radii it had no
-     business using. The band's copy is already running close to the window's
-     width well before 900px. */
-  @media (max-width: 1080px) {
+  /* 1200, and the number has moved twice for the same reason — first from 900
+     when a 1024x768 tablet measured 4.40:1 in the gap between this rule and
+     the short-window one, then from 1080 when 1100px measured 4.62:1, passing
+     but with a margin too thin to survive a copy edit. The band's lines run
+     close to the window's width well before the layout stops looking like a
+     desktop, and the falloff is what notices first. */
+  @media (max-width: 1200px) {
     .band__scrim {
       --scrim-rx: 130%;
       --scrim-ry: 74%;
