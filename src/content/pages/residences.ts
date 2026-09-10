@@ -24,7 +24,6 @@ export interface ResidencesCopy {
   discoverTitle: string;
   discoverParagraphs: string[];
   featuresTitle: string;
-  featuresAlt: string;
   features: string[];
   /** Edge-to-edge bands. Artwork is matched in the page by `id`. */
   bands: {
@@ -53,8 +52,6 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
       'We invite you to explore this magnificent collection of 3 and 4 bedroom residences with all the amenities and services for a memorable experience.',
     ],
     featuresTitle: 'Residences features',
-    featuresAlt:
-      'An ORIGIN bathroom lined in veined white marble, with a freestanding oval tub, a fluted glass screen and a double vanity in pale oak cabinetry beneath backlit mirrors.',
     features: [
       'Floor-to-ceiling, impact-resistant sliding glass doors and windows',
       'Energy-efficient air conditioning and heating system',
@@ -104,8 +101,6 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
       'Lo invitamos a explorar esta magnífica colección de residencias de 3 y 4 habitaciones, con todas las amenidades y servicios para una experiencia memorable.',
     ],
     featuresTitle: 'Características de las residencias',
-    featuresAlt:
-      'Un baño de ORIGIN revestido en mármol blanco veteado, con bañera ovalada exenta, mampara de vidrio estriado y doble lavabo en mobiliario de roble claro bajo espejos retroiluminados.',
     features: [
       'Puertas corredizas y ventanas de vidrio de piso a techo, resistentes a impactos',
       'Sistema de aire acondicionado y calefacción de bajo consumo',
@@ -155,8 +150,6 @@ export const residencesCopy: Record<Locale, ResidencesCopy> = {
       'Convidamos você a explorar esta magnífica coleção de residências de 3 e 4 quartos, com todas as comodidades e serviços para uma experiência memorável.',
     ],
     featuresTitle: 'Características das residências',
-    featuresAlt:
-      'Um banheiro do ORIGIN revestido em mármore branco com veios, com banheira oval independente, divisória de vidro canelado e bancada dupla em marcenaria de carvalho claro sob espelhos com iluminação embutida.',
     features: [
       'Portas de correr e janelas de vidro do piso ao teto, resistentes a impacto',
       'Sistema de ar-condicionado e aquecimento de baixo consumo',

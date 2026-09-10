@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import ListingGrid from '../../components/ListingGrid.astro';
 import InquiryForm from '../../components/InquiryForm.astro';
 import FeatureBand from '../../components/FeatureBand.astro';
+import KenBurns from '../../components/KenBurns.astro';
 
 import slidingGlass from '../../assets/residences/sliding-glass-living-bay-view.jpg';
 import greatRoomGlass from '../../assets/residences/great-room-kitchen-through-glass.jpg';
@@ -15,7 +16,6 @@ import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { getCopy } from '../../content/copy';
 import { residencesCopy } from '../../content/pages/residences';
 import { unitCount } from '../../data/units';
-import featureImage from '../../assets/inventory/primary-bath-marble-and-cabinetry.jpg';
 
 export function getStaticPaths() {
   return localeStaticPaths();
@@ -30,7 +30,28 @@ const features = r.features;
 
 /* Written out rather than computed — 0.08 + 0.06 is 0.14000000000000001 in
    binary floating point, and that lands in the attribute verbatim. */
-const ledeDelays = ['0.08', '0.14', '0.20'];
+const ledeDelays = ['0.08', '0.14'];
+
+/* The residence-features slideshow.
+   ---------------------------------------------------------------------------
+   Globbed rather than imported one by one, the same arrangement the amenity
+   cards use: dropping a photograph into the folder puts it into the rotation
+   with no code change. Sorted by filename, numerically, so the order is the
+   same on every machine — glob key order is not a guarantee worth showing a
+   visitor.
+
+   Only the LEAD slide is described. The rest are the same rooms from other
+   angles, and narrating thirteen renderings of one apartment is noise; this is
+   the convention KenBurns.astro documents and the amenity cards already
+   follow. */
+const featureArt: ImageMetadata[] = Object.entries(
+  import.meta.glob<ImageMetadata>('../../assets/residences/features/*.{jpg,jpeg,png}', {
+    eager: true,
+    import: 'default',
+  }),
+)
+  .sort(([a], [b]) => a.localeCompare(b, 'en', { numeric: true }))
+  .map(([, img]) => img);
 
 /* Artwork is locale-independent and matched to translated copy by id, the same
    way the homepage bands do it. */
@@ -56,9 +77,9 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
       that section carried this exact heading and these exact paragraphs, so
       leaving it in place would have printed both twice.
 
-      The floor-plan range closes the head as a third lede. It is the same
-      string the band used to carry, and it still reads as the last line of the
-      introduction rather than as a caption under a photograph. */}
+      The floor-plan range that briefly sat here has moved down to the
+      inventory grid, where it describes the cards it sits above rather than
+      the page as a whole. */}
   <section class="page-head" aria-labelledby="page-heading">
     <div class="shell shell--narrow page-head__inner">
       <p class="eyebrow" data-reveal="fade">{r.title}</p>
@@ -77,38 +98,31 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
         </p>
       ))}
 
-      <p
-        class="prose page-head__lede"
-        data-reveal
-        data-reveal-delay={ledeDelays[r.discoverParagraphs.length] ?? '0.20'}
-      >
-        {c.home.inventoryLede}
-      </p>
     </div>
   </section>
 
   <ListingGrid locale={locale} />
 
-  <section class="section features" aria-labelledby="features-heading">
-    <div class="shell features__inner">
-      <figure class="features__figure" data-reveal="fade">
-        <Image
-          class="features__image"
-          src={featureImage}
-          alt={r.featuresAlt}
-          widths={[640, 990, 1200]}
-          sizes="(max-width: 900px) 100vw, 46vw"
-          loading="lazy"
-        />
-      </figure>
+  {/* The features, set over the photography rather than beside one frame of
+      it. Same Ken Burns slideshow the amenity cards carry — and the same scrim
+      discipline, because the type has to hold against the LIGHTEST moment of
+      any slide, not against an average.
 
-      <div class="features__body">
-        <h2 class="heading" id="features-heading" data-reveal>{r.featuresTitle}</h2>
-        <hr class="rule features__rule" data-reveal="fade" />
-        <ul class="features__list" data-reveal-group>
-          {features.map((item) => <li class="features__item">{item}</li>)}
-        </ul>
-      </div>
+      This is not a stacking deck: it is one band, so it does not take
+      AmenityStack's sticky geometry. If a third full-bleed Ken Burns section
+      appears, the scrim and the centred body are what to extract. */}
+  <section class="features" aria-labelledby="features-heading">
+    <KenBurns images={featureArt} alt={c.home.fullBleedAlt} interval={6} />
+    <div class="features__scrim" aria-hidden="true"></div>
+
+    <div class="shell shell--narrow features__body">
+      <h2 class="heading features__title" id="features-heading" data-reveal>
+        {r.featuresTitle}
+      </h2>
+      <hr class="rule features__rule" data-reveal="fade" />
+      <ul class="features__list" data-reveal-group>
+        {features.map((item) => <li class="features__item">{item}</li>)}
+      </ul>
     </div>
   </section>
 
@@ -176,40 +190,98 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
 
   /* --- Features -------------------------------------------------------------- */
 
-  .features { background: var(--ground); }
-
-  .features__inner {
+  .features {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: clamp(var(--s-6), 5vw, var(--s-9));
-    align-items: center;
+    place-items: center;
+    min-height: min(88svh, 900px);
+    padding-block: var(--section-y);
+    overflow: clip;
+    /* Opaque ground so the band is never a light gap while a slide decodes. */
+    background: var(--navy);
+    /* Contains the scrim's stacking so nothing below can paint between the
+       photograph and the type. */
+    isolation: isolate;
   }
 
-  .features__figure { margin: 0; }
+  .features__scrim {
+    position: absolute;
+    inset: 0;
+    /* Above the drifting slideshow, below the type. */
+    z-index: 1;
+    pointer-events: none;
+    /* Two layers, for the reason AmenityStack documents at length: the pool
+       seats the type, and the flat veil under it carries the worst case,
+       because the pool's falloff is sized to the copy and the copy is not the
+       same height in every language. FOURTEEN slides here, ungraded together —
+       a sunlit terrace and a dark panelled bedroom in one rotation — so the
+       list has to hold against the brightest moment of any of them, not
+       against their average.
 
-  .features__image { width: 100%; height: auto; }
+       Measured with measure-residence-features.mjs, which forces every slide
+       active in turn across three languages and four viewports:
 
-  .features__body { display: grid; gap: var(--s-5); }
+         no scrim tuning (58/34 over 30%)  3.62:1  — fails AA
+         62/44 over 44%                    6.47:1  — passes, greys the rooms
+         52/34 over 34%                    4.38:1  — fails, and several
+                                                     viewports sat on 4.4
+         56/38 over 38%                    5.16:1  — this
 
-  .features__rule { max-width: 120px; background: var(--gold); }
+       The rejected 6.47 is the trap AmenityStack names: contrast bought past
+       the threshold is paid for out of the photograph, and the photography is
+       the product here. 5.16 keeps a real margin — a new image would have to
+       be dramatically brighter than any of these fourteen to breach AA — with
+       the rooms still reading as rooms. Re-run the script after adding one. */
+    background:
+      radial-gradient(
+        ellipse 96% 84% at 50% 50%,
+        color-mix(in srgb, var(--navy-deep) 56%, transparent) 0%,
+        color-mix(in srgb, var(--navy-deep) 38%, transparent) 68%,
+        transparent 100%
+      ),
+      color-mix(in srgb, var(--navy-deep) 38%, transparent);
+  }
+
+  .features__body {
+    position: relative;
+    /* Above the scrim. */
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    text-align: center;
+  }
+
+  .features__title { color: var(--ink-on-dark); }
+
+  .features__rule {
+    width: 120px;
+    max-width: 120px;
+    margin: 0;
+    background: var(--gold);
+  }
 
   .features__list {
     display: grid;
     gap: var(--s-3);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .features__item {
     padding-bottom: var(--s-3);
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule-on-dark);
+    color: var(--ink-on-dark);
     font-size: var(--t-small);
     font-weight: var(--w-light);
     letter-spacing: var(--track-body);
-    color: var(--ink);
   }
 
-  @media (max-width: 900px) {
-    .features__inner { grid-template-columns: 1fr; }
-  }
+  /* The last line needs no rule under it — there is nothing to separate it
+     from, and the band's lower edge already closes the list. */
+  .features__item:last-child { border-bottom: 0; padding-bottom: 0; }
 
   /* --- Statement band ------------------------------------------------------ */
 

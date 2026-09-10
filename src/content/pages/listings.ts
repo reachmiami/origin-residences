@@ -19,6 +19,15 @@ export interface ListingsCopy {
   /** Inventory grid on the Residences page. */
   gridTitle: string;
   gridLede: (count: number) => string;
+  /**
+   * The floor-plan range, under the count line.
+   *
+   * A fact about the SHAPES on offer, next to the cards that show them — it
+   * used to close the page head, where it described the page rather than the
+   * inventory. Building-wide, so it is not recomputed from what is currently
+   * released.
+   */
+  gridRange: string;
   /** Card: "3 bds", "5 ba", "2,187 sqft" — abbreviated, as on a listing card. */
   cardBeds: string;
   cardBaths: string;
@@ -129,6 +138,7 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
       count === 1
         ? 'One residence is currently available directly from the developer.'
         : `${count} residences are currently available directly from the developer.`,
+    gridRange: '3 bed / 3.5 bath up to 4 bed + den / 4.5 bath',
     cardBeds: 'bds',
     cardBaths: 'ba',
     cardSqft: 'sqft',
@@ -196,6 +206,7 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
       count === 1
         ? 'Hay una residencia disponible directamente con el desarrollador.'
         : `Hay ${count} residencias disponibles directamente con el desarrollador.`,
+    gridRange: '3 habitaciones / 3.5 baños hasta 4 habitaciones + estudio / 4.5 baños',
     cardBeds: 'hab.',
     cardBaths: 'baños',
     cardSqft: 'sq. ft.',
@@ -263,6 +274,7 @@ export const listingsCopy: Record<Locale, ListingsCopy> = {
       count === 1
         ? 'Há uma residência disponível diretamente com o incorporador.'
         : `Há ${count} residências disponíveis diretamente com o incorporador.`,
+    gridRange: '3 quartos / 3,5 banheiros até 4 quartos + escritório / 4,5 banheiros',
     cardBeds: 'quartos',
     cardBaths: 'banh.',
     cardSqft: 'sq. ft.',
