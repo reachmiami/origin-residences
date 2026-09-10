@@ -11,6 +11,24 @@ import terrace from '../../assets/artefacto/terrace-lounge.jpg';
    charcoal without a frame around them. */
 import artefactoPortrait from '../../assets/team/artefacto-portrait-clipped.png';
 import guilhemPortrait from '../../assets/team/carla-guilhem-portrait-clipped.png';
+
+/* The Artefacto wordmark, inlined rather than linked so it can take the
+   heading's colour. `?raw` puts the file's text in the bundle at build time —
+   reading it from disk at render time does not work, because the built page
+   runs from `dist/` where the source tree no longer exists. This is the same
+   arrangement HomeStack.astro uses for the same mark on the homepage.
+
+   The one substitution matters: the export pins every path to `#fff`, which
+   would hold the mark at pure white while the type beside it is the warmer
+   --ink-on-dark. `currentColor` hands it back to the heading. */
+import artefactoMarkSvg from '../../assets/brand/partner-Grupo-915.svg?raw';
+
+const artefactoMark = artefactoMarkSvg
+  .replace(/<\?xml[\s\S]*?\?>/g, '')
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/fill="#fff"/g, 'fill="currentColor"')
+  .replace(/<svg\s/, '<svg aria-hidden="true" focusable="false" ')
+  .trim();
 import livingRoom from '../../assets/artefacto/living-room-curved-sofa.jpg';
 import lobby from '../../assets/artefacto/lobby-double-height.jpg';
 import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
@@ -83,7 +101,14 @@ const c = artefactoCopy[locale];
       <div class="band__scrim" aria-hidden="true"></div>
 
       <figcaption class="band__body">
-        <h2 class="band__title" id="editorial-heading" data-reveal>{c.editorialTitle}</h2>
+        {/* The brand name is the wordmark, not type. It carries "Artefacto" as
+            its accessible label — a proper noun, identical in all three
+            languages — so the heading still reads in full to a screen reader
+            while showing the mark to everyone else. */}
+        <h2 class="band__title" id="editorial-heading" data-reveal>
+          <span class="band__title-lead">{c.editorialTitleLead}</span>
+          <span class="band__mark" role="img" aria-label="Artefacto" set:html={artefactoMark} />
+        </h2>
         <p class="band__lede" data-reveal data-reveal-delay="0.06">{c.lede}</p>
         <hr class="band__rule" data-reveal="fade" />
         <p class="band__text" data-reveal data-reveal-delay="0.12">{c.body}</p>
@@ -401,6 +426,32 @@ const c = artefactoCopy[locale];
     letter-spacing: var(--track-heading);
     line-height: 1.22;
     text-transform: uppercase;
+  }
+
+  /* The heading is now two things on one line, so it centres them itself and
+     lets them wrap together when the line runs out. */
+  .band__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0 0.32em;
+  }
+
+  .band__mark {
+    display: inline-block;
+    /* As tall as the type it stands in: 1em is the font's own size, so the
+       mark grows and shrinks with the heading's clamp rather than being
+       pinned to a pixel height that only suits one viewport. */
+    height: 1em;
+    color: inherit;
+  }
+
+  .band__mark :global(svg) {
+    display: block;
+    width: auto;
+    height: 100%;
+    fill: currentColor;
   }
 
   .band__lede {
