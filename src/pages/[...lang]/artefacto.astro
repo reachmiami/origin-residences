@@ -440,16 +440,27 @@ const c = artefactoCopy[locale];
 
   .band__mark {
     display: inline-block;
-    /* As tall as the type it stands in: 1em is the font's own size, so the
-       mark grows and shrinks with the heading's clamp rather than being
-       pinned to a pixel height that only suits one viewport. */
     height: 1em;
     color: inherit;
   }
 
+  /* No `width` here on purpose.
+     -------------------------------------------------------------------------
+     Without it the file's own `width="210.734"` attribute applies, which fixes
+     the BOX at 210.7px on every screen. The artwork keeps its ratio inside
+     that box — `preserveAspectRatio` defaults to `xMidYMid meet` — so it
+     scales to the width and sits centred, drawing at 210.7 x 28.1 whatever the
+     heading's font size is.
+
+     The practical effect: the wordmark no longer tracks the heading's clamp.
+     Its glyphs are 28.1px tall at 1440px of viewport and 28.1px at 390px, and
+     the 1em box above it is just the space it is centred in. That reads well
+     beside the heading's caps on a desktop, where 1em made the mark noticeably
+     larger than the type; it means the mark does not grow on wide screens.
+
+     Restore `width: auto` to have it fill the 1em box and scale with the type. */
   .band__mark :global(svg) {
     display: block;
-    width: auto;
     height: 100%;
     fill: currentColor;
   }
