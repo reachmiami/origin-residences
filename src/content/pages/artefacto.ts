@@ -41,6 +41,8 @@ export interface ArtefactoCopy {
   portraitAlt: string;
   /** Her role, over her name on the card — the wording the Team page uses. */
   guilhemRole: string;
+  /** Her portrait beside the copy — the Team page's description of it. */
+  guilhemPortraitAlt: string;
   guilhemBody: string;
   guilhemQuote: string;
   alt: {
@@ -74,6 +76,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     portraitAlt:
       'Artefacto — black-and-white portrait of four men dressed in black against a dark backdrop.',
     guilhemRole: 'Design by',
+    guilhemPortraitAlt:
+      'Carla Guilhem Design — black-and-white portrait of a woman looking away from camera in front of a panelled wall.',
     guilhemBody:
       'The setting by the renowned interior designer Carla Guilhem, in collaboration with the firm ARTEFACTO, is one of the main reasons for the great appeal of ORIGIN. Guilhem’s distinctive style, her ability to combine elements and her meticulous eye for detail, is appreciated in every corner of the settings, from common spaces to individual apartments. Guilhem’s decoration becomes a reflection of the good taste and quality that characterize this exceptional residence.',
     guilhemQuote:
@@ -110,6 +114,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     portraitAlt:
       'Artefacto — retrato en blanco y negro de cuatro hombres vestidos de negro sobre un fondo oscuro.',
     guilhemRole: 'Diseño por',
+    guilhemPortraitAlt:
+      'Carla Guilhem Design — retrato en blanco y negro de una mujer que mira fuera de cámara ante una pared con paneles.',
     guilhemBody:
       'La ambientación de la reconocida diseñadora de interiores Carla Guilhem, en colaboración con la firma ARTEFACTO, es una de las principales razones del gran atractivo de ORIGIN. El estilo inconfundible de Guilhem, su capacidad para combinar elementos y su meticulosa atención al detalle se aprecian en cada rincón de los ambientes, desde los espacios comunes hasta cada apartamento. Su decoración se convierte en un reflejo del buen gusto y la calidad que caracterizan a esta residencia excepcional.',
     guilhemQuote:
@@ -146,6 +152,8 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     portraitAlt:
       'Artefacto — retrato em preto e branco de quatro homens vestidos de preto sobre um fundo escuro.',
     guilhemRole: 'Design por',
+    guilhemPortraitAlt:
+      'Carla Guilhem Design — retrato em preto e branco de uma mulher olhando para fora do quadro diante de uma parede revestida com painéis.',
     guilhemBody:
       'A ambientação assinada pela renomada designer de interiores Carla Guilhem, em parceria com a ARTEFACTO, é uma das principais razões do enorme apelo do ORIGIN. O estilo inconfundível de Guilhem, sua habilidade para combinar elementos e seu olhar minucioso para os detalhes se revelam em cada canto dos ambientes, dos espaços comuns a cada apartamento. Sua decoração torna-se reflexo do bom gosto e da qualidade que caracterizam esta residência excepcional.',
     guilhemQuote:

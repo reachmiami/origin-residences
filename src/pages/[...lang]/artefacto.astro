@@ -7,8 +7,10 @@ import { localeStaticPaths, localeFromParam } from '../../i18n/ui';
 import { artefactoCopy } from '../../content/pages/artefacto';
 
 import terrace from '../../assets/artefacto/terrace-lounge.jpg';
-/* The firm's own portrait, shared with the Team page's Artefacto card. */
-import artefactoPortrait from '../../assets/team/artefacto-portrait.png';
+/* Both supplied as cut-outs on transparency, which is why they sit on the
+   charcoal without a frame around them. */
+import artefactoPortrait from '../../assets/team/artefacto-portrait-clipped.png';
+import guilhemPortrait from '../../assets/team/carla-guilhem-portrait.png';
 import livingRoom from '../../assets/artefacto/living-room-curved-sofa.jpg';
 import lobby from '../../assets/artefacto/lobby-double-height.jpg';
 import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
@@ -50,17 +52,15 @@ const c = artefactoCopy[locale];
         <hr class="page-head__rule" data-reveal="fade" />
         <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.headLede}</p>
 
-        {/* Only the top of the portrait shows. The frame is cut to 65% of the
-            image's own height and clips the rest, so the picture meets the
-            band below it rather than ending on a hard edge of its own. Sized
-            from the file's real proportions, so replacing it with a
-            differently shaped image does not silently change the crop. */}
+        {/* The file is already cut to the crop it needs, so nothing here
+            trims it — it runs at its own 922px on a full-size screen and only
+            starts shrinking when the window is narrower than that. */}
         <figure class="portrait" data-reveal="fade" data-reveal-delay="0.14">
           <Image
             src={artefactoPortrait}
             alt={c.portraitAlt}
-            widths={[520, 780, 1040]}
-            sizes="(max-width: 700px) 88vw, 520px"
+            widths={[460, 700, 922]}
+            sizes="(max-width: 980px) 92vw, 922px"
             loading="lazy"
           />
         </figure>
@@ -116,7 +116,7 @@ const c = artefactoCopy[locale];
       </div>
     </div>
 
-    <div class="section section--dark quoteband">
+    <div class="section section--dark quoteband quoteband--flush-top">
       <div class="shell shell--narrow">
         <figure class="quote" data-reveal>
           <blockquote class="quote__text">
@@ -148,12 +148,27 @@ const c = artefactoCopy[locale];
           <p class="prose firm__body">{c.guilhemBody}</p>
         </div>
       </div>
+
+      {/* She stands against the right edge of the window. The supplied file is
+          mostly empty: the subject occupies x 412-861 of a 1342-wide canvas, so
+          dropped in as-is she would float a third of the way in from the edge.
+          The frame in the stylesheet carries her own proportions and the
+          offset that brings her shoulder to the window's edge. */}
+      <figure class="firm__portrait" data-reveal="fade" data-reveal-delay="0.1">
+        <Image
+          src={guilhemPortrait}
+          alt={c.guilhemPortraitAlt}
+          widths={[380, 560, 760]}
+          sizes="(max-width: 1080px) 40vw, 26vw"
+          loading="lazy"
+        />
+      </figure>
     </article>
 
     {/* The second quote band is the first one again — same ground, same
         treatment — so the two claims read as a pair rather than as one dark
         moment and one light one. */}
-    <div class="section section--dark quoteband">
+    <div class="section section--dark quoteband quoteband--flush-bottom">
       <div class="shell shell--narrow">
         <figure class="quote" data-reveal>
           <blockquote class="quote__text">
@@ -246,19 +261,32 @@ const c = artefactoCopy[locale];
      room rather than a colour change to set them apart. */
   .dark-page .quoteband { padding-block: var(--s-9); }
 
+  /* The first quote follows the image pair and the second is followed by one,
+     so each drops the padding on that side and sits against the photographs
+     rather than floating in a gap of its own ground. */
+  /* Scoped through .dark-page like the rule above them. Written as bare
+     `.quoteband--flush-*` they lost to `.dark-page .quoteband` on specificity
+     and did nothing at all — the padding stayed at 96px both ends. */
+  .dark-page .quoteband--flush-top { padding-top: 0; }
+  .dark-page .quoteband--flush-bottom { padding-bottom: 0; }
+
   /* --- The firm's portrait -------------------------------------------------
      Cut to the top 65% of the picture. The frame's ratio is the image's own
      width over 65% of its height (1342 x 816), and the picture inside sits at
      its natural proportions, so the frame clips the bottom third rather than
      the image being squashed into it. Change the file and this stays honest
      only if the numbers change with it. */
-  .portrait {
-    --portrait-visible: 0.65;
+  /* The head sits closer to the portrait than to a paragraph — the picture
+     already carries its own lower margin, so the section's would double it. */
+  .dark-page .page-head { padding-bottom: var(--s-4); }
 
-    width: min(520px, 100%);
+  /* 922px is the file's own width. It runs at exactly that on any window wide
+     enough to hold it and shrinks only when the window is narrower, which is
+     what `min()` says: never larger than natural size, never wider than the
+     space available. */
+  .portrait {
+    width: min(922px, 100%);
     margin: var(--s-6) 0 0;
-    overflow: hidden;
-    aspect-ratio: 1342 / calc(816 * var(--portrait-visible));
   }
 
   .portrait :global(img) {
@@ -304,7 +332,23 @@ const c = artefactoCopy[locale];
   /* The homepage stack bands' gradient, and for the same reason: it radiates
      from the centre where the type sits and thins towards the edges, so the
      photograph is muted only where it has to be. This band does not stick or
-     stack — it is the treatment that is shared, not the mechanic. */
+     stack — it is the treatment that is shared, not the mechanic.
+
+     MEASURED across three languages and ten viewport sizes, sampling the
+     lightest pixel behind every line: worst case 5.52:1, against AA's 4.5.
+
+     THREE corrections carry that, because three different things push the copy
+     out of the core, and no one media query catches another's case:
+
+       narrow window   the ends of the lines reach the fade
+       short window    the top and bottom of the block reach it instead
+       small phone     both at once, with nothing left to widen towards
+
+     A 1024x768 tablet sat in the gap between the first two — too wide for one,
+     too tall for the other — and measured 4.40:1 on desktop radii it had no
+     business using, which is why the first now starts at 1080px rather than
+     900. Re-measure across the RANGE after changing the copy, the radii or the
+     band's min-height; one viewport is not evidence about the others. */
   .band__scrim {
     position: absolute;
     inset: 0;
@@ -439,10 +483,12 @@ const c = artefactoCopy[locale];
      card geometry out of the-team.astro and put all three on it. */
   .firm {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.05fr) minmax(0, 0.85fr);
     align-items: stretch;
     background: var(--olive-tan);
     color: var(--ink-on-dark);
+    /* Contains the portrait, which is deliberately wider than its column. */
+    overflow: clip;
   }
 
   .firm__figure {
@@ -484,13 +530,70 @@ const c = artefactoCopy[locale];
 
   .firm__body { color: var(--ink-on-dark); }
 
+  /* --- Her portrait, against the window's right edge ------------------------
+     The supplied PNG is a cut-out on a 1342x816 canvas, and the subject sits
+     in the middle of it: x 412-861, y 43-815. Two thirds of the file is empty.
+     Dropped in whole she would stand a third of the way in from the edge with
+     a wide transparent gap beside her, which is the opposite of butted up
+     against it.
+
+     So the frame takes HER proportions rather than the file's, and
+     object-position slides the canvas until her right shoulder meets the
+     frame's right edge. `100%` on the vertical pins her to the bottom, which
+     the file already sits flush against. The single number is measured, not
+     guessed — verified in the browser against the subject's own bounding box. */
+  /* --- Her portrait, against the window's right edge ------------------------
+     The supplied PNG is a cut-out on a 1342x816 canvas and two thirds of it is
+     empty: she occupies x 412-861, y 43-815. Dropped in whole she stands a
+     third of the way in from the edge with a wide transparent gap beside her.
+
+     So the frame takes HER proportions — a little wider, so she has air on one
+     side rather than filling it corner to corner — and object-position slides
+     the canvas until her right shoulder meets the frame's right edge, which is
+     the window's. `100%` on the vertical pins her to the bottom, which the file
+     already sits flush against.
+
+     39.3% is arithmetic, not taste: the frame crops 0.972 of its own height
+     from the canvas width, and her right edge sits 0.382 of that in. Both
+     numbers move if the file is replaced — measure the new one's subject box
+     before changing it. */
+  .firm__portrait {
+    align-self: end;
+    margin: 0;
+    aspect-ratio: 520 / 773;
+  }
+
+  .firm__portrait :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 39.3% 100%;
+  }
+
   @media (max-width: 900px) {
     .pair__grid,
     .pair--mirrored .pair__grid { grid-template-columns: 1fr; }
     .pair__minor { margin-top: 0; }
+  }
 
-    .firm { grid-template-columns: 1fr; }
-    .firm__figure { aspect-ratio: 4 / 3; }
+  /* Tablets stack the card the way phones do — the interior above, the copy
+     below — but the portrait keeps the place it holds on a desktop, beside the
+     copy and against the right edge, rather than dropping into the stack and
+     becoming a third full-width band. 1080px, not 900, so a portrait-held
+     tablet is on this side of the line rather than squeezing three columns
+     into 1024px. */
+  @media (max-width: 1080px) {
+    .firm {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
+      grid-template-areas:
+        'interior interior'
+        'copy     portrait';
+    }
+
+    .firm__figure { grid-area: interior; aspect-ratio: 16 / 9; }
+    .firm__copy { grid-area: copy; }
+    .firm__portrait { grid-area: portrait; }
   }
 
   /* The copy runs nearly edge to edge below this width, so the core has to
@@ -498,7 +601,12 @@ const c = artefactoCopy[locale];
      fade — the same correction HomeStack makes, for the same reason. Measured:
      at the desktop radii the body text fell to 2.94:1 on a Portuguese phone,
      where the paragraph wraps widest. */
-  @media (max-width: 900px) {
+  /* 1080, not 900. A 1024x768 tablet fell into the gap between this rule and
+     the short-window one below — too wide for one, too tall for the other —
+     and measured 4.40:1 there, just under AA, on desktop radii it had no
+     business using. The band's copy is already running close to the window's
+     width well before 900px. */
+  @media (max-width: 1080px) {
     .band__scrim {
       --scrim-rx: 130%;
       --scrim-ry: 74%;
@@ -515,6 +623,17 @@ const c = artefactoCopy[locale];
   @media (max-height: 760px) {
     .band__scrim {
       --scrim-ry: 96%;
+    }
+  }
+
+  /* The narrowest phones. The paragraph reaches both edges here and the
+     Portuguese body — the longest of the three — measured 4.25:1 at 360px on
+     the previous radii. There is nothing left to widen towards, so the core
+     simply covers the whole band. */
+  @media (max-width: 480px) {
+    .band__scrim {
+      --scrim-rx: 170%;
+      --scrim-ry: 92%;
     }
   }
 
