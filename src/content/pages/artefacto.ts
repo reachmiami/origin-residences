@@ -30,6 +30,8 @@ export interface ArtefactoCopy {
   lede: string;
   body: string;
   bacchiQuote: string;
+  /** Her role, over her name on the card — the wording the Team page uses. */
+  guilhemRole: string;
   guilhemBody: string;
   guilhemQuote: string;
   alt: {
@@ -39,7 +41,6 @@ export interface ArtefactoCopy {
     bedroom: string;
     kitchen: string;
     openPlan: string;
-    furniture: string;
   };
 }
 
@@ -52,10 +53,16 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     headline: 'Crafting Luxury Across Three Generations Since 1976.',
     headLede:
       'For over 50 years, Artefacto has been decoding a lifestyle that is highly regarded amongst the biggest names in architecture and décor. Now, the iconic brand proudly brings their first branded residence to the US, translating decades of visionary design into an extraordinary living experience',
+    /* Was missing entirely, so the English page rendered an empty <h2> that
+       `aria-labelledby` then pointed at — an unnamed section for a screen
+       reader and a silent gap for everyone else. Spanish and Portuguese both
+       carried it; only English did not. Wording follows the metaTitle. */
+    editorialTitle: 'Interiors by Artefacto',
     lede: 'Designed for the modern family, ORIGIN offers large floor plans with flexible layouts and unit sizes. With floor-to-ceiling windows and expansive water views, the building aesthetics evoke elegance.',
     body: 'ARTEFACTO decodes a lifestyle that is highly regarded amongst the biggest names in architecture and décor. Behind every accessory and piece of furniture is a carefully thought-out concept that aims to establish connections between the home and the owner.',
     bacchiQuote:
       '“It’s an incredible honor and opportunity to design a truly branded lifestyle for VDA Origin Miami and deliver a bespoke condominium experience.”',
+    guilhemRole: 'Design by',
     guilhemBody:
       'The setting by the renowned interior designer Carla Guilhem, in collaboration with the firm ARTEFACTO, is one of the main reasons for the great appeal of ORIGIN. Guilhem’s distinctive style, her ability to combine elements and her meticulous eye for detail, is appreciated in every corner of the settings, from common spaces to individual apartments. Guilhem’s decoration becomes a reflection of the good taste and quality that characterize this exceptional residence.',
     guilhemQuote:
@@ -73,8 +80,6 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
         'An Origin kitchen and dining area in pale oak and stone, with a round table, an island with counter stools, and glass doors to a balcony above the rooftops.',
       openPlan:
         'An open-plan Origin living and kitchen space with a marble island, a low sectional sofa and sheer curtains drawn back from a planted balcony.',
-      furniture:
-        'Two Artefacto studies against a shadow-dappled plaster wall: a pair of stone and dark-metal low tables, and a rounded bouclé armchair.',
     },
   },
 
@@ -91,6 +96,7 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     body: 'ARTEFACTO descifra un estilo de vida muy valorado entre los grandes nombres de la arquitectura y la decoración. Detrás de cada accesorio y cada pieza de mobiliario hay un concepto cuidadosamente pensado, que busca establecer vínculos entre la casa y quien la habita.',
     bacchiQuote:
       '“Es un honor y una oportunidad extraordinarios diseñar un verdadero estilo de vida de marca para VDA Origin Miami y ofrecer una experiencia de condominio hecha a medida.”',
+    guilhemRole: 'Diseño por',
     guilhemBody:
       'La ambientación de la reconocida diseñadora de interiores Carla Guilhem, en colaboración con la firma ARTEFACTO, es una de las principales razones del gran atractivo de ORIGIN. El estilo inconfundible de Guilhem, su capacidad para combinar elementos y su meticulosa atención al detalle se aprecian en cada rincón de los ambientes, desde los espacios comunes hasta cada apartamento. Su decoración se convierte en un reflejo del buen gusto y la calidad que caracterizan a esta residencia excepcional.',
     guilhemQuote:
@@ -108,8 +114,6 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
         'Cocina y comedor de Origin en roble claro y piedra, con mesa redonda, isla con banquetas y puertas de vidrio a un balcón sobre los tejados.',
       openPlan:
         'Un espacio de Origin de planta abierta entre sala y cocina, con isla de mármol, sofá seccional bajo y cortinas ligeras recogidas frente a un balcón con plantas.',
-      furniture:
-        'Dos estudios de Artefacto ante una pared de estuco moteada de sombras: un par de mesas bajas de piedra y metal oscuro, y una butaca redondeada en bouclé.',
     },
   },
 
@@ -126,6 +130,7 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
     body: 'A ARTEFACTO decifra um estilo de vida altamente valorizado entre os maiores nomes da arquitetura e da decoração. Por trás de cada objeto e de cada peça de mobiliário há um conceito cuidadosamente concebido, que busca criar conexões entre a casa e quem nela vive.',
     bacchiQuote:
       '“É uma honra e uma oportunidade incríveis projetar um estilo de vida verdadeiramente autoral para o VDA Origin Miami e entregar uma experiência de condomínio sob medida.”',
+    guilhemRole: 'Design por',
     guilhemBody:
       'A ambientação assinada pela renomada designer de interiores Carla Guilhem, em parceria com a ARTEFACTO, é uma das principais razões do enorme apelo do ORIGIN. O estilo inconfundível de Guilhem, sua habilidade para combinar elementos e seu olhar minucioso para os detalhes se revelam em cada canto dos ambientes, dos espaços comuns a cada apartamento. Sua decoração torna-se reflexo do bom gosto e da qualidade que caracterizam esta residência excepcional.',
     guilhemQuote:
@@ -143,8 +148,6 @@ export const artefactoCopy: Record<Locale, ArtefactoCopy> = {
         'Cozinha e sala de jantar do Origin em carvalho claro e pedra, com mesa redonda, ilha com banquetas e portas de vidro para uma varanda acima dos telhados.',
       openPlan:
         'Um ambiente integrado de sala e cozinha do Origin, com ilha de mármore, sofá seccional baixo e cortinas leves recolhidas diante de uma varanda com plantas.',
-      furniture:
-        'Dois estudos da Artefacto diante de uma parede de reboco marcada por sombras: um par de mesas baixas em pedra e metal escuro e uma poltrona arredondada em bouclé.',
     },
   },
 };

@@ -12,7 +12,6 @@ import lobby from '../../assets/artefacto/lobby-double-height.jpg';
 import bedroom from '../../assets/artefacto/bedroom-with-balcony.jpg';
 import kitchen from '../../assets/artefacto/kitchen-and-dining.jpg';
 import openPlan from '../../assets/artefacto/open-plan-living.jpg';
-import furniture from '../../assets/artefacto/furniture-studies.jpg';
 
 export function getStaticPaths() {
   return localeStaticPaths();
@@ -27,199 +26,284 @@ const c = artefactoCopy[locale];
   description={c.metaDescription}
   locale={locale}
   path="artefacto"
+  darkHeader
 >
-  {/* Same page-head treatment as Neighborhood, Amenities and Gallery — centred,
-      on the sand ground. It replaces the photographic title band, which took
-      the `lobby` image and a hand-tuned 760px veil hold to keep the three-line
-      headline off a bright lobby; type on sand needs neither.
+  {/* THE WHOLE PAGE RUNS DARK, on the charcoal the Team page already gives
+      Artefacto — the two pages describe the same firm and now share its ground.
 
-      `darkHeader` went with the band: the bar now opens over a light ground
-      and needs its dark ink. The terrace figure below is unchanged, and is now
-      the first photograph on the page. */}
-  <section class="page-head" aria-labelledby="page-heading">
-    <div class="shell shell--narrow page-head__inner">
-      <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
-      <h1 class="display page-head__title" id="page-heading" data-reveal>{c.headline}</h1>
-      <hr class="page-head__rule" data-reveal="fade" />
-      <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.headLede}</p>
-    </div>
-  </section>
+      It is done by re-pointing the ground and ink TOKENS on this wrapper rather
+      than by restyling each section. `.page-head`, `.section--alt` and the rest
+      read their colours from `--ground`, `--ground-alt`, `--ink` and `--rule`,
+      so overriding those four here turns every section on the page at once and
+      cannot reach a section on any other page: the class exists only in this
+      file, and custom properties inherit downwards, never sideways.
 
-  <figure class="band band--hero">
-    <Image
-      src={terrace}
-      alt={c.alt.terrace}
-      widths={[640, 960, 1280, 1445]}
-      sizes="100vw"
-      loading="eager"
-      fetchpriority="high"
-      data-parallax="8"
-    />
-  </figure>
+      `--ground-dark` is deliberately NOT touched. The Bacchi quote band stands
+      on it, the owner likes it as it is, and both quote bands now use it. */}
+  <div class="dark-page">
+    <section class="page-head" aria-labelledby="page-heading">
+      <div class="shell shell--narrow page-head__inner">
+        <p class="eyebrow" data-reveal="fade">{c.eyebrow}</p>
+        <h1 class="display page-head__title" id="page-heading" data-reveal>{c.headline}</h1>
+        <hr class="page-head__rule" data-reveal="fade" />
+        <p class="prose page-head__lede" data-reveal data-reveal-delay="0.08">{c.headLede}</p>
+      </div>
+    </section>
 
-  <section class="section editorial" aria-labelledby="editorial-heading">
-    <div class="shell editorial__grid">
-      <h2 class="heading editorial__title" id="editorial-heading" data-reveal>
-        {c.editorialTitle}
-      </h2>
-      <div class="editorial__copy">
-        <p class="prose editorial__lede" data-reveal>{c.lede}</p>
-        <hr class="rule editorial__rule" data-reveal="fade" />
-        <p class="prose" data-reveal data-reveal-delay="0.08">{c.body}</p>
+    {/* The editorial opening now sits INSIDE the photograph rather than in a
+        two-column block below it, centred over the terrace on the same radial
+        gradient the homepage stack bands use. It does not stick or stack — it
+        is one band that scrolls past like any other section. */}
+    <figure class="band band--hero" aria-labelledby="editorial-heading">
+      <Image
+        src={terrace}
+        alt={c.alt.terrace}
+        widths={[640, 960, 1280, 1445]}
+        sizes="100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="band__scrim" aria-hidden="true"></div>
+
+      <figcaption class="band__body">
+        <h2 class="band__title" id="editorial-heading" data-reveal>{c.editorialTitle}</h2>
+        <p class="band__lede" data-reveal data-reveal-delay="0.06">{c.lede}</p>
+        <hr class="band__rule" data-reveal="fade" />
+        <p class="band__text" data-reveal data-reveal-delay="0.12">{c.body}</p>
+      </figcaption>
+    </figure>
+
+    {/* Asymmetric pair — the wider room leads, the lobby rides low beside it. */}
+    <div class="section section--alt pair">
+      <div class="shell pair__grid" data-reveal-group>
+        <figure class="pair__major">
+          <Image
+            src={livingRoom}
+            alt={c.alt.livingRoom}
+            widths={[640, 960, 1280, 1445]}
+            sizes="(max-width: 900px) 100vw, 62vw"
+          />
+        </figure>
+        <figure class="pair__minor">
+          <Image
+            src={lobby}
+            alt={c.alt.lobby}
+            widths={[480, 720, 961]}
+            sizes="(max-width: 900px) 100vw, 34vw"
+          />
+        </figure>
       </div>
     </div>
-  </section>
 
-  {/* Asymmetric pair — the wider room sits low, the lobby rides above it, so
-      the eye travels rather than scanning a tidy row. */}
-  <div class="section section--alt pair">
-    <div class="shell pair__grid" data-reveal-group>
-      <figure class="pair__major">
-        <Image
-          src={livingRoom}
-          alt={c.alt.livingRoom}
-          widths={[640, 960, 1280, 1445]}
-          sizes="(max-width: 900px) 100vw, 62vw"
-        />
-      </figure>
-      <figure class="pair__minor">
-        <Image
-          src={lobby}
-          alt={c.alt.lobby}
-          widths={[480, 720, 961]}
-          sizes="(max-width: 900px) 100vw, 34vw"
-        />
-      </figure>
+    <div class="section section--dark quoteband">
+      <div class="shell shell--narrow">
+        <figure class="quote" data-reveal>
+          <blockquote class="quote__text">
+            <p>{c.bacchiQuote}</p>
+          </blockquote>
+          <figcaption class="quote__by">Paulo Bacchi</figcaption>
+        </figure>
+      </div>
     </div>
-  </div>
 
-  <div class="section section--dark quoteband">
-    <div class="shell shell--narrow">
-      <figure class="quote" data-reveal>
-        <blockquote class="quote__text">
-          <p>{c.bacchiQuote}</p>
-        </blockquote>
-        <figcaption class="quote__by">Paulo Bacchi</figcaption>
-      </figure>
-    </div>
-  </div>
-
-  <section class="section guilhem" aria-labelledby="guilhem-heading">
-    <div class="shell guilhem__grid">
-      <figure class="guilhem__figure" data-reveal="fade">
+    {/* Carla Guilhem as a partner card, the shape the Team page gives her —
+        edge to edge, photograph filling one half, copy on the olive ground she
+        carries there. Out of the shell on purpose, exactly as that card is. */}
+    <article class="firm" aria-labelledby="guilhem-heading">
+      <figure class="firm__figure" data-reveal="fade">
         <Image
           src={bedroom}
           alt={c.alt.bedroom}
-          widths={[480, 720, 1080, 1445]}
-          sizes="(max-width: 900px) 100vw, 48vw"
+          widths={[640, 960, 1280]}
+          sizes="(max-width: 900px) 100vw, 50vw"
         />
       </figure>
-      <div class="guilhem__copy">
-        <h2 class="heading" id="guilhem-heading" data-reveal>Carla Guilhem</h2>
-        <hr class="guilhem__rule" data-reveal="fade" />
-        <p class="prose" data-reveal data-reveal-delay="0.08">{c.guilhemBody}</p>
+
+      <div class="firm__copy" data-reveal>
+        <div class="firm__inner">
+          <p class="eyebrow firm__role">{c.guilhemRole}</p>
+          <h2 class="heading firm__name" id="guilhem-heading">Carla Guilhem</h2>
+          <hr class="firm__rule" />
+          <p class="prose firm__body">{c.guilhemBody}</p>
+        </div>
+      </div>
+    </article>
+
+    {/* The second quote band is the first one again — same ground, same
+        treatment — so the two claims read as a pair rather than as one dark
+        moment and one light one. */}
+    <div class="section section--dark quoteband">
+      <div class="shell shell--narrow">
+        <figure class="quote" data-reveal>
+          <blockquote class="quote__text">
+            <p>{c.guilhemQuote}</p>
+          </blockquote>
+          <figcaption class="quote__by">Carla Guilhem</figcaption>
+        </figure>
       </div>
     </div>
-  </section>
 
-  <div class="section section--alt quoteband quoteband--light">
-    <div class="shell shell--narrow">
-      <figure class="quote" data-reveal>
-        <blockquote class="quote__text">
-          <p>{c.guilhemQuote}</p>
-        </blockquote>
-        <figcaption class="quote__by">Carla Guilhem</figcaption>
-      </figure>
+    {/* The closing pair mirrors the one above: there the minor image drops
+        below its neighbour on the right, here it drops on the left, so the two
+        asymmetries lean opposite ways instead of repeating. */}
+    <div class="section section--alt pair pair--mirrored">
+      <div class="shell pair__grid" data-reveal-group>
+        <figure class="pair__minor">
+          <Image
+            src={kitchen}
+            alt={c.alt.kitchen}
+            widths={[480, 720, 1080]}
+            sizes="(max-width: 900px) 100vw, 34vw"
+          />
+        </figure>
+        <figure class="pair__major">
+          <Image
+            src={openPlan}
+            alt={c.alt.openPlan}
+            widths={[640, 960, 1280, 1445]}
+            sizes="(max-width: 900px) 100vw, 62vw"
+          />
+        </figure>
+      </div>
     </div>
+
+    <PresentationCTA locale={locale} />
+
+    <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
+      <div class="shell">
+        <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
+      </div>
+    </section>
   </div>
-
-  <div class="section duo">
-    <div class="shell duo__grid" data-reveal-group>
-      <figure class="duo__item">
-        <Image
-          src={kitchen}
-          alt={c.alt.kitchen}
-          widths={[480, 720, 1080, 1445]}
-          sizes="(max-width: 760px) 100vw, 48vw"
-        />
-      </figure>
-      <figure class="duo__item">
-        <Image
-          src={openPlan}
-          alt={c.alt.openPlan}
-          widths={[480, 720, 899]}
-          sizes="(max-width: 760px) 100vw, 48vw"
-        />
-      </figure>
-    </div>
-  </div>
-
-  <figure class="band band--strip">
-    <Image
-      src={furniture}
-      alt={c.alt.furniture}
-      widths={[960, 1280, 1917]}
-      sizes="100vw"
-      data-parallax="6"
-    />
-  </figure>
-
-  <PresentationCTA locale={locale} />
-
-  <section class="section section--alt" id="inquire" aria-labelledby="inquire-heading">
-    <div class="shell">
-      <InquiryForm locale={locale} variant="full" headingId="inquire-heading" />
-    </div>
-  </section>
 </Base>
 
 <style>
-  /* The page title is a `.page-head`, styled in tokens.css. The `.band` rules
-     below are a DIFFERENT thing — this page's own full-bleed figures — and
-     stay. */
+  /* --- The dark ground -----------------------------------------------------
+     Four token re-points turn every section on this page. `.page-head`,
+     `.section--alt`, `.rule`, the prose — all of them read their colour from
+     these, so nothing below needs restyling and no other page can be reached:
+     the wrapper class exists only in this file, and custom properties inherit
+     down, never across.
+
+     `--accent` moves to --gold-light. Raw --gold measures 4.0:1 on charcoal,
+     which fails AA for type this small; the Team page's Artefacto card made
+     the same substitution for the same reason.
+
+     `--ground-dark` is untouched, so the quote bands keep the navy the owner
+     asked to leave alone. */
+  .dark-page {
+    --ground: var(--charcoal);
+    --ground-alt: var(--navy-deep);
+    --ink: var(--ink-on-dark);
+    --ink-muted: var(--ink-on-dark-muted);
+    --rule: var(--rule-on-dark);
+    --accent: var(--gold-light);
+
+    background: var(--ground);
+    color: var(--ink);
+  }
+
+  /* tokens.css sets this eyebrow to --gold-ink, a dark gold chosen for the
+     sand ground. On charcoal it is 1.9:1 and effectively invisible. */
+  .dark-page .page-head .eyebrow { color: var(--gold-light); }
 
   /* --- Full-bleed bands ---------------------------------------------------
      The wrapper owns the crop; the image overfills it and drifts inside the
      clip. Specificity here deliberately beats Astro's responsive styles. */
   .band {
     position: relative;
+    display: grid;
+    place-items: center;
     overflow: clip;
     background: var(--navy-deep);
+    isolation: isolate;
   }
 
-  .band--hero { aspect-ratio: 16 / 7; }
-  .band--strip { aspect-ratio: 21 / 5; }
+  /* Tall enough to seat the editorial copy it now carries — the old 16/7 crop
+     was sized for a photograph with nothing on it. It is a MINIMUM, so a long
+     translation lengthens the band rather than being clipped by it. */
+  .band--hero {
+    min-height: min(84svh, 860px);
+    padding-block: var(--s-8);
+  }
 
   .band :global(img) {
     position: absolute;
-    inset: -6% 0;
+    inset: 0;
+    z-index: 0;
     width: 100%;
     max-width: none;
-    height: 112%;
+    height: 100%;
     object-fit: cover;
   }
 
-  /* --- Editorial opening --------------------------------------------------- */
-  .editorial__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    gap: clamp(var(--s-6), 5vw, var(--s-9));
-    align-items: start;
+  /* The homepage stack bands' gradient, and for the same reason: it radiates
+     from the centre where the type sits and thins towards the edges, so the
+     photograph is muted only where it has to be. This band does not stick or
+     stack — it is the treatment that is shared, not the mechanic. */
+  .band__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    --scrim-rx: 82%;
+    --scrim-ry: 66%;
+
+    background: radial-gradient(
+      ellipse var(--scrim-rx) var(--scrim-ry) at 50% 50%,
+      var(--scrim-band) 0%,
+      var(--scrim-band) 42%,
+      color-mix(in srgb, var(--navy) 42%, transparent) 68%,
+      color-mix(in srgb, var(--navy) 16%, transparent) 88%,
+      transparent 100%
+    );
   }
 
-  .editorial__title { max-width: 12ch; }
+  .band__body {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    width: min(var(--max-w-narrow), 100% - var(--gutter) * 2);
+    text-align: center;
+  }
 
-  .editorial__copy { display: grid; gap: var(--s-5); }
+  .band__title {
+    margin: 0;
+    max-width: 18ch;
+    color: var(--ink-on-dark);
+    font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.4rem);
+    font-weight: var(--w-thin);
+    letter-spacing: var(--track-heading);
+    line-height: 1.22;
+    text-transform: uppercase;
+  }
 
-  .editorial__lede {
+  .band__lede {
+    margin: 0;
+    max-width: 56ch;
+    color: var(--ink-on-dark);
     font-size: var(--t-h4);
     font-weight: var(--w-xlight);
-    color: var(--ink);
   }
 
-  .editorial__rule { max-width: 90px; background: var(--gold); }
+  .band__rule {
+    width: clamp(48px, 6vw, 90px);
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: var(--gold-light);
+  }
 
-  /* --- Asymmetric image pair ----------------------------------------------- */
+  .band__text {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--ink-on-dark);
+    line-height: var(--leading-body);
+  }
+
+  /* --- Asymmetric image pairs ---------------------------------------------- */
   .pair__grid {
     display: grid;
     grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
@@ -230,11 +314,19 @@ const c = artefactoCopy[locale];
   .pair__major,
   .pair__minor { margin: 0; }
 
+  /* The minor frame drops below its neighbour. In the first pair it is the
+     right-hand column; the mirrored pair swaps the track widths so the minor
+     leads on the left and the wide frame rides high on the right. */
   .pair__minor { margin-top: clamp(var(--s-6), 8vw, var(--s-10)); }
+
+  .pair--mirrored .pair__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  }
 
   /* --- Quote bands ---------------------------------------------------------
      The claim itself, set at heading scale. A gold hairline stands in for the
-     opening mark so the type is never decorated. */
+     opening mark so the type is never decorated. Both bands are identical now
+     — same ground, same treatment — so the two claims read as a pair. */
   .quote {
     display: grid;
     gap: var(--s-5);
@@ -253,6 +345,7 @@ const c = artefactoCopy[locale];
   .quote__text {
     margin: 0;
     max-width: 26ch;
+    color: var(--off-white);
     font-size: var(--t-h3);
     font-weight: var(--w-xlight);
     letter-spacing: var(--track-body);
@@ -260,57 +353,108 @@ const c = artefactoCopy[locale];
     text-wrap: balance;
   }
 
-  .quoteband .quote__text { color: var(--off-white); }
-  .quoteband--light .quote__text { color: var(--ink); }
-
+  /* --gold-ink is a dark gold chosen for light grounds; on this navy it
+     measures 2.45:1, well under AA, and the attribution was effectively
+     unreadable. It was already like that on the Bacchi band before this page
+     was reworked — duplicating the band for Carla Guilhem would have shipped
+     the fault twice, so it is corrected here rather than carried over.
+     --gold-light is 7.5:1 on the same ground and still reads as gold. */
   .quote__by {
+    color: var(--gold-light);
     font-size: var(--t-micro);
+    font-style: normal;
     letter-spacing: var(--track-label);
     text-transform: uppercase;
-    font-style: normal;
-    color: var(--gold-ink);
   }
 
-  /* --- Carla Guilhem ------------------------------------------------------- */
-  .guilhem__grid {
+  /* --- Carla Guilhem, as a partner card -------------------------------------
+     The shape the Team page gives her: edge to edge, photograph filling one
+     half, copy on the olive ground she carries there. Deliberately a scoped
+     copy rather than a shared component — this is the SECOND of these, and
+     this repo's rule is to extract at the third. If a third appears, lift the
+     card geometry out of the-team.astro and put all three on it. */
+  .firm {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(var(--s-6), 5vw, var(--s-9));
-    align-items: center;
+    align-items: stretch;
+    background: var(--olive-tan);
+    color: var(--ink-on-dark);
   }
 
-  .guilhem__figure { margin: 0; }
+  .firm__figure {
+    margin: 0;
+    min-height: 100%;
+  }
 
-  .guilhem__copy { display: grid; gap: var(--s-4); align-content: start; }
+  .firm__figure :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-  .guilhem__rule {
+  .firm__copy {
+    display: grid;
+    align-items: center;
+    padding: clamp(var(--s-6), 5vw, var(--s-9)) clamp(var(--s-5), 4vw, var(--s-8));
+  }
+
+  .firm__inner {
+    display: grid;
+    gap: var(--s-4);
+    max-width: 46ch;
+  }
+
+  /* --gold-ink drops to 2.41:1 on the olive, which is why the Team page gives
+     this one card ink rather than gold for its eyebrow. Same choice here. */
+  .firm__role { color: var(--ink-on-dark); }
+
+  .firm__name { color: var(--ink-on-dark); }
+
+  .firm__rule {
     width: clamp(48px, 6vw, 90px);
     height: 1px;
-    border: 0;
-    background: var(--gold);
     margin-block: var(--s-1);
+    border: 0;
+    background: var(--gold-light);
   }
 
-  /* --- Closing pair --------------------------------------------------------- */
-  .duo__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: clamp(var(--s-5), 4vw, var(--s-7));
-    align-items: start;
-  }
-
-  .duo__item { margin: 0; }
+  .firm__body { color: var(--ink-on-dark); }
 
   @media (max-width: 900px) {
-    .editorial__grid,
-    .guilhem__grid,
-    .pair__grid { grid-template-columns: 1fr; }
-    .editorial__title { max-width: none; }
+    .pair__grid,
+    .pair--mirrored .pair__grid { grid-template-columns: 1fr; }
     .pair__minor { margin-top: 0; }
+
+    .firm { grid-template-columns: 1fr; }
+    .firm__figure { aspect-ratio: 4 / 3; }
+  }
+
+  /* The copy runs nearly edge to edge below this width, so the core has to
+     reach past the band's own width to keep the ends of the lines out of the
+     fade — the same correction HomeStack makes, for the same reason. Measured:
+     at the desktop radii the body text fell to 2.94:1 on a Portuguese phone,
+     where the paragraph wraps widest. */
+  @media (max-width: 900px) {
+    .band__scrim {
+      --scrim-rx: 130%;
+      --scrim-ry: 74%;
+    }
+  }
+
+  /* A SHORT window is a separate failure from a narrow one, and needs a
+     separate correction. The band is `min(84svh, …)`, so in a 620px-tall
+     window it is barely taller than the copy inside it — the paragraph then
+     reaches the top and bottom of the ellipse rather than sitting in its
+     middle, and the vertical radius is what has to give. Measured: Portuguese
+     at 1280x620 fell to 3.68:1 with the width rule alone, which never fires at
+     that width. */
+  @media (max-height: 760px) {
+    .band__scrim {
+      --scrim-ry: 96%;
+    }
   }
 
   @media (max-width: 640px) {
-    .band--hero { aspect-ratio: 4 / 3; }
-    .band--strip { aspect-ratio: 3 / 2; }
+    .band--hero { min-height: min(90svh, 720px); }
   }
 </style>
