@@ -194,8 +194,18 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
     position: relative;
     display: grid;
     place-items: center;
-    min-height: min(88svh, 900px);
-    padding-block: var(--section-y);
+    /* Exactly the window below the header, so the band meets the bar at the
+       top and the viewport edge at the bottom with nothing showing past it.
+
+       `min-height`, not `height`, and `svh`, not `vh`: svh keeps mobile
+       browser chrome from cropping the band, and a minimum lets the section
+       grow rather than clip if the list ever outgrows the window — Spanish
+       already wraps two of these lines, and a short laptop viewport is the
+       case where a fixed height would cut the last feature off. When the copy
+       fits, which is every viewport measured, min-height and height render
+       identically. */
+    min-height: calc(100svh - var(--header-h));
+    padding-block: var(--s-7);
     overflow: clip;
     /* Opaque ground so the band is never a light gap while a slide decodes. */
     background: var(--navy);
@@ -225,13 +235,18 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
          62/44 over 44%                    6.47:1  — passes, greys the rooms
          52/34 over 34%                    4.38:1  — fails, and several
                                                      viewports sat on 4.4
-         56/38 over 38%                    5.16:1  — this
+         56/38 over 38%                    5.16:1  — chosen
 
        The rejected 6.47 is the trap AmenityStack names: contrast bought past
        the threshold is paid for out of the photograph, and the photography is
-       the product here. 5.16 keeps a real margin — a new image would have to
-       be dramatically brighter than any of these fourteen to breach AA — with
-       the rooms still reading as rooms. Re-run the script after adding one. */
+       the product here.
+
+       CURRENT WORST: 4.84:1, pt phone 375. Tightening the spacing for short
+       windows (see the max-height block below) moved the copy further into the
+       pool's falloff and cost about 0.3 — measured, not estimated. Still clear
+       of AA, but the margin is thinner than it reads above, so re-run the
+       script after touching either the scrim OR the spacing; on this band they
+       are the same control. */
     background:
       radial-gradient(
         ellipse 96% 84% at 50% 50%,
@@ -282,6 +297,24 @@ const slidesFor = (band: (typeof r.bands)[number]) =>
   /* The last line needs no rule under it — there is nothing to separate it
      from, and the band's lower edge already closes the list. */
   .features__item:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  /* Short windows.
+     -------------------------------------------------------------------------
+     Eleven lines of copy in a 724px window is the case where the band would
+     otherwise outgrow the space it is supposed to fill exactly. Measured, at
+     the padding above: a phone needed 771px of the 724 available in English
+     and 847 in Spanish, which wraps two of these lines onto a second row.
+
+     Tightening the padding and the space between features recovers that —
+     phone now fills exactly in both languages. A genuinely short desktop
+     window (620px tall) still cannot hold the list; there the band grows
+     rather than clipping, which is the trade `min-height` above exists to
+     make. Shrinking the type to force a fit would cost more than the gap. */
+  @media (max-height: 860px) {
+    .features { padding-block: var(--s-5); }
+    .features__list { gap: var(--s-2); }
+    .features__item { padding-bottom: var(--s-2); }
+  }
 
   /* --- Statement band ------------------------------------------------------ */
 
