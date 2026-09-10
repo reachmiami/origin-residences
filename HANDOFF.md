@@ -42,190 +42,75 @@ qualified enquiry, not on traffic.
 
 ## Current state
 
-- **120 pages build green**, no workaround
+- **42 pages build green**, no workaround
 - **3 locales**: English at the root, `/es/`, `/pt-br/`
-- **27 residences**, of which **3 are publicly released**
+- **27 residences in the building, 2 released** — 302 and 401. Only released
+  residences get a page at all; see "What is currently listed" below
+- **Deployed** for client review at
+  https://reachmiami.github.io/origin-residences/ — noindex, no CRM pixel, no
+  sitemap. The live public site is still the old WordPress build
 - Home page weight **~105KB vs 719KB** on the incumbent
+
+The page count dropped from 120 because unreleased residences stopped being
+built — 25 of them across three locales. That is a deliberate change, not a
+regression; a hidden page was still serving its asking price to anyone who
+guessed the URL.
 
 ### Recent work on this branch
 
-Working branch: `homepage-stack-hero-scrim-forms`, **six commits, nothing
-merged to `main`** — which still sits on the original rebuild.
+Working branch: `homepage-stack-hero-scrim-forms`. **Nothing is merged to
+`main`**, which still sits on the original rebuild. Everything below is
+committed and deployed.
 
-#### Uncommitted — the Amenities deck
+#### Deployment
 
-- **Six stacking amenity cards**, each backed by a Ken Burns slideshow:
-  `AmenityStack.astro` (the deck) and `KenBurns.astro` (the media layer). They
-  replaced the four alternating image/copy `features` rows.
-- **Same sticky mechanic as `HomeStack.astro`, deliberately not yet merged.**
-  HomeStack's `<Image>` needs `object-fit` to out-specify Astro's responsive
-  image styles from inside its own scope, and a shared global rule would lose
-  that silently. This repo's precedent is to extract at the THIRD copy — that
-  is how `.page-head` reached `tokens.css`. **A third deck should trigger the
-  extraction**; both components carry a comment saying so.
-- **Images come from `import.meta.glob` per folder**, so dropping another
-  photograph into `src/assets/amenities/<folder>/` joins that card's slideshow
-  with no code change. Globbed per folder rather than once across `amenities/*`
-  on purpose: `eager: true` would otherwise pull `amenities/random/` — eight
-  unused files including multi-megabyte brochure PNGs — through the image
-  pipeline on every build. A card with no images throws at build time.
-- **The scrim is heavier than the homepage's and for a measured reason.** Those
-  cards sit over one still frame chosen to suit them; these cycle through up to
-  five images never graded together. The worst case is now *bounded by the
-  scrim rather than by the photography*: `rgb(94,107,121)` is navy-deep at 64.8%
-  effective alpha over pure white, which is why every viewport reports the same
-  5.36:1. A first attempt cleared 9.66:1 and flattened the rooftop render to
-  grey — on this site contrast past the threshold is bought at the image's
-  expense.
-- **`measure-amenity-stack.mjs`** forces every slide of every card active in
-  turn and measures each one.
-- **The lead render above the deck was removed** at the owner's request, taking
-  its `.band` markup, CSS, the `Image` import and the `bandAlt` copy in all
-  three locales with it. `src/assets/amenities/residence-living-dining-bay-view.jpg`
-  is now unreferenced but still tracked — it is NOT the identically-named file
-  in `assets/gallery/`, which the gallery and homepage still use.
-- **The crossfade had two faults, both fixed and both measured.** Fading both
-  slides at once left each at ~50% mid-transition, so ~25% of the container's
-  navy showed *through* the picture — a grey pulse on every change. Only the
-  incoming slide fades now, lifted above an outgoing one that holds full
-  opacity for the whole fade. Separately the drift ran on `.is-active` alone,
-  so the outgoing slide's transform snapped back to base the instant it lost
-  that class; `.is-leaving` carries the same animation so it keeps drifting out.
-  Verified by tracing every frame: 0 frames with no fully-opaque slide, largest
-  visible transform step 0.10, and composited luminance ramping monotonically
-  through a transition. `advance()` also awaits `decode()` — an undecoded slide
-  stalls the compositor and looks exactly like a CSS fault. That is what caught the only real contrast
-  failure: Spanish, slide 5, short viewport, **4.08:1** — the longer title
-  wrapped onto more lines and reached into the scrim's falloff while English
-  passed at 5.05:1 on the same card.
+- **Built for a subfolder** so the site could go on GitHub Pages before a
+  domain exists. `site` and `base` come from the environment and the workflow
+  fills them from `actions/configure-pages`, so attaching a custom domain later
+  is a change in the GitHub UI with no matching change in the repo.
+- **The review copy is held back deliberately**: noindex on every page, no
+  sitemap, and the Follow Up Boss pixel omitted. See the Deployment section.
 
-#### Uncommitted — The Team and Artefacto onto `.page-head`
+#### Listings
 
-- **Both pages lost their photographic title band** and now carry the flat sand
-  `.page-head`, the same treatment as Neighborhood, Gallery and Amenities. New
-  owner-supplied eyebrow / H1 / lede on both, in all three locales.
-- **The Team is off `BAND_PLACEHOLDER`** — it stood on placeholder artwork it
-  could never really carry, since the page owns only portraits. That is one
-  fewer photograph owed (open item 9). PageBand is down to 7 templates and
-  BAND_PLACEHOLDER to 5.
-- **Artefacto dropped its hand-tuned `veilHold="760px"`** with the band; type on
-  sand needs no veil. Its `lobby` image is still used lower down the page.
-- **`darkHeader` removed from both.** It belonged to the photographic band; the
-  bar now opens over a light ground and needs its dark ink. Verified by
-  diffing both headers against Gallery's — 0 of 315 probes differ.
-- **Fixed while measuring: the `.page-head` eyebrow was raw `--gold` on sand,
-  2.14:1, on ALL FIVE page-head pages.** `tokens.css` says three tokens above
-  that gold is decorative and `--gold-ink` is the text-safe member; the
-  `.page-head__all` rule in the same block already followed that. Now
-  `.page-head .eyebrow` does too, at 4.88:1. Scoped, because the same class
-  carries raw gold correctly on navy at 5.59:1.
-- **New: `measure-page-head.mjs`.** These five pages had no contrast check at
-  all — measure-band.mjs excludes them by design and nothing replaced it.
-- **Amenities lost its page-head link**, and with it the `.page-head__all` rule
-  in `tokens.css` — Amenities was the only user, so the class no longer exists.
-  `t()` and `L()` went too; that link was their only use in the file. The
-  `viewAvailable` string stays, still used by the mega nav.
-- **The Amenities schedule is 14 items, was 17.** The owner removed "27 unique
-  residences", "2 bedroom to 4 bedroom" and "personalized services", and
-  renamed "Dog run / park" to "Pet Zone", in all three locales. The first two
-  are product facts rather than amenities and still appear on Residences and
-  the homepage — they were dropped from this list only. Two further renames:
-  "Bicycle storage area" → "Bicycle Rack Area", and "Points available for
-  connection of electric vehicle charging stations" → "EV-Ready infrastructure
-  available".
-- **The Amenities schedule band is navy now.** It carries `section--dark`, the
-  same modifier PresentationCTA uses, so the ground and ink come from one place
-  — measured identical to PresentationCTA at every width. Its hairlines moved
-  from `--rule` to `--rule-on-dark`; 16% navy is invisible on navy. Type
-  measures 15.58:1. See the build-cache gotcha this uncovered.
-- **The gallery grid lost its top padding.** `.gallery.section` sits directly
-  under the page-head on the same sand ground, so the section's top padding
-  stacked with the head's bottom padding into one oversized gap. Bottom padding
-  kept — below it is the CTA band, a different ground.
+- **The Residences inventory browser became a grid of listing cards**, and the
+  residence pages became listing sheets — carousel, headline figures, MLS-style
+  specification, floor plan, inquiry form. `InventoryGrid.astro` is unused but
+  kept.
+- **Sales data is separate from architecture.** `src/data/listings.ts` holds
+  price, MLS number, HOA and taxes; `units.raw.json` keeps beds, baths and
+  areas. 302 has a full sheet; 401 has a price and nothing else.
+- **701 was withdrawn**, and withdrawal was made to mean something: an
+  unreleased residence now has no page, no floor-plan PDF and no drawing.
 
-#### Uncommitted — v2 promoted to `/`
+#### Residences page
 
-The v1/v2 question (was open item 2) is **decided and done**: the owner chose
-the alternate, and it is the homepage now.
+- Opens with a type-set `.page-head` rather than a photographic band, absorbing
+  the "Discover your dream home" section that duplicated it.
+- **The features list moved over a Ken Burns band** of the residence
+  photography, filling the window below the header.
 
-- **`/v2/` is gone.** Its body moved into `index.astro`, which now mounts the
-  sunset hero and `headerVariant="home"`. The two files were byte-identical
-  below the hero, so nothing but the hero and four `<Base>` props changed.
-- **`HOME_PATH` is `''`.** Every logo points at the real homepage again, and
-  the SEO contradiction is closed: `/` is indexable, in the sitemap, and is
-  what the chrome links to.
-- **`HeroV2.astro` → `HomeHero.astro`; `.header--v2` → `.header--home`;
-  `--v2-accent` → `--home-accent`; `variant="v2"` → `variant="home"`.** 44
-  selectors across `Header.astro` and `LangSwitch.astro`. Held to a
-  before/after measurement — see `measure-home-header.mjs` below.
-- **`/v2/` redirects to `/`** in all three locales, via `redirects` in
-  `astro.config.mjs`. Astro emits meta-refresh stubs carrying `noindex` and a
-  canonical. Nothing public ever linked there; this only protects a reviewer's
-  bookmark, and is safe to delete once nobody is using it.
-- **`Hero.astro` (the v1 autoplay video hero) is retired but KEPT**, unreferenced,
-  at the owner's request. It carries a header comment saying so — do not clean
-  it up as dead code. `public/hero-poster.jpg` and `c.home.heroCta` are
-  orphaned with it. The brand film is not lost: `HomeHero` plays the same
-  `/video/origin-hero.mp4` on demand behind VIEW TRAILER.
-- The `hero2` / `data-h2-*` names inside `HomeHero.astro` were deliberately
-  NOT renamed — they are file-scoped and wired into the GSAP selectors and
-  `measure-hero.mjs`, so churning them was all risk and no gain.
+#### Artefacto page
 
-#### `7bcdcf9` — the neighbourhood locator, the band veil, the page heads
+- **Runs dark end to end** on the Team page's charcoal, done by re-pointing
+  four ground tokens on a wrapper rather than restyling section by section.
+- The editorial opening moved **inside** the terrace figure; Carla Guilhem
+  became a partner card in the shape the Team page gives her; the closing pair
+  mirrors the one above it; the furniture strip is gone.
+- The brand name in the band heading is **set as the wordmark**, not as type.
 
-- **A neighbourhood locator on the Neighborhood page** (`NeighborhoodMap.astro`)
-  — 77 places in nine categories beside a map, filterable by category. No map
-  library, no tiles, **no API key and no billing account**: the basemap is an SVG
-  generated once from OpenStreetMap and committed, so every colour is a brand
-  token and nothing loads at runtime. It does not pan or zoom, which a
-  fixed-extent locator does not need.
-- **The band veil now passes AA.** It measured 1.40:1 behind the Residences
-  eyebrow; it is a band-wide gradient with a measured hold now, at least
-  **5.03:1 on every page** that uses it. A copy-anchored radial was tried first
-  and rejected for hugging the shell too tightly.
-- **`.page-head` moved into `tokens.css`** so the templates stop duplicating it.
-  H1 is 3.5rem / 2.5rem / 1.5rem. **Neighborhood and Gallery** converted onto it
-  with new eyebrow and lede copy; Neighborhood lost its photographic band.
-- **`SITE_ADDRESS` split from `ADDRESS`.** The building (9760 West Bay Harbor Dr,
-  Bay Harbor Islands) and the sales gallery (17651 Biscayne Blvd, Aventura) are
-  different places. This killed the shadowed `MAP_HREF` that had been sending the
-  Neighborhood map to the wrong one.
-- **Two font files changed** — read "a text-subset webfont fails silently" below,
-  then open item 5.
+#### Copy
 
-#### `02e110c` — the page band, the team page, the footer
-
-- **`PageBand.astro`** — the Residences photographic title band. It was on 10
-  templates at this commit; The Team and Artefacto have since moved onto
-  `.page-head`, leaving 7.
-- **Floor Plans is out of the navigation**; the page still builds.
-- **Gallery and Amenities use `page-head`**; every other titled page uses
-  `.band`. Neighborhood joined them in `7bcdcf9`, and Artefacto and The Team
-  after it — five in total now.
-- **The Team page is a deck of shuffling cards**, one ground colour per firm with
-  a radial pool behind each cut-out portrait.
-- **Footer**: three columns (contact · navigation · released residences), a
-  maker's credit, and a swipeable credits row below 640px.
-
-#### `1c2ee9f` — the homepage stack, the hero scrim, the forms
-
-- **Homepage sections 4–6 are edge-to-edge cards that shuffle** — sticky
-  siblings, each `100svh − header`, centred heading over a scrim
-  (`HomeStack.astro`, shared by `/` and `/v2/`).
-- **The v2 hero scrim now follows the copy.** It was centred at 52% of the
-  section while `align-content: end` puts the copy at 68–75%, so the darkest
-  point sat above the words. It is a `::before` on `.hero2__content` now, plus a
-  thin top veil for the transparent header's type.
-- **`.display` and `.heading` moved to weight 300** (was 100).
-- **A photograph sits behind the lead-capture band** on all 13 pages carrying
-  `#inquire`, under a 72% `--ground-alt` veil.
-- **Both forms reworked**: legend inline with its options and on their baseline,
-  placeholders instead of visible labels, weight 500, required-note removed.
+- The site now offers **3 and 4 bedroom** residences, not 2, 3 and 4 — in all
+  three languages, across the homepage, Residences and Floor Plans.
 
 ### Pages
-Home (`/`), Residences, Floor Plans, Gallery,
-Amenities, Neighborhood, Artefacto, The Team, Schedule, 27 unit pages, and
-Privacy / Terms / Accessibility — each in all three locales.
+Home (`/`), Residences, Floor Plans, Gallery, Amenities, Neighborhood,
+Artefacto, The Team, Schedule, **one page per RELEASED residence** (two today),
+and Privacy / Terms / Accessibility — each in all three locales.
+
+An unreleased residence has no page at all. That is the change that took the
+build from 120 pages to 42.
 
 ### One homepage
 `/` carries the sunset hero: centred copy and a logo that flies from the hero
@@ -303,8 +188,17 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
    Both are LATIN-SUBSET files. Read open item 5 before using either anywhere
    new.
 3. **Colours from tokens**, never raw hex in components (only `#b3261e` error red).
-4. **Invent nothing**: no prices, availability, testimonials, awards or bios.
-   Absence of price is deliberate — it's what drives the enquiry.
+4. **Invent nothing**: no availability, testimonials, awards or bios — and no
+   prices, MLS numbers, HOA figures or taxes that the owner has not supplied.
+
+   The rule used to read "no prices" flatly, on the reasoning that absence of
+   price is what drives the enquiry. That changed when the listing pages
+   arrived: 302 and 401 now print asking prices, both given by the owner. What
+   has NOT changed is the part that matters — a figure attached to a real
+   residence is a statement someone can be held to, so a missing one stays
+   missing. `src/data/listings.ts` renders every null as an absent row rather
+   than a placeholder, precisely so that nobody is tempted to fill one in to
+   make a page look finished.
 5. **All motion respects `prefers-reduced-motion`.**
 6. Gold `#ba935b` is **decorative**, not a text colour on light grounds — it
    measures 2.37:1 on sand. Use `--gold-ink` for text, `--ink-muted-aa` for
@@ -764,20 +658,36 @@ defect until the probe was examined.
 
 ## Open items, in the order I'd take them
 
-Two items closed in `7bcdcf9`: the page-band veil (was item 1, now ≥5.03:1
-everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
-**Item 2 (v1 vs v2, and the SEO contradiction) is closed** in the working tree
-— v2 was promoted to `/`; see "Uncommitted" above.
+Closed since this list was written: the page-band veil and the shadowed
+`MAP_HREF` (both in `7bcdcf9`), and v1-vs-v2 — v2 was promoted to `/` and is
+now committed.
 
 1. **Enable Pixel form capture** in Follow Up Boss (*Pixel → Tracking*). The
    Pixel (`WT-FBRKNWTI`) is installed and firing `/identify`, but **no lead is
    created** until this setting is on. Verified by network trace. Until then the
    form shows success and the lead goes nowhere. This is the only item that
    blocks the site doing its job.
-2. ~~Decide v1 vs v2, then fix the SEO contradiction.~~ **DONE** — v2's hero
-   moved to `/`, the alternate is retired, the canonical URL keeps its history,
-   and every logo points at `/` again. Not yet committed.
-3. **The locator's pins crowd, and they are burying the building.** At the
+
+   Note for testing: the pixel is deliberately **omitted from the GitHub Pages
+   review build**, so a submission there reaches nothing by design. Test against
+   a local production build, or a build with `REVIEW_DEPLOY` unset.
+
+2. **Supply the MLS sheet for residence 401.** It carries an asking price and
+   nothing else — no MLS number, HOA, taxes, parking or lot size — so those
+   rows are absent from its listing page. `src/data/listings.ts`, one object,
+   and the rows appear on their own.
+
+3. **Decide what happens to the review site's exposure.** The repo is public,
+   so `src/data/` pricing and the full photography set are readable by anyone
+   who finds it, and GitHub Pages has no password on any plan. Noindex keeps it
+   out of search; it is not access control. Going private needs GitHub Pro
+   before the site will build at all.
+
+4. **Attach the real domain when it exists.** Settings → Pages → Custom domain,
+   and nothing in the repo changes — the workflow reads the target from GitHub.
+   That switch also lifts the noindex and restores the CRM pixel, so it is a
+   launch, not a cosmetic change.
+5. **The locator's pins crowd, and they are burying the building.** At the
    owner-requested 32px, the gold Origin mark measures **85% covered** by
    numbered pins on "All", and **24 of 29 pins overlap** at least one other (48
    overlapping pairs). The owner asked for that mark to be visible across every
@@ -787,13 +697,13 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
    the Sunny Isles school pull it out, leaving a lot of empty mainland. Tighten
    it only if you regenerate the basemap AND every `x`/`y` together; they share
    one projection and changing one alone silently misplaces every pin.
-4. **17 places from the owner's list have no coordinates** and are absent from
+6. **17 places from the owner's list have no coordinates** and are absent from
    the locator, including both public sculptures and Ruth K. Broad K-8. Roads,
    routes and programmes were left out deliberately — they are not single points.
    Note also that all 36 Bal Harbour Shops tenants share the mall's pin, as do
    the restaurants inside each hotel, which is why pins are `aria-hidden` and
    the list carries the semantics.
-5. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
+7. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
    homepage header, both forms, the locator's list and site label) and SemiBold
    600 (the locator's category filter). The kit contains only 100/200/300. Either the
    brand's weight range has genuinely widened, in which case say so in
@@ -802,12 +712,12 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
    500 or 600 falls back, so keep those weights on known strings. The previous
    Medium file is NOT in git history in usable form — it was a broken subset and
    was replaced, with a copy kept only in the last session's scratchpad.
-6. **Native review of `es` and `pt-br`** before those locales go public. Also a
+8. **Native review of `es` and `pt-br`** before those locales go public. Also a
    counsel question on whether the translated consent text carries the same
    force — `TRANSLATION-REVIEW.md` has the detail. Two known English-only spots:
    the footer's maker credit ("Made with ♥ in Miami.") and the Neighborhood
    headline, which changed in English while es/pt-br still read "secluded".
-7. **Locator accessibility calls made deliberately at the owner's request.**
+9. **Locator accessibility calls made deliberately at the owner's request.**
    Each was flagged when made; revisit if any matters:
    - Dimmed groups run at `opacity: 0.15`, roughly **2.4:1** — below AA. The
      content is de-emphasised rather than removed and comes back in one click.
@@ -817,7 +727,7 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
      announced only by the chip's own `aria-pressed`.
    - The selected chip is distinguished by **colour alone**; the weight cue went
      when every chip moved to 600.
-8. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
+10. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
    deliberately NOT fixed in passing.** Both are the same root cause as the
    page-head eyebrow — raw `--gold` used as text — but they live in the header,
    which HANDOFF records as the most regression-prone area in this build, and
@@ -834,7 +744,7 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
      gold fill is the CTA's identity — so it probably needs the owner, not a
      fix. Large-text AA (3:1) is also missed, narrowly.
 
-9. **The amenity deck needs more photographs, and three cards need a line.**
+11. **The amenity deck needs more photographs, and three cards need a line.**
    Four of the six folders hold a SINGLE image — `clubroom`, `fitness-center`,
    `kidsroom`, `pet-zone` — so those cards drift but never cross-fade; only
    rooftop and aqua club have five each. Drop files into the folder and they
@@ -845,10 +755,10 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
    and `pet-zone/origin-pets.jpg` looks like the same photograph already
    tracked as `amenities/pet-park-dogs.jpg`.
 
-10. **36 warnings** from the first review round were never worked — only the
+12. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-11. **Assets the owner owes**: real photographs for the five templates still on
-   `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and all 27 unit
+13. **Assets the owner owes**: real photographs for the five templates still on
+   `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and the residence
    pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
    residences — only 702 had one.
@@ -886,8 +796,11 @@ everywhere) and the shadowed `MAP_HREF` (was item 4, now `SITE_MAP_HREF`).
 
 ## What has *not* been done
 
-- Nothing is deployed. This exists only locally; `originresidences.com` is still
-  the old WordPress site.
+- **The public site is unchanged.** `originresidences.com` is still the old
+  WordPress build. What exists is a client-review copy on GitHub Pages —
+  noindex, no sitemap, no CRM pixel — at
+  https://reachmiami.github.io/origin-residences/. Attaching the real domain is
+  open item 4 and is a launch, not a deployment step.
 - No real-device testing. Emulated viewports only — iOS Safari and Android
   Chrome differ on video autoplay, `100svh` and font rendering.
 - The IDX account system (login, favourites, saved searches, mortgage
