@@ -41,7 +41,7 @@ A boutique 27-residence waterfront building whose interiors are a collaboration 
 - **No secrets in the client.** The Follow Up Boss API key must never ship in static JS (it grants full CRM read/write). Lead delivery goes through a form-relay service that emails the FUB lead-parsing address; the FUB Pixel handles visit tracking. Forms are written against a swappable submit adapter so a serverless proxy can replace the relay later without a rebuild.
 - **Dropped from the incumbent site** (cannot function without a backend, user-confirmed): login, register, favorites, saved searches, viewing history, password reset, mortgage calculator, email-to-a-friend, and the IDX plugin's modal furniture.
 - **27 residences**, levels 3–7, across 4 plan families ranging 2 BR / 2.5 BA to 4 BR + Den / 4.5 BA. Interior 1,302–2,328 sq. ft.; total 1,437–2,799 sq. ft. Exact per-unit figures extracted and held in the content model.
-- **No prices, no availability status** (user-confirmed). Price is a conversation; its absence is what drives the inquiry.
+- **Prices where the owner gives them; nothing invented.** This originally read "no prices, no availability status (user-confirmed)", on the reasoning that price is a conversation and its absence drives the inquiry. That held until the developer put inventory on the market: **302 and 401 now publish asking prices**, supplied by the owner, and availability IS stated — but only through `src/data/released.json`, which is the one switch that decides what is public. Anything the owner has not supplied stays absent rather than estimated.
 - **No commercial map service.** The user ruled out Google Maps on the billing-account obligation and asked for something styleable and stripped of layers. The neighbourhood locator is therefore a committed SVG basemap generated once from OpenStreetMap: every colour is a brand token, nothing loads at runtime, and there is no key to leak or bill. The trade accepted was that it does not pan or zoom.
 - **Trilingual: English, Spanish, Portuguese (pt-BR)** (user-confirmed). English is source. ES and pt-BR are AI-authored and flagged for native-speaker review before launch — a confirmed open item, not a shipped guarantee.
 - Conversion is tiered (user-confirmed): *Inquire* is the persistent nav CTA for volume; *Schedule Private Presentation* is the emphasized close on unit pages and long-scroll endings.
@@ -56,7 +56,7 @@ Extracted from the live site and now authoritative:
 - **Typography.** Montserrat, self-hosted, in **light weights — Thin 100, ExtraLight 200, Light 300**. Set predominantly in uppercase with wide letter-spacing. The lightness and the tracking *are* the brand signal; heavy weights break it. (Lora appears in a Google Fonts request but is not part of the self-hosted brand kit.)
 
   **Two exceptions the user authorised in build, in this order:** Montserrat **Medium 500**, first for the homepage header where light weights were illegible over the sunset photograph, then extended to both forms and the neighbourhood locator's list; and **SemiBold 600**, for the locator's category filter, added after the user asked twice for a bolder filter and 500 was already the heaviest face loaded. Neither is in the incumbent kit. **This is an unresolved brand question, not a settled widening** — either the range has genuinely changed and this section should say so plainly, or those uses come back down. Do not treat the exceptions as licence to reach for weight generally; hierarchy still comes from scale, tracking and case.
-- **Logo.** `Logo_Carla.svg` (wordmark, 231.8 × 45.0, white fill), plus `logo-sidebar.png` and `LOGOPP.png`. Held in `scratchpad/scrape/brand/`.
+- **Logo.** `Logo_Carla.svg` (wordmark, 231.8 × 45.0, white fill), plus `logo-sidebar.png` and `LOGOPP.png`. Now in `src/assets/brand/`, prefixed `partner-`.
 - **Hero motion.** An existing brand video, `seis_2-1.mp4`. It no longer autoplays behind the homepage headline: the user chose the sunset-still hero, and the film now plays on demand from that hero's VIEW TRAILER button. The autoplay treatment is retired but kept in `src/components/Hero.astro`.
 - Name: **ORIGIN** / Origin Residences. Legal entity in the terms: Bay Harbour Investment, Inc.
 - Confirmed partner credits that must remain: Developed By, Interiors By (Artefacto), Design By, Architecture By, Construction By, Exclusive Sales By.
@@ -67,22 +67,45 @@ Extracted from the live site and now authoritative:
 
 ## Evidence on Hand
 
-Real, extracted from the incumbent site — nothing here is fabricated:
+Real, extracted from the incumbent site — nothing here is fabricated.
 
-- **95 unique media assets, 24MB**, from the IDXBoost S3 bucket (`scratchpad/scrape/assets/`).
+A note on the paths below. The scrape landed in a `scratchpad/` working
+directory that was never committed and no longer exists; what survived was
+brought into `src/` as real source. The original paths are kept only as
+provenance — where a thing CAME FROM — and are not somewhere you can go and
+look. Where the artefact still exists, the live path is given instead.
+
+- **95 unique media assets, 24MB**, from the IDXBoost S3 bucket. The ones in
+  use live under `src/assets/`, sorted by the page they serve.
 - **27 unit records** with verified bed/bath, interior, exterior, and total areas in sq. ft. and m² (`src/data/units.raw.json`). All 27 are kept; `src/data/released.json` decides which are public, and only released ones get a page. Sales facts — price, MLS number, HOA, taxes — are separate, in `src/data/listings.ts`, because they exist only while a residence is listed.
-- **Verbatim marketing copy** for all 9 core pages (`scratchpad/scrape/text/`).
+- **Verbatim marketing copy** for all 9 core pages. It is now the English half
+  of `src/content/pages/*.ts`; `es` and `pt-br` are AI-authored beside it and
+  still await native review — see TRANSLATION-REVIEW.md.
 - Contact, **user-confirmed and authoritative**: (305) 458-1100 · germanr.realty@gmail.com. Addresses per Operating Context above — the building at 9760 West Bay Harbor Dr, Bay Harbor Islands, FL 33154, and the sales gallery at 17651 Biscayne Blvd, Aventura, FL 33160. Phone, email and both addresses all live in `src/data/contact.ts` — the single source.
 - For the record, so nobody "corrects" it back: the incumbent site listed **(786) 850-8998** at scrape time. That number is superseded. The email and the building address were scraped correctly and still stand.
 - Legal: existing Terms of Use and Privacy Policy text, and the TCPA-style consent language attached to every form.
 
-**Absences future work must not fabricate:** no prices, no availability status, no testimonials, no sales figures, no completion date, no awards. Only one unit (702) had a linked PDF; the rest are not on hand.
+**Absences future work must not fabricate:** no availability status, no testimonials, no sales figures, no completion date, no awards — and no price, MLS number, HOA figure or tax that the owner has not supplied.
+
+That last clause is a correction, and it matters. This line read "no prices"
+flatly until the listing pages arrived. **Two residences now print asking
+prices** — 302 at $4,223,000 and 401 at $4,161,500 — both given by the owner,
+and 302 carries a full MLS sheet. The rule was never "the site shows no
+prices"; it was "nothing here is invented", and that still holds exactly.
+`src/data/listings.ts` renders every missing figure as an ABSENT ROW rather
+than a placeholder, so a page can be honestly incomplete instead of quietly
+fabricated.
+
+**Floor plans:** the scrape found only one linked PDF (unit 702). The owner has
+since supplied drawings for **302, 401 and 701**, held in
+`src/listings/floorplans/` and served per residence. The rest are still not on
+hand.
 
 ## Product Principles
 
 1. **The lead is the product.** Every design decision is judged by whether it produces a qualified, complete lead record — not by traffic or time-on-site.
 2. **Specs are content, not chrome.** Square footage, bed/bath, and floor plans are what buyers actually compare; they get typographic weight, not fine print.
-3. **Absence is deliberate.** No price, no availability, no invented proof. The gap is the reason to make contact, and it must never be filled with fiction.
+3. **Absence is deliberate — and absence is not the same as secrecy.** Where the owner has given a figure, it is published; where he has not, the gap stays a gap. No availability beyond the released list, no invented proof, and never a number chosen to make a page look finished. The gap is a reason to make contact; fiction would be a reason not to trust the site.
 4. **Weight is a defect.** The incumbent ships 350–720KB of markup per page before images. Nothing earns its bytes by default.
 5. **Restraint is the luxury signal.** Declarative copy, generous space, and motion that reveals rather than performs.
 

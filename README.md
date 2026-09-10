@@ -82,8 +82,11 @@ lists them and — more importantly — the ways a measurement can lie to you.
 3. **Colours come from tokens**, never raw hex in components.
 4. **No modals or lightboxes** — an explicit client requirement. Reveals happen
    in place or through navigation.
-5. **Invent nothing.** No prices, availability, testimonials, awards or bios.
-   The absence of price is deliberate — it's what drives the inquiry.
+5. **Invent nothing.** No testimonials, awards or bios, and no price, MLS
+   number, HOA figure or tax the owner has not supplied. Owner-supplied prices
+   ARE published — two residences carry one — so the rule is about fabrication,
+   not about withholding. A missing figure renders as an absent row, never a
+   placeholder.
 6. **All motion respects `prefers-reduced-motion`.**
 
 ## Content sources
