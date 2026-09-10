@@ -12,6 +12,11 @@ import { useTranslations, localizePath, asset, type Locale } from '../i18n/ui';
 import montserratThin from '../assets/fonts/Montserrat-Thin.woff2?url';
 import montserratLight from '../assets/fonts/Montserrat-Light.woff2?url';
 
+/* The share-card loop. Imported rather than written as a path so Vite emits it
+   and hashes it — a share card is cached hard by every platform that reads it,
+   and a content hash is what makes a replacement actually take. */
+import ogVideo from '../assets/og/origin-residences-loop.mp4?url';
+
 interface Props {
   title: string;
   description: string;
@@ -77,8 +82,37 @@ const hreflangFor: Record<Locale, string> = { en: 'en-US', es: 'es-ES', 'pt-br':
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    {/* The still comes FIRST on purpose. It is the fallback in the only sense
+        Open Graph has one: a platform that cannot or will not play video uses
+        the image instead, and several read the first image they find. Nothing
+        here makes a platform play the loop — that is its decision — so the
+        card has to be complete without it. */}
     <meta property="og:image" content={`${site}${asset(ogImage)}`} />
+
+    {/* No og:image:width/height. They are optional — a scraper fetches the
+        image and measures it — and `ogImage` is a prop any page can override,
+        so a hardcoded pair is a claim that goes wrong the first time someone
+        passes a different picture. It nearly did here: the default is 1200x675
+        and the first draft of this block asserted 630, copied from the video
+        beside it. The video's dimensions ARE stated, because og:video is
+        skipped without them and it is one fixed file. */}
+
+    {/* 1200x630, H.264, 15.8s — measured off the file, not assumed. Dimensions
+        are required: without them most scrapers skip the video outright.
+        `secure_url` is the one Facebook actually reads; plain `og:video` is
+        kept for readers that only know the older property. */}
+    <meta property="og:video" content={`${site}${ogVideo}`} />
+    <meta property="og:video:secure_url" content={`${site}${ogVideo}`} />
+    <meta property="og:video:type" content="video/mp4" />
+    <meta property="og:video:width" content="1200" />
+    <meta property="og:video:height" content="630" />
+
+    {/* Deliberately still `summary_large_image`. X plays video only through a
+        Player card, which needs a separate HTTPS player page and its own
+        approval — `og:video` alone does nothing there. This card shows the
+        still, which is the intended fallback rather than a broken promise. */}
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={`${site}${asset(ogImage)}`} />
 
     <meta name="theme-color" content="#082341" />
     <link rel="icon" href={asset("favicon.svg")} type="image/svg+xml" />
