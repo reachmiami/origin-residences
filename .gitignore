@@ -19,3 +19,10 @@ npm-debug.log*
 # notes, exports). Whatever gets derived from them is committed as real source;
 # the working file itself stays out of the repo.
 _working/
+
+# Video masters. The originals the owner supplies are 87-115MB each and are not
+# what ships — public/video/ holds the web encodes made from them, and those ARE
+# committed. Keeping the masters out is the same call the camera-original rule
+# above makes: the source lives in the asset library, the derived web file lives
+# in the repo. Re-encode with the recipe in HANDOFF.md if one needs replacing.
+src/assets/home/*.mp4

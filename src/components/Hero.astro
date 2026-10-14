@@ -10,10 +10,15 @@ import { getCopy } from '../content/copy';
  * what `/` mounts now. Kept on disk at the owner's request in case that
  * decision is reversed — so do not "clean it up" as dead code.
  *
- * The brand film itself is not retired: HomeHero plays the same
- * /video/origin-hero.mp4 on demand behind its VIEW TRAILER button. The only
- * other thing that belongs to this file is /hero-poster.jpg, also unused.
- * `c.home.heroCta` is likewise unused but left in all three locales.
+ * It keeps /video/origin-hero.mp4, the short silent loop, because this hero
+ * AUTOPLAYS its film full-bleed — a background needs a file small enough to
+ * start instantly and carry no sound. HomeHero's VIEW TRAILER now opens the
+ * developer's official film instead (origin-trailer.mp4, 118s with audio),
+ * which is the right thing behind a button and the wrong thing behind a
+ * headline. The two are deliberately different files.
+ *
+ * The only other thing that belongs to this file is /hero-poster.jpg, also
+ * unused. `c.home.heroCta` is likewise unused but left in all three locales.
  *
  * If it is ever remounted: it pairs with `darkHeader`, NOT
  * `headerVariant="home"` — it has no flying logo, so the bar must carry its

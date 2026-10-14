@@ -43,8 +43,19 @@ const t = useTranslations(locale);
     </svg>
   </button>
 
-  <video class="trailer__video" data-trailer-video playsinline controls preload="none">
-    <source src={asset("video/origin-hero.mp4")} type="video/mp4" />
+  {/* The developer's official film. `preload="none"` is deliberate: this is a
+      28MB file behind a button, and nobody should pay for it until they press
+      play. The poster is a still from the film itself, so the frame the dialog
+      opens on belongs to the thing about to play. */}
+  <video
+    class="trailer__video"
+    data-trailer-video
+    playsinline
+    controls
+    preload="none"
+    poster={asset("video/origin-trailer-poster.jpg")}
+  >
+    <source src={asset("video/origin-trailer.mp4")} type="video/mp4" />
   </video>
 </div>
 

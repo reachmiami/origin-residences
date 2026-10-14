@@ -386,6 +386,61 @@ origin is a `github.io` address:
 Both are off the moment a real domain is attached, which is the correct
 behaviour for a launch but worth knowing before you attach one.
 
+## Video — what ships, and how it was made
+
+Two files, deliberately different:
+
+| File | Where | Size | Why |
+| --- | --- | --- | --- |
+| `origin-hero.mp4` | `Hero.astro`, the retired autoplay hero | 1.5MB | A background autoplays silently behind a headline; it has to start instantly and carry no sound |
+| `origin-trailer.mp4` | HomeHero's VIEW TRAILER dialog | 28MB | The developer's official film, 118s with audio — right behind a button, wrong behind a headline |
+
+The trailer loads `preload="none"` with a poster taken from the film itself, so
+nothing downloads until someone presses play.
+
+### Re-encoding a replacement
+
+The masters the owner supplies run 87–115MB and are **git-ignored** —
+`src/assets/home/*.mp4`. The repo carries only the web encode. Same call the
+camera-original rule makes: source in the asset library, derived file in the
+repo.
+
+```
+ffmpeg -i <master>.mp4 -vf "scale=-2:720" \
+  -c:v libx264 -preset slower -crf 26 -profile:v high -level 4.0 \
+  -pix_fmt yuv420p -g 48 -c:a aac -b:a 112k -ac 2 \
+  -movflags +faststart public/video/origin-trailer.mp4
+```
+
+`+faststart` puts the index before the data so playback can begin before the
+file finishes arriving — verify it with `moov` appearing earlier in the file
+than `mdat`.
+
+**720p, not 1080p, and that was measured rather than assumed.** Aerial
+footage compresses badly: 1080p CRF 23 came out at 68MB, barely a third off the
+source. Comparing SSIM against the master across all 2,829 frames:
+
+| Encode | Size | SSIM |
+| --- | --- | --- |
+| 720p CRF 26 | 25MB | 0.8982 |
+| 720p CRF 28 | 20MB | 0.8955 |
+| 1080p CRF 28 | 39MB | 0.9018 |
+
+720p at 26 is within 0.004 of 1080p at 28 for a third less file. Frames pulled
+from both and compared side by side showed no visible difference at full width.
+
+A warning about measuring this: the first SSIM run reported **exactly 1.0000**,
+which is impossible — the filter graph was comparing a stream with itself.
+A perfect score means a broken measurement, not a perfect encode.
+
+### Playwright cannot test it
+
+Bundled Chromium ships without the H.264 decoder, so a `<video>` tag with an
+MP4 source silently never fires `loadedmetadata` — a test waiting on it times
+out and looks like a broken file. Launch with `channel: 'chrome'` to get the
+system browser, which has the codec. That is how the trailer was verified
+actually playing rather than merely present.
+
 ## Gotchas that cost real debugging time
 
 Do not rediscover these.
