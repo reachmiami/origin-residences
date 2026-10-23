@@ -80,7 +80,7 @@ const built = await Promise.all(
   data-fade={FADE_MS}
   style={`--kb-interval:${interval}s; --kb-fade:${FADE_MS}ms`}
 >
-  {images.map((img, i) => (
+  {images.map((_img, i) => (
     <img
       class:list={['kb__slide', { 'is-active': i === 0, 'kb__slide--alt': i % 2 === 1 }]}
       src={i === 0 ? built[i].src : undefined}

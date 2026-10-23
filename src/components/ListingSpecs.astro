@@ -21,6 +21,15 @@ export interface SpecRow {
   label: string;
   /** Null, undefined or '' drops the row. Zero does not. */
   value: string | number | null | undefined;
+  /**
+   * Render `value` as markup rather than text.
+   *
+   * One caller needs it: days-on-market, which ships an empty <time datetime>
+   * for a script to fill, because the figure is stale the instant the build
+   * ends. Such a row starts `hidden` and the script reveals it, so a reader
+   * with no script sees nothing rather than an empty label.
+   */
+  html?: boolean;
 }
 
 interface Props {
@@ -53,9 +62,11 @@ const hasChildren = Astro.slots.has('default');
     {shown.length > 0 && (
       <dl class="specs__list">
         {shown.map((row) => (
-          <div class="specs__row">
+          <div class="specs__row" data-spec-row hidden={row.html || undefined}>
             <dt class="specs__label">{row.label}</dt>
-            <dd class="specs__value">{row.value}</dd>
+            {row.html
+              ? <dd class="specs__value" set:html={String(row.value)} />
+              : <dd class="specs__value">{row.value}</dd>}
           </div>
         ))}
       </dl>

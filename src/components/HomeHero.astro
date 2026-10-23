@@ -374,8 +374,14 @@ const t = useTranslations(locale);
            `controls`, and focus never reached them. A keyboard visitor had no
            play, pause, seek, mute or fullscreen on a 118-second film, while a
            mouse visitor had all of it. */
-        const stops = [closeBtn, video].filter(
-          (el): el is HTMLElement => !!el && !el.hasAttribute('disabled'),
+        /* Typed as the union the array actually holds. The first version
+           asserted `el is HTMLElement`, which WIDENS rather than narrows — the
+           array is (HTMLButtonElement | HTMLVideoElement)[] — and TypeScript
+           rejects a predicate whose type its parameter cannot satisfy. It ran
+           correctly anyway, because types are erased; it was wrong in the one
+           way nothing at runtime would ever tell us. */
+        const stops: (HTMLButtonElement | HTMLVideoElement)[] = [closeBtn, video].filter(
+          (el) => !!el && !el.hasAttribute('disabled'),
         );
         if (stops.length < 2) return;
 

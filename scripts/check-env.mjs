@@ -25,6 +25,50 @@ const SECRET_SHAPES = [
 
 const problems = [];
 
+/**
+ * One PUBLIC_ variable, from wherever it came.
+ *
+ * Extracted so the environment and the .env files are judged identically. The
+ * guard used to read ONLY the files — which misses the realistic path by which
+ * a key gets added next. Nobody puts a credential in a committed file; they
+ * put it in a GitHub Actions secret and wire it into the workflow's `env:`
+ * block, believing that keeps it out of the repo. It does. It does NOT keep it
+ * out of the client bundle: Astro inlines every PUBLIC_* value into the
+ * JavaScript it ships, so a key supplied that way is published to every
+ * visitor, and the one guard meant to stop it was looking somewhere else.
+ */
+function inspect(source, key, value) {
+  if (!key.startsWith('PUBLIC_') || !value) return;
+
+  // Name-based check: nothing CRM-ish belongs in a PUBLIC_ variable.
+  if (/FUB|FOLLOW.?UP|API.?KEY|SECRET|TOKEN|PASSWORD/i.test(key)) {
+    problems.push(`${source}: ${key} is PUBLIC_ but its name implies a credential.`);
+    return;
+  }
+
+  // Shape-based check: the relay key is the one PUBLIC_ value we expect, and
+  // real relay access keys are UUIDs.
+  if (key === 'PUBLIC_FORM_RELAY_KEY' && !UUID.test(value)) {
+    const hit = SECRET_SHAPES.find((s) => s.re.test(value));
+    problems.push(
+      `${source}: PUBLIC_FORM_RELAY_KEY is not a UUID` +
+        (hit ? ` and matches a ${hit.why}.` : '.') +
+        '\n      Relay access keys (Web3Forms, Formspree, Basin) are UUIDs.' +
+        '\n      If you pasted a Follow Up Boss API key here, remove it and rotate it.',
+    );
+    return;
+  }
+
+  const hit = SECRET_SHAPES.find((s) => s.re.test(value));
+  if (hit) problems.push(`${source}: ${key} looks like a ${hit.why}.`);
+}
+
+/* The environment first — in CI this is the only source that exists, because
+   .env is gitignored and never checked out. */
+for (const [key, value] of Object.entries(process.env)) {
+  inspect('environment', key, value);
+}
+
 for (const file of ENV_FILES) {
   const full = path.resolve(process.cwd(), file);
   if (!fs.existsSync(full)) continue;
@@ -36,31 +80,11 @@ for (const file of ENV_FILES) {
     const eq = line.indexOf('=');
     if (eq === -1) continue;
 
-    const key = line.slice(0, eq).trim();
-    const value = line.slice(eq + 1).trim().replace(/^['"]|['"]$/g, '');
-    if (!key.startsWith('PUBLIC_') || !value) continue;
-
-    // Name-based check: nothing CRM-ish belongs in a PUBLIC_ variable.
-    if (/FUB|FOLLOW.?UP|API.?KEY|SECRET|TOKEN|PASSWORD/i.test(key)) {
-      problems.push(`${file}: ${key} is PUBLIC_ but its name implies a credential.`);
-      continue;
-    }
-
-    // Shape-based check: the relay key is the one PUBLIC_ value we expect, and
-    // real relay access keys are UUIDs.
-    if (key === 'PUBLIC_FORM_RELAY_KEY' && !UUID.test(value)) {
-      const hit = SECRET_SHAPES.find((s) => s.re.test(value));
-      problems.push(
-        `${file}: PUBLIC_FORM_RELAY_KEY is not a UUID` +
-          (hit ? ` and matches a ${hit.why}.` : '.') +
-          '\n      Relay access keys (Web3Forms, Formspree, Basin) are UUIDs.' +
-          '\n      If you pasted a Follow Up Boss API key here, remove it and rotate it.',
-      );
-      continue;
-    }
-
-    const hit = SECRET_SHAPES.find((s) => s.re.test(value));
-    if (hit) problems.push(`${file}: ${key} looks like a ${hit.why}.`);
+    inspect(
+      file,
+      line.slice(0, eq).trim(),
+      line.slice(eq + 1).trim().replace(/^['"]|['"]$/g, ''),
+    );
   }
 }
 

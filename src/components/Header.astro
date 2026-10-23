@@ -4,7 +4,7 @@ import { unitsByLevel, unitCount } from '../data/units';
 import { exploreLinks } from '../data/nav';
 import SalesContact from './SalesContact.astro';
 import LangSwitch from './LangSwitch.astro';
-import { ADDRESS, ADDRESS_LINES, PHONE, PHONE_HREF } from '../data/contact';
+import {ADDRESS_LINES, PHONE, PHONE_HREF} from '../data/contact';
 
 interface Props {
   locale: Locale;
@@ -870,8 +870,6 @@ const isCurrent = (p: string) => current === L(p);
     const FOCUSABLE =
       'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
     let lastFocused: HTMLElement | null = null;
-
-    const isOpen = () => header.classList.contains('is-open');
 
     /* Opening, the bar and the panel move together. Closing, the panel goes
        first and the bar drains only once it is out of the way — a staged

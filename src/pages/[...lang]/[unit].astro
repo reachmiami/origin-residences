@@ -144,7 +144,17 @@ const basicRows: SpecRow[] = [
   { label: l.yearBuilt, value: BUILDING.yearBuilt },
   { label: l.totalSqft, value: formatSqft(unit.totalSqft) },
   { label: l.dateListed, value: listedDisplay },
-  { label: l.daysOnMarket, value: listing.daysOnMarket },
+  /* Rendered as an element, not a number: the value is wrong the moment the
+     build finishes, so it is filled in on load. The row is dropped entirely
+     without script — the listing date above it carries the same information
+     in a form that does not go stale. */
+  {
+    label: l.daysOnMarket,
+    value: facts.dateListed
+      ? `<time datetime="${facts.dateListed}" data-days-on-market hidden></time>`
+      : null,
+    html: true,
+  },
 ];
 
 const exteriorRows: SpecRow[] = [
@@ -288,6 +298,20 @@ const stats = [
 
   <PresentationCTA locale={locale} />
 </Base>
+<script>
+  /* Days on market, computed where the clock is honest. The server cannot do
+     this: a static page is built once and read for months. */
+  document.querySelectorAll<HTMLTimeElement>('[data-days-on-market]').forEach((el) => {
+    const listed = Date.parse(el.dateTime);
+    if (Number.isNaN(listed)) return;
+    const days = Math.max(0, Math.floor((Date.now() - listed) / 86_400_000));
+    el.textContent = days.toLocaleString(document.documentElement.lang || 'en');
+    el.hidden = false;
+    /* The row is hidden until there is something true to put in it. */
+    el.closest<HTMLElement>('[data-spec-row]')?.removeAttribute('hidden');
+  });
+</script>
+
 
 <style>
   .listing {

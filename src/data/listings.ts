@@ -13,8 +13,12 @@
  *
  * ─── WHAT IS AND IS NOT FILLED IN ──────────────────────────────────────────
  * All three residences now carry an asking price. Unit 302 is COMPLETE,
- * transcribed from its live MLS listing (A11783461); 401 and 701 have their
- * price and nothing else, because no MLS sheet has been supplied for them.
+ * transcribed from its live MLS listing (A11783461); 401 has its price and
+ * nothing else, because no MLS sheet has been supplied for it.
+ *
+ * 701 still has an entry below. It was withdrawn from `released.json` and so
+ * has no page — the entry is harmless and is kept so that re-releasing it is
+ * one edit rather than two.
  *
  * The remaining fields on those two stay `null` rather than being guessed. A
  * null renders as "Price Upon Request" in the headline slots and makes its row
@@ -155,8 +159,7 @@ export interface Listing {
   bathsHalf: number;
   /** Price ÷ interior sq. ft., rounded. Null whenever the price is. */
   pricePerSqft: number | null;
-  /** Whole days since listing, computed at build. Null when no date. */
-  daysOnMarket: number | null;
+  /* No `daysOnMarket` field. It cannot be computed here — see build(). */
   /** "9760 West Bay Harbor Dr #302" */
   addressLine: string;
 }
@@ -173,12 +176,20 @@ function build(unit: Unit): Listing {
   };
   const { full, half } = split(unit.baths);
 
-  /* Days on market is DERIVED, never transcribed. The MLS sheet prints a
-     number that was true on the day it was read and is wrong the next
-     morning; the listing date is the durable fact. */
-  const daysOnMarket = facts.dateListed
-    ? Math.max(0, Math.floor((Date.now() - Date.parse(facts.dateListed)) / 86_400_000))
-    : null;
+  /* Days on market is DERIVED, never transcribed — and derived IN THE BROWSER,
+     not here.
+     -------------------------------------------------------------------------
+     The comment above this used to end at "derived", and the code then called
+     `Date.now()` — at BUILD time. On a static site that freezes the answer: it
+     was right the day it deployed and wrong every day after, which is the
+     exact fault the comment was written to avoid. Measured at the time of
+     writing: 557 days, and a build left alone for a month would have
+     under-reported by thirty.
+
+     So the listing DATE travels to the page and the arithmetic happens on
+     render. `[unit].astro` emits it in a <time datetime> that a few lines of
+     script correct on load; with no script the row simply does not appear,
+     which is honest — the listing date is printed beside it either way. */
 
   return {
     unit,
@@ -189,7 +200,6 @@ function build(unit: Unit): Listing {
       facts.price && unit.interiorSqft
         ? Math.round(facts.price / unit.interiorSqft)
         : null,
-    daysOnMarket,
     addressLine: `${BUILDING.street} #${unit.number}`,
   };
 }

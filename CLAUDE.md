@@ -58,10 +58,14 @@ prose about it is guilty until checked.
 
 ## How this project verifies work
 
-There is no test suite. Verification is Playwright scripts in the project root,
-run against a **build** — `assert-build.mjs` refuses to measure a dev server,
-because a dev server reports confident numbers from a module graph that can lag
-the source.
+**`npm run verify`** — typecheck, build, output assertion. CI runs the same
+three and will not publish if any fails. Run it before trusting a deploy;
+`npm run build` alone exits 0 on a build that lost pages.
+
+Beyond that there is no test suite. Verification is Playwright scripts in the
+project root, run against a **build** — `assert-build.mjs` refuses to measure a
+dev server, because a dev server reports confident numbers from a module graph
+that can lag the source.
 
 **Measure; do not judge from screenshots.** Every real defect in this build so
 far was invisible in a screenshot and obvious in a measurement — and several

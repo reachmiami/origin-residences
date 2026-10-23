@@ -49,7 +49,11 @@ qualified enquiry, not on traffic.
 - **Deployed** for client review at
   https://reachmiami.github.io/origin-residences/ — noindex, no CRM pixel, no
   sitemap. The live public site is still the old WordPress build
-- Home page weight **~105KB vs 719KB** on the incumbent
+- Home page **markup 89KB raw / 26KB gzipped**, against 719KB of markup
+  on the incumbent — the comparison README.md defines, measured rather than
+  recalled. Full homepage load with images is **~1.15MB**; the two figures
+  answer different questions and the old line conflated them, claiming
+  "~105KB" which matched neither.
 
 The page count dropped from 120 because unreleased residences stopped being
 built — 25 of them across three locales. That is a deliberate change, not a
@@ -167,9 +171,20 @@ styles per file. Anything global under that name will collide with all three.
 
 ### Inventory visibility
 Edit **`src/data/released.json`** and rebuild. Nothing else. Currently
-`["302","401","701"]`. All 27 pages are still generated; the hidden 24 are
-**unlinked**, carry `noindex`, and are excluded from the sitemap — reachable by
-direct URL so a broker can be sent one pre-release.
+`["302","401"]`.
+
+An unreleased residence gets **no page at all** — no URL, no floor-plan PDF, no
+drawing. It is not an unlinked page; it 404s.
+
+That is a change from the original design, and the reason matters: the old
+arrangement generated all 27 and left the hidden ones unlinked and `noindex`
+but reachable by URL, so one could be sent to a broker before release. A hidden
+page still served its asking price to anyone who guessed the address. **Do not
+reach for a pre-release URL — it does not exist.** Send the PDF directly, or a
+build preview. The full reasoning is at the top of `src/data/released.ts`.
+
+This section said the opposite for a month after the behaviour changed, and
+contradicted another section of this same file seventy lines further down.
 
 `units` (the default export) is **released-only**; `allUnits` is the full set.
 That way a surface nobody audited fails by *hiding* a unit rather than leaking one.
@@ -441,6 +456,51 @@ out and looks like a broken file. Launch with `channel: 'chrome'` to get the
 system browser, which has the codec. That is how the trailer was verified
 actually playing rather than merely present.
 
+## Verification — what now runs, and what it catches
+
+`npm run verify` is the one command: typecheck → build → output assertion. CI
+runs the same three. Before this the pipeline was checkout → install → build →
+publish, with nothing able to say no.
+
+| Gate | Catches |
+| --- | --- |
+| `npm run check` (`astro check`) | Type errors across 122 files, including every `.astro` frontmatter and the three-locale copy contract |
+| `npm run build` | Compile and render failures |
+| `node scripts/assert-output.mjs` | A build that **succeeds and emits too little** |
+
+### Why the output assertion exists
+
+The dangerous failure here is not a crash — a crash fails the build and nothing
+ships. It is a build that exits 0 with pages missing: an emptied
+`released.json`, a `getStaticPaths()` returning `[]`, a locale dropped from
+`locales`. All three publish a smaller or blank site, and
+`upload-pages-artifact` only checks the directory exists.
+
+It asserts **floors, not exact counts** — 30 pages, 10 per locale, 11 named
+pages per locale, at least one residence. An exact count would need editing
+every time a residence is released, and a check nobody can trust is a check
+nobody updates. Proven: emptying `released.json` builds green and the guard
+rejects it.
+
+### Type checking was absent entirely
+
+There was no `tsconfig.json` in this project, so `astro check` had never run —
+the script existed and dropped into an interactive install prompt. ~16,000
+lines of TypeScript, written as though checked (60 interfaces, a typed `Props`
+on every component, `// @ts-check` at the top of the config) with nothing
+reading any of it.
+
+The first run found **one error**, in code written an hour earlier: a type
+predicate that widened instead of narrowing. It ran correctly — types are
+erased — and was wrong in the one way nothing at runtime would ever report.
+That is the argument for the gate in a sentence.
+
+`strict`, deliberately not `strictest`: `noUncheckedIndexedAccess` is right in
+principle but this codebase indexes keyed records constantly, and it would bury
+a real first signal under hundreds of mechanical ones. Those lookups are a real
+weakness — the fix is to make them throw on a miss, not to make the compiler
+shout about each one.
+
 ## Gotchas that cost real debugging time
 
 Do not rediscover these.
@@ -453,6 +513,20 @@ column was only as tall as the form. `.listing__aside` now sets `align-self:
 stretch` to take the full row height back; the left column keeps `start`. A
 sticky child needs a tall parent, and a grid item is only as tall as you let it
 be.
+
+**A build can succeed and publish less than it should.** `astro build` exits 0
+when a data file empties out. `scripts/assert-output.mjs` is the floor; run
+`npm run verify`, not `npm run build`, before trusting a deploy.
+
+**`??` does not catch an empty string.** `BASE_PATH=""` built a root-shaped
+site that would 404 an entire project-page deploy, with CI green. Empty
+`SITE_URL` fails loudly, which is why only `base` had the hole. It uses `||`
+now.
+
+**`check-env.mjs` reads `process.env` as well as `.env*`.** It used to read
+only the files — missing the realistic vector, since nobody commits a
+credential; they put it in a GitHub Actions secret and wire it into `env:`,
+which keeps it out of the repo and not out of the client bundle.
 
 **Astro scopes component styles, so page-level markup does not inherit them.**
 The amenities and floor-plan blocks were first written as `<section
@@ -818,9 +892,12 @@ now committed.
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
    residences — only 702 had one.
 
-   Two asset folders are **untracked on purpose**, not strays: `amenities/random/`
-   and `neighborhood/origin-palms.jpg` are staged for pages not yet built, and
-   should be committed by whatever work starts using them. The stray team
+   Two assets are **untracked on purpose**, not strays: `amenities/random/` and
+   `neighborhood/origin-palms.jpg` are staged for pages not yet built. Both are
+   now in `.gitignore` — `git add` had swept them into four separate commits —
+   so whatever work starts using one must **remove its line from `.gitignore`**
+   and commit the file. The ignore guards against accident; it is not a decision
+   that the asset is unwanted. The stray team
    portrait that used to be listed here was deleted at the owner's request.
    `src/assets/amenities/residence-living-dining-bay-view.jpg` is the opposite
    case — tracked but unreferenced since the Amenities lead render was dropped,

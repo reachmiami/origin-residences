@@ -9,7 +9,8 @@
     "build": "astro build",
     "check:env": "node scripts/check-env.mjs",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "verify": "npm run check && npm run build && node scripts/assert-output.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.6.0",
@@ -19,6 +20,8 @@
     "sharp": "^0.34.4"
   },
   "devDependencies": {
-    "playwright": "^1.62.1"
+    "@astrojs/check": "^0.9.12",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.3"
   }
 }

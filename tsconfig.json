@@ -1,0 +1,31 @@
+{
+  "//": [
+    "There was no tsconfig.json in this project at all, which meant `astro check`",
+    "had never run and nothing verified ~16,000 lines of TypeScript — every",
+    "component's frontmatter, the whole of src/data, and the three-locale copy",
+    "contract. The code was WRITTEN as though checked: 60 interfaces, every",
+    "component with a typed Props, `// @ts-check` at the top of astro.config.mjs.",
+    "Nothing read any of it.",
+    "",
+    "`astro/tsconfigs/strict` is Astro's own preset. It is deliberately not",
+    "`strictest`, which adds noUncheckedIndexedAccess — correct in principle, but",
+    "this codebase indexes keyed records constantly (galleryArt[id],",
+    "LISTINGS[number], keyPlans[`${beds}-${level}`]) and turning it on would",
+    "bury a real first signal under hundreds of mechanical ones. Those lookups",
+    "are a genuine weakness the audit flagged; the fix is to make them throw on",
+    "a miss, not to make the compiler shout about every one.",
+    "",
+    "`.astro/types.d.ts` must be included explicitly. Astro generates it on every",
+    "`astro sync`/`astro build`, and without it in `include` there are no ambient",
+    "types for image imports, `astro:content`, or import.meta.env — which is",
+    "exactly the noise a first run produces."
+  ],
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*.astro", "**/*.ts", "**/*.mjs"],
+  "exclude": ["dist", "node_modules", ".astro"],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "strictNullChecks": true
+  }
+}

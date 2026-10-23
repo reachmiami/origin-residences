@@ -44,6 +44,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Gates, before the build. Neither existed: the pipeline was
+      # checkout → install → build → publish, with nothing able to say no.
+      - name: Type check
+        run: npm run check
+
       - name: Resolve the Pages URL this repo publishes to
         id: pages
         uses: actions/configure-pages@v5
@@ -58,6 +63,13 @@ jobs:
           # is a real launch and is indexed normally.
           REVIEW_DEPLOY: ${{ contains(steps.pages.outputs.origin, 'github.io') }}
         run: npm run build
+
+      # A build can succeed and still emit less than it should — an emptied
+      # released.json, a getStaticPaths returning [], a locale dropped. All
+      # three exit 0 and publish a smaller or blank site. upload-pages-artifact
+      # only checks the directory exists.
+      - name: Assert the output is complete
+        run: node scripts/assert-output.mjs
 
       - uses: actions/upload-pages-artifact@v3
         with:

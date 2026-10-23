@@ -27,9 +27,17 @@ _working/
 # in the repo. Re-encode with the recipe in HANDOFF.md if one needs replacing.
 src/assets/home/*.mp4
 
-# Source material the owner drops in for me to read, and stray assets kept on
-# disk on purpose but not in the repo. These have been swept into three separate
-# commits by a `git add` and unstaged again each time — which is a rule's job,
-# not a reviewer's. Commit 95649a7 is the record of which strays are deliberate.
+# Source material the owner drops in to be read, and assets staged on disk for
+# pages not yet built. Both are untracked ON PURPOSE — see the note near the end
+# of HANDOFF.md, and commit 95649a7, which exists solely to record which strays
+# are deliberate.
+#
+# They are ignored rather than merely untracked because `git add` swept them
+# into four separate commits and each was unstaged by hand. That is a rule's
+# job, not a reviewer's.
+#
+# WHEN WORK STARTS USING ONE: delete its line here and commit the file. The
+# ignore is a guard against accident, not a decision that the asset is unwanted.
 src/listings/*.zip
 src/assets/amenities/random/
+src/assets/neighborhood/origin-palms.jpg
