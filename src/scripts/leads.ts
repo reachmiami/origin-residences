@@ -47,7 +47,18 @@ export interface LeadPayload {
   pageTitle: string;
   locale: string;
   consent: boolean;
+  /** ISO instant the form was submitted — the consent's timestamp. */
+  consentAt: string;
 }
+
+/**
+ * Bump when the consent wording in src/content/copy.ts changes.
+ *
+ * A consent record that does not say WHICH text was agreed to proves very
+ * little. This is the cheapest version marker that survives a copy edit:
+ * change the wording, change this.
+ */
+export const CONSENT_VERSION = '2026-10-tcpa-1';
 
 export interface SubmitResult {
   ok: boolean;
@@ -99,8 +110,23 @@ export function primeForPixel(form: HTMLFormElement, lead: LeadPayload): void {
     lead.fullName || [lead.firstName, lead.lastName].filter(Boolean).join(' ');
   setHidden('name', name);
 
-  // Everything the Pixel will not map to a field of its own, gathered into the
-  // message so it still reaches the lead record.
+  /* Everything the Pixel will not map to a field of its own, gathered into the
+     message so it still reaches the lead record.
+
+     CONSENT IS IN HERE, AND IT WAS NOT.
+     -------------------------------------------------------------------------
+     The checkbox was required, validated, and read into the payload — and then
+     this array dropped it. The only code that ever transmitted it was the
+     relay, which is compiled out whenever no key is set, so in practice the
+     consent reached nobody. Meanwhile the privacy policy told visitors it was
+     sent, and the sales team called and texted on the strength of it.
+
+     In a TCPA dispute express written consent is the defendant's burden to
+     prove. "The checkbox was required" is an assertion about the code; what is
+     needed is a record attached to the person. So the timestamp and the
+     version of the wording they actually agreed to travel with it — the
+     wording changes, and "they consented" is worthless without knowing to
+     what. */
   const context = [
     lead.contactType && `Type: ${lead.contactType}`,
     lead.unit && `Residence: ${lead.unit}`,
@@ -110,6 +136,7 @@ export function primeForPixel(form: HTMLFormElement, lead: LeadPayload): void {
     lead.message && `Comments: ${lead.message}`,
     `Language: ${lead.locale}`,
     `Source page: ${lead.pageTitle} (${lead.pageUrl})`,
+    `Consent given: ${lead.consent ? 'Yes' : 'No'} (${lead.consentAt}, text ${CONSENT_VERSION})`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -164,24 +191,108 @@ async function deliverViaRelay(lead: LeadPayload): Promise<SubmitResult> {
   return data.success === false ? { ok: false, error: data.message } : { ok: true };
 }
 
-export async function submitLead(lead: LeadPayload): Promise<SubmitResult> {
-  /* The Pixel identifies the visitor itself on submit (verified: it POSTs to
-     widgetbe.com/identify with the email), so there is nothing to call here. */
+/**
+ * Has the Follow Up Boss Pixel actually LOADED — not merely been asked for?
+ *
+ * The inline loader in FubPixel.astro defines `window.widgetTracker`
+ * synchronously as a stub that queues calls on `.q` until the remote script
+ * arrives and replaces it. So the obvious check — "is widgetTracker a
+ * function" — is true even when widgetbe.com never answered, which is the
+ * common case: ad blockers and tracker-blocking browsers block that domain,
+ * and those visitors' leads were silently vanishing.
+ *
+ * Measured, which is the only reason this is here:
+ *
+ *   remote loaded   → widgetTracker defined, `.q` GONE   (stub replaced)
+ *   remote blocked  → widgetTracker defined, `.q` present, 2 calls queued
+ *   snippet absent  → widgetTracker undefined
+ *
+ * So a surviving queue means the capture mechanism is not running.
+ *
+ * TWO LIMITS, BOTH DELIBERATE:
+ *
+ * It cannot see whether form capture is enabled in the Follow Up Boss
+ * dashboard. Nothing in a browser can. That setting is the difference between
+ * a pageview and a person record, and it is checked by submitting a real test
+ * lead — see FOLLOW-UP-BOSS.md.
+ *
+ * It reads an implementation detail of someone else's loader, so a slow
+ * connection where the script is still in flight at submit time will read as
+ * "not loaded". That is a FALSE FAILURE, and it is the direction to fail in:
+ * the visitor is told to call, having possibly also been captured. The
+ * alternative — the behaviour this replaces — is a false success, where a lead
+ * on a multi-million-dollar residence is destroyed and everyone is told it
+ * arrived.
+ *
+ * The real answer to both limits is PUBLIC_FORM_RELAY_KEY. A relay returns an
+ * HTTP status from a server that took the data, which is evidence rather than
+ * inference, and `submitLead` prefers it whenever it is configured.
+ */
+function pixelLoaded(): boolean {
+  const t = (window as unknown as { widgetTracker?: { q?: unknown } }).widgetTracker;
+  if (typeof t !== 'function') return false;
+  // A surviving queue means the remote script never replaced the stub.
+  return !Array.isArray((t as { q?: unknown }).q);
+}
 
-  /* The Pixel already captured this submission on the submit event, so the
-     lead is in Follow Up Boss regardless of what happens below. The relay is
-     only a courtesy copy to the sales director's inbox: if it fails we log it
-     and still report success, because telling a visitor their enquiry failed
-     when it did not would cost a real lead. */
+/**
+ * Submit a lead, and report HONESTLY on what happened to it.
+ *
+ * This used to be `return { ok: true }` with the payload never read. Not a
+ * race or a degraded path — a constant. Both forms branch on it to show "we
+ * have successfully received your form submission", so the failure branch was
+ * unreachable code and a lead could vanish with the visitor thanked for it.
+ *
+ * Three outcomes now, in order of how much we can actually verify:
+ *
+ *   1. A relay is configured → await it. This is the only path that returns
+ *      real evidence: an HTTP status from a server that took the data. Its
+ *      result is the answer.
+ *
+ *   2. No relay, but the Pixel is on the page → optimistic success. The
+ *      mechanism exists and fires on the submit event; whether the dashboard
+ *      is set to create a person from it is not observable here. This is a
+ *      genuine assumption and it is the one the architecture rests on.
+ *
+ *   3. No relay and no Pixel → FAILURE, reported. The lead has demonstrably
+ *      nowhere to go. This is exactly the review deploy's configuration, where
+ *      every submission was being destroyed while showing a success panel.
+ *
+ * The relay is awaited rather than fired-and-forgotten. It used to be a
+ * courtesy copy on the reasoning that the lead was "already safely in FUB" —
+ * which assumed the thing we cannot check. Waiting costs a moment and buys the
+ * only certainty available.
+ */
+export async function submitLead(lead: LeadPayload): Promise<SubmitResult> {
   if (RELAY_KEY) {
-    void deliverViaRelay(lead)
-      .then((r) => {
-        if (!r.ok) console.warn('[lead cc] copy to sales director failed:', r.error);
-      })
-      .catch((err) => console.warn('[lead cc] copy to sales director failed:', err));
+    try {
+      const relayed = await deliverViaRelay(lead);
+      if (relayed.ok) return { ok: true };
+
+      /* The relay failed. If the Pixel is present the lead may still have been
+         captured, so do not tell the visitor it was lost — but say so loudly
+         in the console, because this is the half we could have verified. */
+      console.error('[lead] relay failed:', relayed.error);
+      return pixelLoaded()
+        ? { ok: true }
+        : { ok: false, error: relayed.error ?? 'delivery failed' };
+    } catch (err) {
+      console.error('[lead] relay threw:', err);
+      if (!pixelLoaded()) {
+        return { ok: false, error: err instanceof Error ? err.message : 'delivery failed' };
+      }
+      return { ok: true };
+    }
   }
 
-  return { ok: true };
+  if (pixelLoaded()) return { ok: true };
+
+  console.error(
+    '[lead] NOTHING RECEIVED THIS SUBMISSION. No PUBLIC_FORM_RELAY_KEY is set, ' +
+      'and the Follow Up Boss Pixel is not running on this page — either it was ' +
+      'omitted (REVIEW_DEPLOY) or widgetbe.com was blocked. See FOLLOW-UP-BOSS.md.',
+  );
+  return { ok: false, error: 'no-delivery-configured' };
 }
 
 /** Collect a form's fields into the payload contract. */
@@ -216,5 +327,9 @@ export function payloadFromForm(
     pageTitle: document.title,
     locale,
     consent: fd.get('consent') === 'on',
+    /* Stamped when the payload is built, which is on submit — the moment the
+       visitor actually agreed. Note this is the BROWSER's clock and so is not
+       forensic evidence; it is a record, and a record is what was missing. */
+    consentAt: new Date().toISOString(),
   };
 }

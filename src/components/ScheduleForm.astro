@@ -457,7 +457,8 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
 </style>
 
 <script>
-  import { submitLead, payloadFromForm } from '../scripts/leads';
+  import { PHONE as CONTACT_PHONE, EMAIL as CONTACT_EMAIL } from '../data/contact';
+  import { submitLead, payloadFromForm, primeForPixel } from '../scripts/leads';
 
   const MESSAGES: Record<string, Record<string, string>> = {
     en: {
@@ -468,6 +469,7 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       past: 'Please choose today or a later date',
       consent: 'Please agree to be contacted so we can confirm your appointment',
       sending: 'Sending…',
+      undelivered: 'We could not send your message. Please call {phone} or email {email} and we will respond right away.',
       failed: 'Something went wrong. Please try again, or call us at (305) 458-1100.',
     },
     es: {
@@ -478,6 +480,7 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       past: 'Elija hoy o una fecha posterior',
       consent: 'Acepte ser contactado para que podamos confirmar su cita',
       sending: 'Enviando…',
+      undelivered: 'No pudimos enviar su mensaje. Llame al {phone} o escriba a {email} y le responderemos de inmediato.',
       failed: 'Algo salió mal. Inténtelo de nuevo o llámenos al (305) 458-1100.',
     },
     'pt-br': {
@@ -488,6 +491,7 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       past: 'Escolha hoje ou uma data posterior',
       consent: 'Aceite ser contatado para que possamos confirmar seu agendamento',
       sending: 'Enviando…',
+      undelivered: 'No pudimos enviar su mensaje. Llame al {phone} o escriba a {email} y le responderemos de inmediato.',
       failed: 'Algo deu errado. Tente novamente ou ligue para (305) 458-1100.',
     },
   };
@@ -583,6 +587,21 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       return firstBad;
     }
 
+    /* THE PIXEL READS THE FORM, SO THE FORM HAS TO BE COMPLETE.
+       -----------------------------------------------------------------------
+       This was missing entirely. Follow Up Boss matches on conventional field
+       names, and this form has none of them: no combined `name`, and its whole
+       payload — presentation method, preferred date, preferred time, comments
+       — lives in fields the Pixel does not map. Without priming, a booked
+       presentation arrived as a bare contact with no appointment in it.
+
+       That is the site's highest-value conversion, and it was the one form
+       that never called this. InquiryForm has done so since it was written. */
+    const prime = () => primeForPixel(form, payloadFromForm(form, 'schedule-presentation', locale));
+    form.addEventListener('input', prime);
+    form.addEventListener('change', prime);
+    prime();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearErrors();
@@ -596,6 +615,9 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
         form.querySelector<HTMLElement>(`[name="${bad}"]`)?.focus();
         return;
       }
+
+      // Last chance to hand the Pixel a complete form — see prime() above.
+      prime();
 
       if (button) button.disabled = true;
       if (label) label.textContent = m.sending;
@@ -619,9 +641,19 @@ const methods = [c.forms.methodGallery, c.forms.methodVirtual];
       if (button) button.disabled = false;
       if (label) label.textContent = originalLabel;
       if (errorBox) {
-        errorBox.textContent = result.error?.startsWith('Form relay is not configured')
-          ? result.error
-          : m.failed;
+        /* Two different failures, and "try again" is only honest for one.
+           `no-delivery-configured` means nothing on this page can receive the
+           submission — retrying cannot help, so the message gives the routes
+           that work. The old branch here tested for a string leads.ts never
+           produced, so every failure fell through to the generic message;
+           that branch was also unreachable, because submitLead could not
+           fail at all. */
+        errorBox.textContent =
+          result.error === 'no-delivery-configured'
+            ? m.undelivered
+                .replace('{phone}', CONTACT_PHONE)
+                .replace('{email}', CONTACT_EMAIL)
+            : m.failed;
         errorBox.hidden = false;
       }
     });

@@ -356,6 +356,7 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
 </style>
 
 <script>
+  import { PHONE as CONTACT_PHONE, EMAIL as CONTACT_EMAIL } from '../data/contact';
   import { submitLead, payloadFromForm, primeForPixel, type LeadSource } from '../scripts/leads';
 
   const MESSAGES: Record<string, Record<string, string>> = {
@@ -365,6 +366,7 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       phone: 'Please enter a valid phone number',
       consent: 'Please agree to be contacted so we can respond',
       sending: 'Sending…',
+      undelivered: 'We could not send your message. Please call {phone} or email {email} and we will respond right away.',
       failed: 'Something went wrong. Please try again, or call us at (305) 458-1100.',
     },
     es: {
@@ -373,6 +375,7 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       phone: 'Introduzca un número de teléfono válido',
       consent: 'Acepte ser contactado para que podamos responderle',
       sending: 'Enviando…',
+      undelivered: 'No pudimos enviar su mensaje. Llame al {phone} o escriba a {email} y le responderemos de inmediato.',
       failed: 'Algo salió mal. Inténtelo de nuevo o llámenos al (305) 458-1100.',
     },
     'pt-br': {
@@ -381,6 +384,7 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       phone: 'Informe um telefone válido',
       consent: 'Aceite ser contatado para que possamos responder',
       sending: 'Enviando…',
+      undelivered: 'No pudimos enviar su mensaje. Llame al {phone} o escriba a {email} y le responderemos de inmediato.',
       failed: 'Algo deu errado. Tente novamente ou ligue para (305) 458-1100.',
     },
   };
@@ -507,9 +511,19 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       if (button) button.disabled = false;
       if (label) label.textContent = originalLabel;
       if (errorBox) {
-        errorBox.textContent = result.error?.startsWith('Form relay is not configured')
-          ? result.error
-          : m.failed;
+        /* Two different failures, and "try again" is only honest for one.
+           `no-delivery-configured` means nothing on this page can receive the
+           submission — retrying cannot help, so the message gives the routes
+           that work. The old branch here tested for a string leads.ts never
+           produced, so every failure fell through to the generic message;
+           that branch was also unreachable, because submitLead could not
+           fail at all. */
+        errorBox.textContent =
+          result.error === 'no-delivery-configured'
+            ? m.undelivered
+                .replace('{phone}', CONTACT_PHONE)
+                .replace('{email}', CONTACT_EMAIL)
+            : m.failed;
         errorBox.hidden = false;
       }
     });

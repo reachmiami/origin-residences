@@ -1,5 +1,79 @@
 # Follow Up Boss — lead delivery
 
+## STATUS — what works today, and what you must do
+
+Last verified 2026-10-23, against the shipped bundle and a live browser.
+
+### The two paths
+
+| | Verifiable? | State |
+| --- | --- | --- |
+| **FUB Pixel** (`WT-FBRKNWTI`) | No | Installed. Creates a person record **only if form capture is on** — last recorded as OFF. |
+| **Relay** (`PUBLIC_FORM_RELAY_KEY`) | **Yes** — returns an HTTP status | **Not configured.** No key is set, so this path is compiled out of the bundle entirely. |
+
+### What you must do, in order
+
+1. **Turn on form capture** — Follow Up Boss → Pixel → Tracking. Nothing in
+   the browser can see this setting, so no amount of code will tell you it is
+   off. Until it is on, the Pixel records a pageview and creates no lead.
+
+2. **Submit a real test lead** against a build with `REVIEW_DEPLOY` unset
+   (`npm run build && npm run preview` locally — the GitHub Pages review deploy
+   deliberately omits the Pixel, so testing there proves nothing). Confirm a
+   person record appears **with the message body populated** — that body is
+   where the residence, the appointment details and the consent record live.
+
+3. **Set `PUBLIC_FORM_RELAY_KEY`.** This is the only part of the pipeline that
+   can confirm delivery. A relay key is a UUID and is safe to publish — it can
+   accept a form post and cannot read your CRM; `scripts/check-env.mjs` rejects
+   anything that looks like an API key instead. Point the relay at the sales
+   director's inbox and **never at the account's @followupboss.me address**,
+   which would have FUB parse a submission the Pixel already captured and
+   create a duplicate person for every lead.
+
+   Without it, anyone running an ad blocker now gets "we could not send your
+   message, please call" — honest, but a lost conversion the relay would save.
+
+### What the code does now
+
+`submitLead` **can fail, and says why.** It used to be `return {ok: true}` with
+the lead never read, so the failure branch was unreachable and both forms
+showed "successfully received" unconditionally.
+
+- Relay configured → it is awaited and its result is the answer.
+- No relay, Pixel loaded → optimistic success. This is the assumption the
+  architecture rests on and it is now the only place one is made.
+- No relay, Pixel not loaded → **failure, shown to the visitor** with the phone
+  number and email.
+
+"Pixel loaded" means the remote script actually arrived, not merely that the
+snippet ran. Measured: a blocked tracker leaves a call queue on
+`window.widgetTracker.q`; a loaded one replaces the stub and the queue is gone.
+Ad-blocked visitors used to pass this check and lose their lead silently.
+
+### Consent is now recorded
+
+The checkbox was required, validated, read into the payload — and then dropped
+before transmission. The only code that sent it was the relay, which was
+compiled out. So the sales team called and texted on consent for which no
+record existed anywhere, while the privacy policy told visitors it was sent.
+
+The Pixel's message body now carries `Consent given: Yes`, an ISO timestamp,
+and a version marker for the wording agreed to (`CONSENT_VERSION` in
+`src/scripts/leads.ts` — **bump it when the consent copy changes**, because a
+record that does not say what was agreed to proves little).
+
+### Still open
+
+- **The privacy policy contradicts the site.** It states "This Site sets no
+  cookies and runs no analytics or advertising trackers" on pages that load
+  widgetbe.com, and names neither Follow Up Boss nor widgetbe as a processor.
+  That is a false published statement. It needs rewriting and a legal review.
+- **The old FUB API key should be rotated** as hygiene. It never reached `dist/`
+  or git history — verified — but it was pasted around.
+
+
+
 The site sends leads to Follow Up Boss using the **Pixel with form capture**.
 No API key, no relay service, no email forwarding, no webhooks.
 
