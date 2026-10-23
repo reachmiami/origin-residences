@@ -334,6 +334,11 @@ const t = useTranslations(locale);
         closeBtn.focus();
         // Started by a real click, so sound is allowed; if the browser still
         // refuses, the controls are there.
+        /* Muted on open. The film runs 118 seconds with a soundtrack, and it
+           opens from a button labelled VIEW TRAILER — a visitor asked to see
+           it, not to have audio start. The native controls carry an unmute,
+           which is now reachable from the keyboard too. */
+        video.muted = true;
         void video.play().catch(() => {});
       };
 
@@ -356,10 +361,36 @@ const t = useTranslations(locale);
       box.addEventListener('click', (e) => { if (e.target === box) close(); });
 
       document.addEventListener('keydown', (e) => {
-        if (box.hidden) return;
+        /* Gate on is-visible, not on `hidden`. `close()` defers `hidden = true`
+           by 420ms to let the fade finish, so gating on it left this handler
+           swallowing Tab for a third of a second after the dialog was gone. */
+        if (!box.classList.contains('is-visible')) return;
         if (e.key === 'Escape') { e.preventDefault(); close(); return; }
-        // Only two focusable things in here, so the trap is simple.
-        if (e.key === 'Tab') { e.preventDefault(); closeBtn.focus(); }
+        if (e.key !== 'Tab') return;
+
+        /* A REAL trap, cycling between the close button and the video.
+           It used to `preventDefault()` every Tab and force focus back to the
+           close button — which is not a trap, it is a cage: the <video> carries
+           `controls`, and focus never reached them. A keyboard visitor had no
+           play, pause, seek, mute or fullscreen on a 118-second film, while a
+           mouse visitor had all of it. */
+        const stops = [closeBtn, video].filter(
+          (el): el is HTMLElement => !!el && !el.hasAttribute('disabled'),
+        );
+        if (stops.length < 2) return;
+
+        const first = stops[0];
+        const last = stops[stops.length - 1];
+        const on = document.activeElement;
+
+        if (e.shiftKey && (on === first || !box.contains(on))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (on === last || !box.contains(on))) {
+          e.preventDefault();
+          first.focus();
+        }
+        // Otherwise let the browser move between them normally.
       });
     }
   }

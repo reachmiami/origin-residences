@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, asset, HOME_PATH, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, asset, levelLabel, HOME_PATH, type Locale } from '../i18n/ui';
 import { unitsByLevel, unitCount } from '../data/units';
 import { exploreLinks } from '../data/nav';
 import SalesContact from './SalesContact.astro';
@@ -81,9 +81,15 @@ const isCurrent = (p: string) => current === L(p);
       </a>
 
       {/* Replaces the incumbent hamburger on every breakpoint. */}
+      {/* The label is REQUIRED here, not belt-and-braces. The only text in this
+          button lives in `.pill__stack`, which `.pill--menu` hides at every
+          breakpoint — and hidden text does not contribute to an accessible
+          name. Without this the sole route to the primary navigation announced
+          as an unnamed "button" on all 42 pages. */}
       <button
         type="button"
         class="pill pill--menu"
+        aria-label={t('menu')}
         aria-expanded="false"
         aria-controls="mega-panel"
         data-menu-trigger
@@ -144,7 +150,7 @@ const isCurrent = (p: string) => current === L(p);
         <ul class="mega__levels">
           {unitsByLevel.map((group, i) => (
             <li class="mega__level" style={`--i:${i}`}>
-              <span class="mega__level-label">{group.label}</span>
+              <span class="mega__level-label">{levelLabel(group.level, group.isPenthouse, locale)}</span>
               <ul class="mega__units">
                 {group.units.map((u) => (
                   <li>

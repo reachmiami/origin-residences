@@ -33,6 +33,7 @@ import PresentationCTA from '../../components/PresentationCTA.astro';
 import {
   useTranslations,
   asset,
+  levelLabel,
   localeFromParam,
   locales,
   defaultLocale,
@@ -83,8 +84,10 @@ const bedBath = u.bedBath({
   label: unit.bedBathLabel,
 });
 
-const levelLabel = unit.level === 7 ? `PH ${t('level')} ${unit.level}` : `${t('level')} ${unit.level}`;
-const heading = `${levelLabel} · ${t('unit')} ${unit.number}`;
+/* One implementation, shared with the header, the footer and the floor plans.
+   This used to test `unit.level === 7`, which agrees with the unit's own
+   `isPenthouse` flag only because the frozen dataset makes it agree. */
+const heading = `${levelLabel(unit.level, unit.isPenthouse, locale)} · ${t('unit')} ${unit.number}`;
 
 /* Dates render in the reader's conventions — 04/14/2025 for an American buyer,
    14/04/2025 for a Spanish or Brazilian one. The stored value is ISO and is

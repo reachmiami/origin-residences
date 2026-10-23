@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, type Locale, levelLabel } from '../i18n/ui';
 import { getCopy } from '../content/copy';
 import { unitsByLevel, unitCount, bedOptions, formatSqft } from '../data/units';
 
@@ -14,15 +14,14 @@ const c = getCopy(locale);
 const L = (p: string) => localizePath(p, locale);
 
 /* Level 5 and PH Level 5 share a floor number, so the filter key carries the
-   penthouse flag as well — the label alone is not unique enough to match on. */
-const levelGroups = unitsByLevel.map((g) => {
-  const isPenthouse = g.units[0]?.isPenthouse ?? false;
-  return {
-    ...g,
-    key: `${g.level}-${isPenthouse ? 'ph' : 'std'}`,
-    short: isPenthouse ? `PH ${g.level}` : String(g.level),
-  };
-});
+   penthouse flag as well — the number alone is not unique enough to match on.
+   The flag comes off the group now; it used to be re-derived from the first
+   unit in it, which was the same answer by a longer route. */
+const levelGroups = unitsByLevel.map((g) => ({
+  ...g,
+  key: `${g.level}-${g.isPenthouse ? 'ph' : 'std'}`,
+  short: g.isPenthouse ? `PH ${g.level}` : String(g.level),
+}));
 ---
 
 <section class="inv section" id="inventory" aria-labelledby={headingId} data-inventory>
@@ -80,7 +79,7 @@ const levelGroups = unitsByLevel.map((g) => {
       {levelGroups.map((group) => (
         <li class="level" data-level-group data-level={group.key}>
           <div class="level__head">
-            <h3 class="level__label">{group.label}</h3>
+            <h3 class="level__label">{levelLabel(group.level, group.isPenthouse, locale)}</h3>
             <p class="level__meta">
               <span data-level-count>{group.units.length}</span> {t('residences')}
             </p>

@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, type Locale, levelLabel } from '../i18n/ui';
 import { getCopy } from '../content/copy';
 import { unitsByLevel, unitCount, formatSqft } from '../data/units';
 
@@ -33,7 +33,7 @@ const L = (p: string) => localizePath(p, locale);
     <ul class="levels" data-reveal-group>
       {unitsByLevel.map((group) => (
         <li class="level">
-          <h3 class="level__label">{group.label}</h3>
+          <h3 class="level__label">{levelLabel(group.level, group.isPenthouse, locale)}</h3>
           <ul class="level__units">
             {group.units.map((u) => (
               <li>

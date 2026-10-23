@@ -11,7 +11,6 @@ export interface Unit {
   level: number;
   /** Level 7 alone is a penthouse level — labelled "PH LEVEL 7" on the incumbent site. */
   isPenthouse: boolean;
-  levelLabel: string;
   beds: number;
   hasDen: boolean;
   baths: number;
@@ -73,7 +72,6 @@ function parseUnit(r: RawUnit): Unit {
     number,
     level,
     isPenthouse,
-    levelLabel: isPenthouse ? `PH Level ${level}` : `Level ${level}`,
     beds,
     hasDen,
     baths,
@@ -106,19 +104,26 @@ export const allUnits: Unit[] = (raw as RawUnit[])
  */
 export const units: Unit[] = allUnits.filter((u) => u.isReleased);
 
-/** Levels in floor order, each with its residences — drives the nav panel. */
-export const unitsByLevel: { level: number; label: string; units: Unit[] }[] =
+/**
+ * Levels in floor order, each with its residences — drives the nav panel.
+ *
+ * Carries `isPenthouse` rather than a ready-made label. The label is the
+ * reader's business, not the data's: call `levelLabel()` from src/i18n/ui.ts
+ * with the locale at the point of render. This used to hand out an English
+ * string, which is how "Level 3" ended up on the Spanish header.
+ */
+export const unitsByLevel: { level: number; isPenthouse: boolean; units: Unit[] }[] =
   Object.values(
-    units.reduce<Record<string, { level: number; label: string; units: Unit[] }>>(
+    units.reduce<Record<string, { level: number; isPenthouse: boolean; units: Unit[] }>>(
       (acc, u) => {
         const key = `${u.level}-${u.isPenthouse}`;
-        acc[key] ??= { level: u.level, label: u.levelLabel, units: [] };
+        acc[key] ??= { level: u.level, isPenthouse: u.isPenthouse, units: [] };
         acc[key].units.push(u);
         return acc;
       },
       {},
     ),
-  ).sort((a, b) => a.level - b.level || a.label.localeCompare(b.label));
+  ).sort((a, b) => a.level - b.level || Number(a.isPenthouse) - Number(b.isPenthouse));
 
 /** Distinct bedroom counts, for the inventory filter. */
 export const bedOptions: number[] = [...new Set(units.map((u) => u.beds))].sort();

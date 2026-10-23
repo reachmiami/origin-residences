@@ -1,5 +1,5 @@
 ---
-import { useTranslations, localizePath, HOME_PATH, type Locale } from '../i18n/ui';
+import { useTranslations, localizePath, levelLabel, HOME_PATH, type Locale } from '../i18n/ui';
 import { exploreLinks, homeLabel } from '../data/nav';
 import { unitsByLevel, unitCount } from '../data/units';
 import SalesContact from './SalesContact.astro';
@@ -134,7 +134,7 @@ const disclaimerHeading: Record<Locale, string> = {
         <ul class="footer__levels">
           {unitsByLevel.map((group) => (
             <li class="footer__level">
-              <span class="footer__level-label">{group.label}</span>
+              <span class="footer__level-label">{levelLabel(group.level, group.isPenthouse, locale)}</span>
               <ul class="footer__units">
                 {group.units.map((u) => (
                   <li>

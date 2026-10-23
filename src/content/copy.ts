@@ -61,7 +61,22 @@ export interface Copy {
     consent: string;
     privacyLink: string;
     termsLink: string;
+    /** Shown only when scripting is off — the forms cannot submit without it. */
+    noJsNote: string;
     successTitle: string;
+    /**
+     * Deliberately does NOT say the submission was received.
+     *
+     * Nothing in a static site can confirm that. Delivery runs through a
+     * third-party pixel in the visitor's browser, which is fire-and-forget by
+     * construction — `submitLead` cannot fail, so it cannot report failure
+     * either. The old wording ("we have successfully received your form
+     * submission") asserted a receipt no code here has ever had evidence of.
+     *
+     * So this says what is actually true — the form was sent — and gives the
+     * phone number, which is the one path a visitor can verify themselves.
+     * Restore a confirmation only when something server-side confirms.
+     */
     successBody: string;
   };
   hearAboutOptions: string[];
@@ -127,9 +142,10 @@ const en: Copy = {
       'I agree to be contacted by Origin Residences via call, email, and text for real estate services. To opt out, you can reply ‘stop’ at any time or reply ‘help’ for assistance. You can also click the unsubscribe link in the emails. Message and data rates may apply. Message frequency may vary.',
     privacyLink: 'Privacy Policy',
     termsLink: 'Terms of Service',
-    successTitle: 'Thanks for contacting us!',
+    noJsNote: 'This form needs JavaScript to send. Please call {phone} or email {email} and we will help you directly.',
+    successTitle: 'Thank you — your message is on its way',
     successBody:
-      'We have successfully received your form submission and will take it from here. You have a great rest of your day.',
+      'Your details are on their way to our sales team, and someone will be in touch shortly. If you would rather speak to us now, call {phone}.',
   },
   hearAboutOptions: [
     'Area Driveby',
@@ -203,9 +219,10 @@ const es: Copy = {
       'Acepto ser contactado por Origin Residences por llamada, correo electrónico y mensaje de texto para servicios inmobiliarios. Para darse de baja, puede responder «stop» en cualquier momento o «help» para obtener ayuda. También puede hacer clic en el enlace para cancelar la suscripción en los correos. Pueden aplicarse tarifas de mensajes y datos. La frecuencia de los mensajes puede variar.',
     privacyLink: 'Política de Privacidad',
     termsLink: 'Términos del Servicio',
-    successTitle: '¡Gracias por contactarnos!',
+    noJsNote: 'Este formulario necesita JavaScript para enviarse. Llame al {phone} o escriba a {email} y le atenderemos directamente.',
+    successTitle: 'Gracias — su mensaje va en camino',
     successBody:
-      'Hemos recibido su formulario correctamente y nos encargaremos a partir de aquí. Que tenga un excelente día.',
+      'Sus datos van en camino a nuestro equipo de ventas y nos pondremos en contacto con usted en breve. Si prefiere hablar ahora, llame al {phone}.',
   },
   hearAboutOptions: [
     'Paso por la zona',
@@ -279,9 +296,10 @@ const ptBr: Copy = {
       'Concordo em ser contatado pela Origin Residences por ligação, e-mail e mensagem de texto para serviços imobiliários. Para cancelar, responda «stop» a qualquer momento ou «help» para obter ajuda. Você também pode clicar no link de cancelamento nos e-mails. Podem incidir tarifas de mensagens e dados. A frequência das mensagens pode variar.',
     privacyLink: 'Política de Privacidade',
     termsLink: 'Termos de Serviço',
-    successTitle: 'Obrigado por entrar em contato!',
+    noJsNote: 'Este formulário precisa de JavaScript para ser enviado. Ligue para {phone} ou escreva para {email} e falaremos com você diretamente.',
+    successTitle: 'Obrigado — sua mensagem está a caminho',
     successBody:
-      'Recebemos seu formulário com sucesso e cuidaremos de tudo a partir de agora. Tenha um excelente dia.',
+      'Seus dados estão a caminho da nossa equipe de vendas e entraremos em contato em breve. Se preferir falar agora, ligue para {phone}.',
   },
   hearAboutOptions: [
     'Passagem pela região',

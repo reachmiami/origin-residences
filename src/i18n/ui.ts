@@ -220,6 +220,25 @@ export function useTranslations(locale: Locale) {
 export const HOME_PATH = '';
 
 /**
+ * "Level 3" · "Nivel 3" · "PH Level 7" — a residence's floor, in the reader's
+ * language.
+ *
+ * This exists because the label used to be BAKED INTO THE UNIT RECORD as an
+ * English string, which meant the header mega-panel and the footer printed
+ * "Level 3" on the Spanish and Portuguese sites. A presentation string has no
+ * business on a data record: the record cannot know who is reading it.
+ *
+ * `isPenthouse` is the caller's to supply, and it must come from the unit's
+ * own flag rather than from `level === 7`. Those agree today only because the
+ * frozen dataset happens to make them agree — units.ts derives the flag from
+ * the slug AND the title, which is the honest test.
+ */
+export function levelLabel(level: number, isPenthouse: boolean, locale: Locale): string {
+  const t = useTranslations(locale);
+  return isPenthouse ? `PH ${t('level')} ${level}` : `${t('level')} ${level}`;
+}
+
+/**
  * The folder this build is served from, without its trailing slash.
  *
  * Empty for the production site, which sits at the root of its own domain.

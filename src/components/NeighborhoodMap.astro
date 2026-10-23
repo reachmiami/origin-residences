@@ -4,6 +4,7 @@ import originMark from '../assets/brand/marker-origin.svg?raw';
 import { CATEGORIES, PLACES, SITE } from '../data/neighborhood-places';
 import { SITE_ADDRESS } from '../data/contact';
 import type { Locale } from '../i18n/ui';
+import { neighborhoodCopy } from '../content/pages/neighborhood';
 
 /**
  * The neighbourhood locator.
@@ -21,8 +22,14 @@ import type { Locale } from '../i18n/ui';
  * That also avoids two tab stops for every entry.
  */
 interface Props {
-  locale?: Locale;
+  locale: Locale;
 }
+
+/* The locale is REQUIRED now, and read. It was optional and declared but never
+   destructured, so `neighborhood.astro` passed it into nothing and this whole
+   section rendered in English on /es/ and /pt-br/ — heading included. */
+const { locale } = Astro.props;
+const c = neighborhoodCopy[locale];
 
 const originSvg = originMark
   .replace(/<\?xml[\s\S]*?\?>/g, '')
@@ -51,7 +58,7 @@ const byCategory = CATEGORIES.map((cat) => ({
 
 <section class="locator" aria-labelledby="locator-heading" data-locator>
   <div class="shell locator__head">
-    <h2 class="heading" id="locator-heading" data-reveal>The neighbourhood</h2>
+    <h2 class="heading" id="locator-heading" data-reveal>{c.poiTitle}</h2>
     <hr class="locator__rule" data-reveal="fade" />
   </div>
 

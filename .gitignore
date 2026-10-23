@@ -26,3 +26,10 @@ _working/
 # above makes: the source lives in the asset library, the derived web file lives
 # in the repo. Re-encode with the recipe in HANDOFF.md if one needs replacing.
 src/assets/home/*.mp4
+
+# Source material the owner drops in for me to read, and stray assets kept on
+# disk on purpose but not in the repo. These have been swept into three separate
+# commits by a `git add` and unstaged again each time — which is a rule's job,
+# not a reviewer's. Commit 95649a7 is the record of which strays are deliberate.
+src/listings/*.zip
+src/assets/amenities/random/

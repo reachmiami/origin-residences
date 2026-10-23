@@ -1,6 +1,7 @@
 ---
 import { useTranslations, localizePath, type Locale } from '../i18n/ui';
 import { getCopy } from '../content/copy';
+import { PHONE, PHONE_HREF, EMAIL, EMAIL_HREF } from '../data/contact';
 
 interface Props {
   locale: Locale;
@@ -37,9 +38,28 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     )}
   </header>
 
+  {/* Scripting off means this form cannot send at all: submission runs through
+      a module script, and with it absent the browser would GET this page with
+      name, email and phone in the query string — into history, bookmarks and
+      any log in between. The `action` below keeps that from leaving the page,
+      and this note gives a route that works. */}
+  <noscript>
+    <p class="form__nojs" set:html={c.forms.noJsNote
+      .replace('{phone}', `<a href="${PHONE_HREF}">${PHONE}</a>`)
+      .replace('{email}', `<a href="${EMAIL_HREF}">${EMAIL}</a>`)} />
+  </noscript>
+
   <form
     class="form"
     id={id}
+    {/* POST, not the default GET. With scripting on, the submit handler
+        preventDefault()s and this never fires. With scripting OFF it is the
+        difference between the browser navigating to `?firstName=…&email=…
+        &phone=…` — PII into history, bookmarks and every log on the way — and
+        a method a static host simply refuses. The <noscript> above is the
+        route that actually works; this is damage control for the one that
+        does not. */}
+    method="post"
     novalidate
     data-lead-form
     data-source={isFull ? 'inquiry' : 'request-info'}
@@ -130,7 +150,10 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       <path d="m15 24.5 6.5 6.5L33 19" />
     </svg>
     <h3 class="subheading">{c.forms.successTitle}</h3>
-    <p class="prose">{c.forms.successBody}</p>
+    <p class="prose" set:html={c.forms.successBody.replace(
+        '{phone}',
+        `<a class="form-success__tel" href="${PHONE_HREF}">${PHONE}</a>`,
+      )} />
   </div>
 </div>
 
