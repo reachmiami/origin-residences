@@ -59,6 +59,55 @@ const BASE = BASE_FOLDER ? `/${BASE_FOLDER}/` : '/';
 /** BASE without its trailing slash — '' at a domain root — for joining. */
 const BASE_CLEAN = BASE_FOLDER ? `/${BASE_FOLDER}` : '';
 
+/* Addresses the old WordPress site left in Google, sent somewhere useful.
+   ---------------------------------------------------------------------------
+   Chosen from the owner's Search Console export (Performance → Pages, taken
+   2026-10-24 on launch day): 115 old URLs, 844 clicks. 810 of those clicks
+   landed on paths this site still serves unchanged. Of the rest, only these
+   have a real equivalent here:
+
+     /developer-inventory/   7 clicks, 1,584 impressions — the old inventory
+     /neighborhoods/         241 impressions; spelling variant
+     /terms-and-conditions/, /privacy-policy-2/ — the same pages, renamed
+     /floor-plans-<slug>-es/ — the old Spanish floor-plan pages
+
+   DELIBERATELY NOT REDIRECTED: the 73 /property/… pages. They were other
+   brokers' MLS listings from the old IDX feed, mostly sold, cut by agreement.
+   Sending someone looking for "9148 Carlyle Ave" to this building's inventory
+   is a wrong answer, and Google treats an irrelevant redirect as a soft 404
+   anyway. They are left to drop out of the index.
+
+   UNRELEASED RESIDENCES redirect to the inventory rather than 404. This does
+   not weaken the rule in src/data/released.ts: the stub Astro emits is a
+   meta-refresh with no content — no price, no plan, no drawing. It is derived
+   from released.json, so releasing a residence removes its redirect and the
+   real page takes the path; a hand-written list would collide with that page
+   at build time. All 25 are covered, not only the 11 Google happened to show. */
+/** @param {string} slug */
+const isReleased = (slug) =>
+  released.releasedUnitNumbers.includes(slug.match(/unit-(\d+)/)?.[1] ?? '');
+
+const wordpressRedirects = {
+  '/developer-inventory/': `${BASE_CLEAN}/residences/`,
+  '/neighborhoods/': `${BASE_CLEAN}/neighborhood/`,
+  '/terms-and-conditions/': `${BASE_CLEAN}/terms-of-use/`,
+  '/privacy-policy-2/': `${BASE_CLEAN}/privacy-policy/`,
+  // Only the three that appear in Search Console; the old site's full set of
+  // floor-plan URLs is not known.
+  ...Object.fromEntries(
+    ['level-3-unit-302', 'level-4-unit-403', 'ph-level-7-unit-706'].map((slug) => [
+      `/floor-plans-${slug}-es/`,
+      `${BASE_CLEAN}/es/${isReleased(slug) ? slug : 'residences'}/`,
+    ]),
+  ),
+  ...Object.fromEntries(
+    rawUnits
+      .map((u) => u.slug)
+      .filter((slug) => !isReleased(slug))
+      .map((slug) => [`/${slug}/`, `${BASE_CLEAN}/residences/`]),
+  ),
+};
+
 /* The github.io review copy. Set by the workflow; never set for production. */
 const REVIEW_DEPLOY = process.env.REVIEW_DEPLOY === 'true';
 
@@ -94,6 +143,7 @@ export default defineConfig({
     '/v2/': `${BASE_CLEAN}/`,
     '/es/v2/': `${BASE_CLEAN}/es/`,
     '/pt-br/v2/': `${BASE_CLEAN}/pt-br/`,
+    ...wordpressRedirects,
   },
 
   build: {

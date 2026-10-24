@@ -59,15 +59,27 @@ if (!fs.existsSync(DIST)) {
 }
 
 /** Every .html under dist, recursively. */
-function pages(dir) {
+function htmlFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const full = path.join(dir, e.name);
-    if (e.isDirectory()) return pages(full);
+    if (e.isDirectory()) return htmlFiles(full);
     return e.name.endsWith('.html') ? [full] : [];
   });
 }
 
+/* REDIRECT STUBS ARE NOT PAGES, and every count below excludes them.
+   Astro emits each entry in `redirects` as a meta-refresh file. Since launch
+   that includes one for EVERY UNRELEASED RESIDENCE (astro.config.mjs) — so an
+   emptied released.json would turn all 27 residence paths into stubs, and a
+   check that counted files would report 27 residences and pass. Recognised by
+   content, not by path, so a new redirect can never be mistaken for a page. */
+const isRedirectStub = (f) => fs.readFileSync(f, 'utf8').startsWith('<!doctype html><title>Redirecting to:');
+
+/** Every real page under dir — redirect stubs excluded. */
+const pages = (dir) => htmlFiles(dir).filter((f) => !isRedirectStub(f));
+
 const all = pages(DIST);
+const redirectCount = htmlFiles(DIST).length - all.length;
 
 if (all.length < MIN_PAGES) {
   problems.push(`${all.length} pages built, expected at least ${MIN_PAGES}.`);
@@ -111,10 +123,10 @@ if (problems.length) {
   process.exit(1);
 }
 
-/* "HTML files", not "pages": Astro reports 42 routes and this counts 45 files,
-   the difference being the three /v2/ meta-refresh redirect stubs. Two true
-   numbers that disagree are worth naming before someone reconciles them. */
+/* Pages and redirects are reported apart. Astro's "N page(s) built" counts
+   routes; this counts files, and the two agree only because stubs are split
+   out here. */
 console.log(
-  `✓ output check passed — ${all.length} HTML files, ` +
+  `✓ output check passed — ${all.length} pages, ${redirectCount} redirects, ` +
     `${unitPages.length} residence pages, 3 locales`,
 );
