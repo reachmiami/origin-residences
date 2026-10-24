@@ -17,14 +17,21 @@ What it costs, recorded so nobody rediscovers it as a surprise:
 - **Delivery is unverifiable from here.** The Pixel is a third-party script in
   the visitor's browser; it reports nothing back. Whether a person record is
   created depends on a dashboard setting no code can read.
-- **Ad-blocked visitors cannot convert through the form.** widgetbe.com is a
-  tracker domain and is blocked by uBlock, Brave and Safari's protections.
-  Those visitors are now told to call instead — honest, but a lost conversion.
+- **Ad-blocked visitors cannot convert through the form.** NOW MEASURED, not
+  assumed: `||widgetbe.com^` is rule 3995 of **EasyPrivacy**, which blocks the
+  whole domain and is enabled **by default** in uBlock Origin, AdGuard and
+  Brave Shields. It is not on EasyList, Peter Lowe's list, uBlock's own
+  privacy/badware lists, or Disconnect — and nothing else in this site's stack
+  is on any of them. widgetbe.com is the single blocked host.
+  Those visitors are now told to call instead — honest, but a lost conversion,
+  and this is the first failure a real tester hit (see the log below).
 - **That loss is unmeasurable on this stack.** No backend, no analytics by
   design, and the blocked thing is the Pixel itself.
-- **Field mapping is Follow Up Boss's guess.** `primeForPixel` gives it the
-  cleanest signal it can — a combined `name` and everything else folded into
-  `message` — but the mapping is theirs, not ours.
+- **The note's layout is Follow Up Boss's, not ours.** Observed on two live
+  leads (see "How Follow Up Boss builds the note" below). We control the
+  message body verbatim; the field summary FUB appends after it — and the
+  fact that it repeats the message inside that summary — cannot be changed
+  from the page.
 - **The public tracker ID is a write path.** Anyone can POST to widgetbe with
   `WT-FBRKNWTI`, bypassing the honeypot and validation, and inject person
   records that trigger real calls and texts. Mitigation is FUB-side: lead-source
@@ -39,8 +46,90 @@ environment variable if that trade ever looks worth it.
 
 | | Verifiable? | State |
 | --- | --- | --- |
-| **FUB Pixel** (`WT-FBRKNWTI`) | No | Installed. Creates a person record **only if form capture is on** — last recorded as OFF. |
-| **Relay** (`PUBLIC_FORM_RELAY_KEY`) | **Yes** — returns an HTTP status | **Not configured.** No key is set, so this path is compiled out of the bundle entirely. |
+| **FUB Pixel** (`WT-FBRKNWTI`) | No | **VERIFIED END TO END 2026-10-23** — a real submission created a person record in Follow Up Boss. Works for every visitor whose browser allows widgetbe.com, and for nobody else. |
+| **Relay** (`PUBLIC_FORM_RELAY_KEY`) | **Yes** — returns an HTTP status | **Not configured.** No key is set, so this path is compiled out of the bundle entirely. Verified working when one is set; see below. |
+
+### Log — the first live test, 2026-10-23
+
+The owner enabled form capture and submitted the Inquiry form on a local
+production build. They got the undelivered message: *"We could not send your
+message. Please call…"*
+
+Diagnosis, in order:
+
+1. The real widgetbe.com agent was fetched from this machine and **replaces its
+   stub within 250ms** — so `pixelLoaded()` is not broken and this was not a
+   slow-connection false failure.
+2. `widgetbe.com` is on EasyPrivacy, enabled by default in the common blockers.
+3. Therefore: the tester's own browser blocked the Pixel. The site behaved
+   **correctly** — it refused to claim a lead had arrived when it had not.
+
+This is the architecture's recorded cost arriving on day one, not a defect.
+The honest-failure work in Phase 1 is the only reason it was visible at all;
+before it, this submission would have shown a success panel and vanished.
+
+4. **Retested with blocking off — the lead arrived in Follow Up Boss.** So form
+   capture is on and working, and the Pixel is a real delivery path. This was
+   the single unverifiable assumption the architecture rested on, and it now
+   has one confirming observation behind it.
+
+What that does and does not settle: the mechanism works. It still only works
+for visitors who allow widgetbe.com, and the site still cannot tell you which
+visitor is which. Both facts are unchanged by this test.
+
+**The relay was then verified** (build with a key, both `widgetbe.com` and the
+relay intercepted so nothing was sent):
+
+- Pixel blocked → relay carries the lead, form shows success, and the email
+  leads with *"THIS EMAIL IS THE ONLY COPY OF THIS LEAD… Enter it in Follow Up
+  Boss by hand"*, plus a row `Also In Follow Up Boss: NO — Pixel blocked`.
+- Pixel loaded → relay carries a copy, and says so, so nobody double-enters.
+
+That second message used to be a flat assertion that the Pixel had captured the
+lead. It was false in precisely the case where the email is the only copy, and
+would have sent the sales director to look in FUB for a lead that was not
+there. Fixed in `src/scripts/leads.ts`.
+
+### Log — the note format, 2026-10-24
+
+The first live lead's note was nearly unreadable — `Buyer: Buyer`, the whole
+TCPA paragraph used as a key with the value `on`, a stray leading `on` — and,
+worse, **none of the context arrived**: no residence, no source page, no
+consent record. FUB ignores `type="hidden"` inputs, and the message was one.
+
+Fix: the message became a visually hidden `<textarea>`, the consent box got a
+short `Terms of Use` label with `value="Accepted"`, and the type radio sends
+`Yes`. **Retested with a real submission — the hypothesis held.** FUB reads
+the textarea, and the consent record (`Consent given: Yes`, timestamp,
+`CONSENT_VERSION`) is now attached to the person in the CRM for the first
+time.
+
+### How Follow Up Boss builds the note
+
+Measured from the retest, not inferred. A note has three parts, in order:
+
+```
+via: <host the form was on>                      ← FUB's own header
+Buyer: Yes                                        ┐
+First name: …                                     │ the `message` field,
+…                                                 │ verbatim, newlines kept —
+Terms of Use: Accepted                            │ the ONLY part we control
+                                                  │
+Language: en                                      │
+Source page: …                                    │
+Consent given: Yes (<ISO time>, text <version>)   ┘
+Buyer: Yes | First name: … | … | message: Buyer: Yes … ← FUB's summary of
+                                                        EVERY field
+```
+
+- The summary is `<label>: <value>` pairs joined by ` | `. An unlabelled
+  field is keyed by its `name` — hence `message:`.
+- The summary includes the message field itself, so the body appears twice.
+  That is inherent to sending a message at all; it is not a bug to chase.
+- Skipped: `type="hidden"` inputs (so the hidden `name` never appears),
+  unchecked radios, and empty fields (so the `_gotcha` honeypot is invisible).
+- A checkbox or radio with no `value` sends `on`; a radio is keyed by its
+  option's label, not the group's legend.
 
 ### Checking it
 
@@ -195,12 +284,17 @@ form capture off first.
 
 ## Helping the Pixel read the form
 
-`src/scripts/leads.ts` keeps two hidden inputs current as the visitor types:
+`src/scripts/leads.ts` keeps two fields current as the visitor types:
 
-- `name` — first and last combined, the shape Follow Up Boss matches on
-- `message` — everything the Pixel has no field for: Buyer vs Broker, the
-  residence, presentation method, preferred date and time, language, and the
-  source page
+- `name` — first and last combined, a hidden input. FUB ignores hidden inputs,
+  so this is belt-and-braces; the visible first/last fields are what it reads.
+- `message` — a **visually hidden `<textarea>`**, never a hidden input (FUB
+  drops those — this is how every lead's context was lost until 2026-10-24).
+  It becomes the note body: the contact lines in the owner's one-per-line
+  layout, then the residence, presentation method, preferred date and time,
+  language, source page and the consent record. Keep it off-screen with
+  `.visually-hidden`; `display:none` or `hidden` may put it back in the
+  ignored category.
 
 They are updated on every keystroke rather than during submit, because the
 Pixel reads the form when the submit event fires and listener order between

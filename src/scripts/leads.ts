@@ -8,10 +8,21 @@
  * page, creates the person record, runs lead-flow rules and starts action
  * plans. It auto-detects name, email, phone and message.
  *
- * That means this site needs NO API key, NO relay service and NO email step.
- * Our JavaScript only validates the fields and shows the success state — the
- * Pixel does the delivery. The one thing we must guarantee is that a real
- * `submit` event fires on a real <form> containing real inputs, which it does.
+ * That means this site needs NO API key and NO server-side component. Our
+ * JavaScript only validates the fields and shows the success state — the Pixel
+ * does the delivery. The one thing we must guarantee is that a real `submit`
+ * event fires on a real <form> containing real inputs, which it does.
+ *
+ * IT IS NOT, HOWEVER, SUFFICIENT ON ITS OWN. Measured 2026-10-23:
+ * `||widgetbe.com^` is rule 3995 of EasyPrivacy, which blocks the entire
+ * domain and ships ENABLED BY DEFAULT in uBlock Origin, AdGuard and Brave
+ * Shields. For those visitors the remote script never arrives, no form capture
+ * happens, and the Pixel is not a delivery path at all. Nothing else in this
+ * site's stack is on that list — widgetbe.com is the only blocked host.
+ *
+ * So the Pixel is the primary path and a real one, but a predictable share of
+ * an affluent, privacy-tooled audience cannot use it. That share is the
+ * argument for the relay below, which is why `submitLead` prefers it.
  *
  * SECURITY: there is nothing secret here, and a Follow Up Boss API key must
  * never be added to this file, to any PUBLIC_* variable, or anywhere else in
@@ -24,8 +35,10 @@
  * is one ingestion method, and parsing an email the Pixel already captured
  * would create a duplicate person for every lead.
  *
- * The copy is fire-and-forget: it can never fail a submission or show the
- * visitor an error, because the lead is already safely in FUB by then.
+ * It is AWAITED, not fire-and-forget, and its result is what the visitor is
+ * told — see submitLead(). It was a courtesy copy when this file assumed the
+ * lead was "already safely in FUB"; that assumption is the one thing here
+ * nothing can check, and for a blocked visitor it is simply false.
  */
 
 export type LeadSource = 'inquiry' | 'request-info' | 'schedule-presentation';
@@ -90,8 +103,21 @@ const RELAY_ENDPOINT =
  *
  * Follow Up Boss matches on conventional field names, so alongside the visible
  * first/last inputs we set a combined `name` and a `message` describing the
- * enquiry. These are hidden inputs inside the form, so they are part of the
- * form data the Pixel reads on submit.
+ * enquiry.
+ *
+ * THE MESSAGE IS A <textarea>, NOT A HIDDEN INPUT. Observed 2026-10-23 on the
+ * first live lead: FUB builds its note from `<label>: <value>` pairs of the
+ * form's fields and IGNORES `type="hidden"` inputs. Everything below — the
+ * residence, the source page and the whole consent record — was arriving
+ * nowhere. A visually hidden textarea is the hypothesis that FUB skips hidden
+ * INPUTS rather than hidden content; it must stay off-screen (.visually-hidden),
+ * never `display:none` or `hidden`, either of which may land it back in the
+ * ignored category. Confirmed or refuted only by a real submission — see
+ * FOLLOW-UP-BOSS.md.
+ *
+ * It also carries the note's layout. FUB joins its own pairs with ` | ` and
+ * nothing on the page can change that; newlines inside ONE value are the only
+ * way to give the sales director the line-per-field block the owner asked for.
  */
 export function primeForPixel(form: HTMLFormElement, lead: LeadPayload): void {
   const setHidden = (name: string, value: string) => {
@@ -127,8 +153,20 @@ export function primeForPixel(form: HTMLFormElement, lead: LeadPayload): void {
      version of the wording they actually agreed to travel with it — the
      wording changes, and "they consented" is worthless without knowing to
      what. */
+  /* The owner's requested layout first, verbatim in shape:
+       Buyer: Yes / First name / Last name / Email / Phone / Terms of Use: Accepted
+     then a blank line and the context only this note carries. */
+  const contact = [
+    lead.contactType && `${lead.contactType}: Yes`,
+    lead.fullName && `Name: ${lead.fullName}`,
+    lead.firstName && `First name: ${lead.firstName}`,
+    lead.lastName && `Last name: ${lead.lastName}`,
+    lead.email && `Email: ${lead.email}`,
+    lead.phone && `Phone: ${lead.phone}`,
+    `Terms of Use: ${lead.consent ? 'Accepted' : 'Not accepted'}`,
+  ];
+
   const context = [
-    lead.contactType && `Type: ${lead.contactType}`,
     lead.unit && `Residence: ${lead.unit}`,
     lead.presentationMethod && `Presentation: ${lead.presentationMethod}`,
     lead.preferredDate && `Preferred date: ${lead.preferredDate}`,
@@ -137,15 +175,30 @@ export function primeForPixel(form: HTMLFormElement, lead: LeadPayload): void {
     `Language: ${lead.locale}`,
     `Source page: ${lead.pageTitle} (${lead.pageUrl})`,
     `Consent given: ${lead.consent ? 'Yes' : 'No'} (${lead.consentAt}, text ${CONSENT_VERSION})`,
-  ]
-    .filter(Boolean)
-    .join('\n');
+  ];
 
-  setHidden('message', context);
+  const note = [...contact.filter(Boolean), '', ...context.filter(Boolean)].join('\n');
+
+  let el = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+  if (!el) {
+    el = document.createElement('textarea');
+    el.name = 'message';
+    // Global class (tokens.css): this element is created at runtime, so a
+    // component's scoped styles would never reach it.
+    el.className = 'visually-hidden';
+    el.tabIndex = -1;
+    el.setAttribute('aria-hidden', 'true');
+    form.appendChild(el);
+  }
+  el.value = note;
 }
 
 /** Fallback transport. Only runs when a relay key is configured. */
 async function deliverViaRelay(lead: LeadPayload): Promise<SubmitResult> {
+  /* Whether the OTHER path ran, so the email can say which situation the sales
+     director is in. Hoisted declaration, defined below. */
+  const capturedByPixel = pixelLoaded();
+
   const name =
     lead.fullName || [lead.firstName, lead.lastName].filter(Boolean).join(' ') || 'Website lead';
 
@@ -168,6 +221,7 @@ async function deliverViaRelay(lead: LeadPayload): Promise<SubmitResult> {
     ['Language', lead.locale],
     ['Source Page', `${lead.pageTitle} — ${lead.pageUrl}`],
     ['Consent Given', lead.consent ? 'Yes' : 'No'],
+    ['Also In Follow Up Boss', capturedByPixel ? 'Yes — captured by the Pixel' : 'NO — Pixel blocked, enter by hand'],
   ];
 
   const res = await fetch(RELAY_ENDPOINT, {
@@ -176,8 +230,10 @@ async function deliverViaRelay(lead: LeadPayload): Promise<SubmitResult> {
     body: JSON.stringify({
       access_key: RELAY_KEY,
       subject: `${label[lead.source]} — ${name}`,
-        message: [
-        'Copy for the sales director. This lead was also captured in Follow Up Boss by the Pixel — work it in FUB, not from this email.',
+      message: [
+        capturedByPixel
+          ? 'The Follow Up Boss Pixel was running when this was submitted, so this lead should also be in FUB. Work it there; this is a copy.'
+          : 'THIS EMAIL IS THE ONLY COPY OF THIS LEAD. The Follow Up Boss Pixel was blocked in this visitor\'s browser (an ad blocker or a privacy browser), so no person record was created. Enter it in Follow Up Boss by hand.',
         '',
         ...rows.filter(([, v]) => v && String(v).trim()).map(([k, v]) => `${k}: ${v}`),
       ].join('\n'),
@@ -309,13 +365,18 @@ export function payloadFromForm(
 
   return {
     source,
-    contactType: get('contactType'),
+    /* The radio's `value` is "Yes" because that is what FUB prints beside the
+       option's label ("Buyer: Yes"). The TYPE itself lives in data-contact-type
+       — reading `value` here would record every lead's type as "Yes". */
+    contactType:
+      form.querySelector<HTMLInputElement>('input[name="contactType"]:checked')?.dataset
+        .contactType ?? get('contactType'),
     firstName: get('firstName'),
     lastName: get('lastName'),
     fullName: get('fullName'),
     email: get('email') ?? '',
     phone: get('phone'),
-    /* Deliberately NOT reading `message`: that hidden field is primeForPixel's
+    /* Deliberately NOT reading `message`: that field is primeForPixel's
        OUTPUT. Reading it back here nested the previous value on every keystroke
        and grew the field without bound. Only real user input belongs here. */
     message: get('comments'),
@@ -326,7 +387,11 @@ export function payloadFromForm(
     pageUrl: window.location.href,
     pageTitle: document.title,
     locale,
-    consent: fd.get('consent') === 'on',
+    /* The checkbox carries value="Accepted" so FUB prints "Terms of Use:
+       Accepted" instead of the browser default "on". Test the box, not a
+       string: a value-only comparison silently recorded "No" the day the value
+       changed. */
+    consent: form.querySelector<HTMLInputElement>('input[name="consent"]')?.checked ?? false,
     /* Stamped when the payload is built, which is on submit — the moment the
        visitor actually agreed. Note this is the BROWSER's clock and so is not
        forensic evidence; it is a record, and a record is what was missing. */

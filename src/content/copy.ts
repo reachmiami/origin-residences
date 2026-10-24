@@ -59,6 +59,9 @@ export interface Copy {
     timeLabel: string;
     fullName: string;
     consent: string;
+    /** Short accessible name for the consent box. Also the key Follow Up Boss
+        prints beside its value ("Terms of Use: Accepted"), so keep it short. */
+    consentLabel: string;
     privacyLink: string;
     termsLink: string;
     /** Shown only when scripting is off — the forms cannot submit without it. */
@@ -142,6 +145,7 @@ const en: Copy = {
       'I agree to be contacted by Origin Residences via call, email, and text for real estate services. To opt out, you can reply ‘stop’ at any time or reply ‘help’ for assistance. You can also click the unsubscribe link in the emails. Message and data rates may apply. Message frequency may vary.',
     privacyLink: 'Privacy Policy',
     termsLink: 'Terms of Service',
+    consentLabel: 'Terms of Use',
     noJsNote: 'This form needs JavaScript to send. Please call {phone} or email {email} and we will help you directly.',
     successTitle: 'Thank you — your message is on its way',
     successBody:
@@ -219,6 +223,7 @@ const es: Copy = {
       'Acepto ser contactado por Origin Residences por llamada, correo electrónico y mensaje de texto para servicios inmobiliarios. Para darse de baja, puede responder «stop» en cualquier momento o «help» para obtener ayuda. También puede hacer clic en el enlace para cancelar la suscripción en los correos. Pueden aplicarse tarifas de mensajes y datos. La frecuencia de los mensajes puede variar.',
     privacyLink: 'Política de Privacidad',
     termsLink: 'Términos del Servicio',
+    consentLabel: 'Términos de Uso',
     noJsNote: 'Este formulario necesita JavaScript para enviarse. Llame al {phone} o escriba a {email} y le atenderemos directamente.',
     successTitle: 'Gracias — su mensaje va en camino',
     successBody:
@@ -296,6 +301,7 @@ const ptBr: Copy = {
       'Concordo em ser contatado pela Origin Residences por ligação, e-mail e mensagem de texto para serviços imobiliários. Para cancelar, responda «stop» a qualquer momento ou «help» para obter ajuda. Você também pode clicar no link de cancelamento nos e-mails. Podem incidir tarifas de mensagens e dados. A frequência das mensagens pode variar.',
     privacyLink: 'Política de Privacidade',
     termsLink: 'Termos de Serviço',
+    consentLabel: 'Termos de Uso',
     noJsNote: 'Este formulário precisa de JavaScript para ser enviado. Ligue para {phone} ou escreva para {email} e falaremos com você diretamente.',
     successTitle: 'Obrigado — sua mensagem está a caminho',
     successBody:

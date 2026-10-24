@@ -70,11 +70,14 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       <legend class="form__legend">{c.forms.typeLabel} <span class="req" aria-hidden="true">*</span></legend>
       <div class="form__radios">
         <label class="radio">
-          <input type="radio" name="contactType" value={c.forms.typeBuyer} required checked />
+          {/* value="Yes": FUB prints the option's label beside the value, so
+              this reads "Buyer: Yes" in the lead note. The type itself is
+              data-contact-type, which is what payloadFromForm records. */}
+          <input type="radio" name="contactType" value="Yes" data-contact-type={c.forms.typeBuyer} required checked />
           <span>{c.forms.typeBuyer}</span>
         </label>
         <label class="radio">
-          <input type="radio" name="contactType" value={c.forms.typeAgent} required />
+          <input type="radio" name="contactType" value="Yes" data-contact-type={c.forms.typeAgent} required />
           <span>{c.forms.typeAgent}</span>
         </label>
       </div>
@@ -123,14 +126,26 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
       <input id={`${id}-hp`} name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
     </p>
 
-    <label class="consent">
-      <input type="checkbox" name="consent" required />
-      <span>
+    {/* The consent text is a DESCRIPTION, not the label. Follow Up Boss keys
+        each field by its label text, and while the <label> wrapped this whole
+        paragraph the lead note read "I agree to be contacted … Terms of
+        Service.: on". Now the label is the short consentLabel, the paragraph is
+        tied on with aria-describedby, and value="Accepted" replaces the
+        browser's default "on" — FUB prints "Terms of Use: Accepted".
+        The visitor reads and agrees to exactly the same words as before; if
+        those words ever change, bump CONSENT_VERSION in leads.ts.
+        .consent__hit stretches the label over the paragraph so the whole text
+        still toggles the box, as it did when the label wrapped it. */}
+    <div class="consent">
+      <input id={`${id}-consent`} type="checkbox" name="consent" value="Accepted" required
+             aria-describedby={`${id}-consent-text`} />
+      <label class="consent__hit" for={`${id}-consent`}><span class="visually-hidden">{c.forms.consentLabel}</span></label>
+      <span class="consent__text" id={`${id}-consent-text`}>
         {c.forms.consent}
         <a href={L('privacy-policy')}>{c.forms.privacyLink}</a> &amp;
         <a href={L('terms-of-use')}>{c.forms.termsLink}</a>.
       </span>
-    </label>
+    </div>
     <span class="field__error consent__error" data-error-for="consent" hidden></span>
 
     <div class="form__foot">
@@ -287,9 +302,13 @@ const id = `form-${Math.random().toString(36).slice(2, 8)}`;
     color: #b3261e;
   }
 
-  .consent { margin-top: var(--s-2); }
-  .consent span { font-size: var(--t-micro); line-height: 1.7; color: var(--ink-muted); }
-  .consent a { color: var(--ink); border-bottom: 1px solid var(--rule); }
+  .consent { position: relative; margin-top: var(--s-2); }
+  .consent__hit { position: absolute; inset: 0; cursor: pointer; }
+  .consent__text { font-size: var(--t-micro); line-height: 1.7; color: var(--ink-muted); }
+  /* The box and the links sit above .consent__hit: the links so they navigate
+     rather than toggle, the box so it is the thing actually clicked. */
+  .consent input { position: relative; z-index: 1; }
+  .consent a { position: relative; z-index: 1; color: var(--ink); border-bottom: 1px solid var(--rule); }
   .consent a:hover { color: var(--gold-ink); }
 
   /* Off-screen rather than display:none, so bots still see a real field. */

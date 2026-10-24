@@ -156,7 +156,9 @@ for (const form of FORMS) {
     const hidden = await page.evaluate((s) => {
       const f = document.querySelector(s);
       return Object.fromEntries(
-        [...f.querySelectorAll('input[type="hidden"]')]
+        /* `message` is a visually hidden <textarea> now — FUB ignores
+           type="hidden" inputs, which is how it lost every lead's context. */
+        [...f.querySelectorAll('input[type="hidden"], textarea[name="message"]')]
           .filter((i) => i.name !== '_gotcha')
           .map((i) => [i.name, i.value]),
       );
@@ -191,7 +193,15 @@ for (const form of FORMS) {
     if (!blocked && pixel.stubQueueSurvives) problems.push('tracker never replaced its stub');
     if (!submitFired) problems.push('no submit event fired — the Pixel has nothing to read');
     if (!hidden.name) problems.push('hidden `name` not populated');
-    if (!hidden.message) problems.push('hidden `message` not populated');
+    if (!hidden.message) problems.push('`message` not populated');
+    if (hidden.message && !/Terms of Use: Accepted/.test(hidden.message)) {
+      problems.push('note does not read "Terms of Use: Accepted"');
+    }
+    const typeHidden = await page.evaluate(
+      (s) => !!document.querySelector(s)?.querySelector('input[type="hidden"][name="message"]'),
+      formSel,
+    );
+    if (typeHidden) problems.push('a type="hidden" `message` exists — FUB ignores it');
     if (hidden.message && !/Consent given: Yes/.test(hidden.message)) {
       problems.push('consent is not recorded in the message');
     }

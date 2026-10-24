@@ -27,6 +27,7 @@ treatment. **These are the freshest strings on the site — review them first.**
 | `artefacto.ts` → `headline`, `headLede` | Artefacto |
 | `amenities.ts` → three `schedule` items | Amenities |
 | `amenities.ts` → all six `stack` entries | Amenities |
+| `copy.ts` → `forms.consentLabel` (`Términos de Uso` / `Termos de Uso`) | Both forms — the consent box's accessible name, and the key Follow Up Boss prints beside it |
 
 The six amenity cards carry a translated `title`, a `line` and an `alt`
 describing the lead photograph. All six lines are owner-written English as of

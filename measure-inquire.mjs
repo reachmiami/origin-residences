@@ -60,7 +60,7 @@ for (const vp of [
   const { sectionBox, items } = await page.evaluate(() => {
     const sec = document.getElementById('inquire');
     const sr = sec.getBoundingClientRect();
-    const sel = 'h2, legend, .consent span, .consent a, .form-block__lede, .req, .eyebrow';
+    const sel = 'h2, legend, .consent__text, .consent a, .form-block__lede, .req, .eyebrow';
     const items = [...sec.querySelectorAll(sel)]
       .filter((el) => el.textContent.trim().length && el.getClientRects().length)
       .map((el) => {
