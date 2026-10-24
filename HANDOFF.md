@@ -888,11 +888,38 @@ Closed since this list was last updated: enabling Pixel form capture (done by
 the owner, verified with real leads), the Follow Up Boss note format (fixed and
 verified 2026-10-24), and attaching the real domain (live 2026-10-24).
 
-1. **The privacy policy contradicts the LIVE site.** It states "This Site sets no
-   cookies and runs no analytics or advertising trackers" on pages that load
-   `widgetbe.com`, and names neither Follow Up Boss nor widgetbe as a
-   processor. Since 2026-10-24 that is a false statement on the public site,
-   not a draft; it needs rewriting and a legal review now.
+1. **The privacy policy is false on the live site — a corrected draft is
+   WAITING ON THE CLIENT.** Draft:
+   https://claude.ai/artifact/UBgeRkCVaKjNTTPbBLWDcR (a shared doc; read it
+   with the Claude Docs tools, never web-fetch it). The owner sent it to the
+   client on 2026-10-24 to answer its **[CONFIRM]** markers and the checklist
+   in its last section, then it goes to counsel. **Nothing is published:
+   do not change the live policy until the owner approves the wording.**
+
+   What the live policy gets wrong, measured on the live site 2026-10-24:
+   - "Sets no cookies … no trackers": the Pixel sets `WidgetTrackerCookie`
+     (36-char visitor ID, ~13-month expiry, on `.originresidences.com`),
+     writes `cta_config` to localStorage, and POSTs every page view to
+     `widgetbe.com`. It is the only third party the pages load; every other
+     external host in `dist/` is an outbound link.
+   - It lists fields no form asks for (Company, mailing address, "How did
+     you hear about us"). The real fields are in the draft.
+   - It names neither Follow Up Boss nor widgetbe, and its "Safe
+     Unsubscribe®" line is Constant Contact's wording — whether that tool is
+     used is one of the client's questions.
+
+   When the answers are in: read the doc (including comments), revise it,
+   and once approved, implement it in `src/content/pages/legal.ts`
+   (`legalBody.privacy`) and `src/pages/[...lang]/privacy-policy.astro` —
+   whose header comment also claims "this build sets no cookies and loads no
+   analytics" and must go with it. The draft adds sections the page does not
+   have yet (who receives data, a cookie table, choices and rights), so
+   expect markup, not only copy. If the consent wording changes, bump
+   `CONSENT_VERSION` in `leads.ts`. Push = release.
+
+   The checklist also raises, for counsel, that the old WordPress site was
+   probably compromised in May 2024 (open item 4) and whether lead data
+   stored there was exposed.
 
 2. **Decide whether to turn on the relay.** The Pixel is the only delivery
    path, and `widgetbe.com` is blocked by default in uBlock Origin, AdGuard and

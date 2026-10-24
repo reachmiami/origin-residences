@@ -15,13 +15,18 @@ Before doing anything, read these in order:
   2. PRODUCT.md      — product truth and the PINNED brand constraints
   3. README.md       — commands, layout, non-negotiables
 
-Three things to know immediately:
+Four things to know immediately:
 
-1. `npm run build` runs clean. A pre-build guard (`scripts/check-env.mjs`)
+1. THE SITE IS LIVE at https://originresidences.com, and there is no staging
+   copy: every push to the working branch deploys to the public site, and
+   any lead submitted there is a real CRM record. Do not push without my
+   say-so; test on a local `npm run build && npm run preview`.
+
+2. `npm run build` runs clean. A pre-build guard (`scripts/check-env.mjs`)
    refuses to build if a credential appears in a PUBLIC_ variable — it passes
    now and must stay. Never "fix" a guard failure by removing the guard.
 
-2. The brand is PINNED. I was offered a redesign and declined it. Palette,
+3. The brand is PINNED. I was offered a redesign and declined it. Palette,
    typeface and register are fixed; modernisation goes into execution only.
    Font weights are 100/200/300, with TWO sanctioned exceptions I approved:
    Montserrat Medium 500 (the homepage header, both forms, the neighbourhood
@@ -29,7 +34,7 @@ Three things to know immediately:
    further without asking. Both exception files are latin subsets — check
    HANDOFF before using either weight on new copy.
 
-3. There is no test suite. Verification is Playwright scripts in the project
+4. There is no test suite. Verification is Playwright scripts in the project
    root run against a BUILD, never the dev server — `assert-build.mjs` refuses
    to measure one. MEASURE element boxes, computed styles and
    composited pixels — do not judge from screenshots. Every real bug in this
@@ -49,11 +54,11 @@ until I confirm.
 
 Swap the last paragraph for one of these:
 
-**Fix the privacy policy** — the top open item, a false statement on the live site
-> Work open item 1 in HANDOFF.md. Rewrite the privacy policy so it names Follow
-> Up Boss and widgetbe as processors and stops claiming the site runs no
-> trackers. Draft it for my lawyer to review; do not publish it until I say so,
-> because every push now goes live.
+**Finish the privacy policy** — the top open item; the draft is waiting on the client
+> Work open item 1 in HANDOFF.md. The client has answered the questions in the
+> privacy policy draft: [ANSWERS, or "they're in the doc's comments"]. Read the
+> draft, fold the answers in, and show me what changed. Do not touch the live
+> site until I approve the final wording — every push now goes live.
 
 **Catch the leads ad blockers lose**
 > Work open item 2 in HANDOFF.md. I've decided to enable the relay; here is the
