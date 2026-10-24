@@ -4,12 +4,53 @@
 
 Last verified 2026-10-23, against the shipped bundle and a live browser.
 
+### The architecture, decided
+
+**Pixel only. Fully static, no server-side component.** Asked directly, the
+owner chose this over a serverless endpoint holding an API key.
+
+What that buys: nothing to run, nothing to maintain, no secret to protect, and
+visit-history attribution the API cannot provide.
+
+What it costs, recorded so nobody rediscovers it as a surprise:
+
+- **Delivery is unverifiable from here.** The Pixel is a third-party script in
+  the visitor's browser; it reports nothing back. Whether a person record is
+  created depends on a dashboard setting no code can read.
+- **Ad-blocked visitors cannot convert through the form.** widgetbe.com is a
+  tracker domain and is blocked by uBlock, Brave and Safari's protections.
+  Those visitors are now told to call instead — honest, but a lost conversion.
+- **That loss is unmeasurable on this stack.** No backend, no analytics by
+  design, and the blocked thing is the Pixel itself.
+- **Field mapping is Follow Up Boss's guess.** `primeForPixel` gives it the
+  cleanest signal it can — a combined `name` and everything else folded into
+  `message` — but the mapping is theirs, not ours.
+- **The public tracker ID is a write path.** Anyone can POST to widgetbe with
+  `WT-FBRKNWTI`, bypassing the honeypot and validation, and inject person
+  records that trigger real calls and texts. Mitigation is FUB-side: lead-source
+  filtering and monitoring.
+
+A relay (`PUBLIC_FORM_RELAY_KEY`) remains available and is **not** the thing
+that was declined — it is a hosted third-party endpoint, not code to run, and
+it is the only way to make delivery verifiable on a static site. One
+environment variable if that trade ever looks worth it.
+
 ### The two paths
 
 | | Verifiable? | State |
 | --- | --- | --- |
 | **FUB Pixel** (`WT-FBRKNWTI`) | No | Installed. Creates a person record **only if form capture is on** — last recorded as OFF. |
 | **Relay** (`PUBLIC_FORM_RELAY_KEY`) | **Yes** — returns an HTTP status | **Not configured.** No key is set, so this path is compiled out of the bundle entirely. |
+
+### Checking it
+
+`npm run verify:leads` (against `npm run preview`) exercises both forms with the
+tracker loading and with it blocked, and prints the exact payload Follow Up Boss
+will receive. It sends nothing — requests to widgetbe.com are intercepted, and
+the loaded case is simulated rather than fetched, so it cannot create a person
+record or contact anybody.
+
+It checks the browser half only. Step 2 below is the half no script can reach.
 
 ### What you must do, in order
 

@@ -10,7 +10,8 @@
     "check:env": "node scripts/check-env.mjs",
     "preview": "astro preview",
     "check": "astro check",
-    "verify": "npm run check && npm run build && node scripts/assert-output.mjs"
+    "verify": "npm run check && npm run build && node scripts/assert-output.mjs",
+    "verify:leads": "node verify-lead-path.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.6.0",
