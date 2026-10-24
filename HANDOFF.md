@@ -1,6 +1,6 @@
 # Handoff — Origin Residences rebuild
 
-Orientation for a fresh session. Last updated 2026-08-17.
+Orientation for a fresh session. Last updated 2026-10-24.
 
 Read this first, then `PRODUCT.md` for product truth and brand constraints.
 `README.md` covers commands and layout, `FOLLOW-UP-BOSS.md` the CRM wiring,
@@ -46,6 +46,12 @@ qualified enquiry, not on traffic.
 - **3 locales**: English at the root, `/es/`, `/pt-br/`
 - **27 residences in the building, 2 released** — 302 and 401. Only released
   residences get a page at all; see "What is currently listed" below
+- **Leads reach Follow Up Boss** through the Pixel with form capture —
+  verified with real submissions on 2026-10-23/24, including the note body
+  carrying the residence, source page and consent record. Visitors whose
+  browser blocks `widgetbe.com` (EasyPrivacy, on by default in uBlock Origin,
+  AdGuard and Brave) **cannot** submit; they are told to call. The relay that
+  would catch them is built and verified but not configured — open item 1
 - **Deployed** for client review at
   https://reachmiami.github.io/origin-residences/ — noindex, no CRM pixel, no
   sitemap. The live public site is still the old WordPress build
@@ -64,7 +70,30 @@ guessed the URL.
 
 Working branch: `homepage-stack-hero-scrim-forms`. **Nothing is merged to
 `main`**, which still sits on the original rebuild. Everything below is
-committed and deployed.
+committed. The lead-delivery work is not observable on the review deploy,
+which omits the Pixel by design.
+
+#### Lead delivery — from "always succeeds" to verified
+
+An audit (Phases 0–2, all committed) found the forms could not fail:
+`submitLead` was a constant `{ ok: true }`, so a lead with nowhere to go still
+thanked the visitor. It now reports honestly — relay result if configured,
+optimistic success if the Pixel actually loaded, an explicit "please call"
+otherwise — and `pixelLoaded()` tells a loaded tracker from its stub.
+
+The first real submissions then showed two things no script could:
+
+- **The Pixel path works**, once the owner enabled form capture. The owner's
+  first failed test was their own ad blocker: `widgetbe.com` is the only host
+  in the stack on any major blocklist. That share of visitors is the case for
+  the relay — see open item 1.
+- **Follow Up Boss ignores `type="hidden"` inputs.** The note body — residence,
+  source page, language and the TCPA consent record — had been reaching
+  nobody. It is now a visually hidden `<textarea>`, and a real lead confirmed
+  FUB reads it. The consent box is labelled `Terms of Use` and sends
+  `Accepted`; the type radio sends `Yes`. FUB's note structure, and why the
+  body appears twice, is written up in `FOLLOW-UP-BOSS.md`; that duplication
+  is FUB's and was accepted by the owner.
 
 #### Deployment
 
@@ -200,8 +229,8 @@ That way a surface nobody audited fails by *hiding* a unit rather than leaking o
    **Medium 500** (the homepage header, both forms, the locator's list and site
    label) and **SemiBold 600** (the locator's category filter, the only rule
    that loads it).
-   Both are LATIN-SUBSET files. Read open item 5 before using either anywhere
-   new.
+   Both are LATIN-SUBSET files. Read the open item "Decide on the off-kit
+   font weights" before using either anywhere new.
 3. **Colours from tokens**, never raw hex in components (only `#b3261e` error red).
 4. **Invent nothing**: no availability, testimonials, awards or bios — and no
    prices, MLS numbers, HOA figures or taxes that the owner has not supplied.
@@ -395,8 +424,9 @@ origin is a `github.io` address:
 - **The Follow Up Boss pixel is omitted** (`src/components/FubPixel.astro`).
   It writes to the live CRM. A client clicking through the forms on a review
   build would otherwise create real person records and start action plans
-  against them. Forms still submit and still report success — `leads.ts` treats
-  the relay copy as optional — they just do not reach the CRM.
+  against them. With no Pixel and no relay key, a submission there has nowhere
+  to go, and the form **says so** and gives the phone number — it no longer
+  shows a success panel for a lead that went nowhere.
 
 Both are off the moment a real domain is attached, which is the correct
 behaviour for a launch but worth knowing before you attach one.
@@ -718,6 +748,27 @@ while phones kept it. Re-read the braces after any media-query surgery.
 resets Y to `center`. Where a figure is meant to stand on the card's lower edge,
 write both: `-150px bottom`.
 
+**Follow Up Boss ignores `type="hidden"` inputs — silently.** The lead note's
+whole context block, including the consent record, was a hidden input and
+reached nobody, while every local check passed: `verify-lead-path.mjs`
+confirmed the field was populated, which it was. Only a real lead read back
+from FUB showed it. Anything the CRM must see goes in a visible-to-the-DOM
+control (the note is a `.visually-hidden` `<textarea>`), never `hidden` or
+`display:none`. The full note anatomy is in `FOLLOW-UP-BOSS.md`.
+
+**A form control's `value` is also what the CRM prints.** FUB keys each field
+by its label and shows its value, so a checkbox with no `value` arrives as
+`on`, and a radio arrives as `<option label>: <value>`. Changing a `value` for
+FUB's sake breaks any code that compared against the old one: `payloadFromForm`
+tested consent as `value === 'on'` and would have recorded every lead as
+refusing consent. Read state (`.checked`), not strings; keep a separate
+`data-*` for what the payload should record.
+
+**A stretched label covers the control it labels.** The consent `<label>` is
+stretched over its paragraph so the text still toggles the box; until the box
+and links were lifted above it (`z-index: 1`), Playwright refused to click the
+box, and a link would have toggled consent instead of opening the policy.
+
 ---
 
 ## Verification workflow
@@ -787,36 +838,49 @@ defect until the probe was examined.
 
 ## Open items, in the order I'd take them
 
-Closed since this list was written: the page-band veil and the shadowed
-`MAP_HREF` (both in `7bcdcf9`), and v1-vs-v2 — v2 was promoted to `/` and is
-now committed.
+Closed since this list was last updated: enabling Pixel form capture (done by
+the owner, verified with real leads), and the Follow Up Boss note format (the
+context was being dropped; fixed and verified 2026-10-24).
 
-1. **Enable Pixel form capture** in Follow Up Boss (*Pixel → Tracking*). The
-   Pixel (`WT-FBRKNWTI`) is installed and firing `/identify`, but **no lead is
-   created** until this setting is on. Verified by network trace. Until then the
-   form shows success and the lead goes nowhere. This is the only item that
-   blocks the site doing its job.
+1. **Decide whether to turn on the relay.** The Pixel is the only delivery
+   path, and `widgetbe.com` is blocked by default in uBlock Origin, AdGuard and
+   Brave — so a predictable share of an affluent, privacy-tooled audience can
+   only be told to call. The relay (`PUBLIC_FORM_RELAY_KEY`) catches exactly
+   those leads, returns real evidence of delivery, and is built and verified in
+   both Pixel states. It is a client-side `fetch` to a hosted form endpoint —
+   no server, no secret, the site stays static — so it is NOT the server-side
+   script the owner declined. The owner's decision. If enabled, it must never
+   point at the account's `@followupboss.me` address while form capture is on:
+   that would duplicate every person record.
 
-   Note for testing: the pixel is deliberately **omitted from the GitHub Pages
-   review build**, so a submission there reaches nothing by design. Test against
-   a local production build, or a build with `REVIEW_DEPLOY` unset.
+2. **The privacy policy contradicts the site.** It states "This Site sets no
+   cookies and runs no analytics or advertising trackers" on pages that load
+   `widgetbe.com`, and names neither Follow Up Boss nor widgetbe as a
+   processor. A false published statement on a lead-generation site; it needs
+   rewriting and a legal review before launch.
 
-2. **Supply the MLS sheet for residence 401.** It carries an asking price and
+3. **The audit's Phases 3 and 4 were never written down.** Phases 0–2 are
+   committed and described in their commit messages. A session note claimed
+   3 and 4 were listed here; they were not, and no file or commit records
+   them. Ask the owner what they were, or re-run the audit's later phases —
+   do not reconstruct them from memory.
+
+4. **Supply the MLS sheet for residence 401.** It carries an asking price and
    nothing else — no MLS number, HOA, taxes, parking or lot size — so those
    rows are absent from its listing page. `src/data/listings.ts`, one object,
    and the rows appear on their own.
 
-3. **Decide what happens to the review site's exposure.** The repo is public,
+5. **Decide what happens to the review site's exposure.** The repo is public,
    so `src/data/` pricing and the full photography set are readable by anyone
    who finds it, and GitHub Pages has no password on any plan. Noindex keeps it
    out of search; it is not access control. Going private needs GitHub Pro
    before the site will build at all.
 
-4. **Attach the real domain when it exists.** Settings → Pages → Custom domain,
+6. **Attach the real domain when it exists.** Settings → Pages → Custom domain,
    and nothing in the repo changes — the workflow reads the target from GitHub.
    That switch also lifts the noindex and restores the CRM pixel, so it is a
    launch, not a cosmetic change.
-5. **The locator's pins crowd, and they are burying the building.** At the
+7. **The locator's pins crowd, and they are burying the building.** At the
    owner-requested 32px, the gold Origin mark measures **85% covered** by
    numbered pins on "All", and **24 of 29 pins overlap** at least one other (48
    overlapping pairs). The owner asked for that mark to be visible across every
@@ -826,13 +890,13 @@ now committed.
    the Sunny Isles school pull it out, leaving a lot of empty mainland. Tighten
    it only if you regenerate the basemap AND every `x`/`y` together; they share
    one projection and changing one alone silently misplaces every pin.
-6. **17 places from the owner's list have no coordinates** and are absent from
+8. **17 places from the owner's list have no coordinates** and are absent from
    the locator, including both public sculptures and Ruth K. Broad K-8. Roads,
    routes and programmes were left out deliberately — they are not single points.
    Note also that all 36 Bal Harbour Shops tenants share the mall's pin, as do
    the restaurants inside each hotel, which is why pins are `aria-hidden` and
    the list carries the semantics.
-7. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
+9. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
    homepage header, both forms, the locator's list and site label) and SemiBold
    600 (the locator's category filter). The kit contains only 100/200/300. Either the
    brand's weight range has genuinely widened, in which case say so in
@@ -841,12 +905,12 @@ now committed.
    500 or 600 falls back, so keep those weights on known strings. The previous
    Medium file is NOT in git history in usable form — it was a broken subset and
    was replaced, with a copy kept only in the last session's scratchpad.
-8. **Native review of `es` and `pt-br`** before those locales go public. Also a
+10. **Native review of `es` and `pt-br`** before those locales go public. Also a
    counsel question on whether the translated consent text carries the same
    force — `TRANSLATION-REVIEW.md` has the detail. Two known English-only spots:
    the footer's maker credit ("Made with ♥ in Miami.") and the Neighborhood
    headline, which changed in English while es/pt-br still read "secluded".
-9. **Locator accessibility calls made deliberately at the owner's request.**
+11. **Locator accessibility calls made deliberately at the owner's request.**
    Each was flagged when made; revisit if any matters:
    - Dimmed groups run at `opacity: 0.15`, roughly **2.4:1** — below AA. The
      content is de-emphasised rather than removed and comes back in one click.
@@ -856,7 +920,7 @@ now committed.
      announced only by the chip's own `aria-pressed`.
    - The selected chip is distinguished by **colour alone**; the weight cue went
      when every chip moved to 600.
-10. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
+12. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
    deliberately NOT fixed in passing.** Both are the same root cause as the
    page-head eyebrow — raw `--gold` used as text — but they live in the header,
    which HANDOFF records as the most regression-prone area in this build, and
@@ -873,7 +937,7 @@ now committed.
      gold fill is the CTA's identity — so it probably needs the owner, not a
      fix. Large-text AA (3:1) is also missed, narrowly.
 
-11. **The amenity deck needs more photographs, and three cards need a line.**
+13. **The amenity deck needs more photographs, and three cards need a line.**
    Four of the six folders hold a SINGLE image — `clubroom`, `fitness-center`,
    `kidsroom`, `pet-zone` — so those cards drift but never cross-fade; only
    rooftop and aqua club have five each. Drop files into the folder and they
@@ -884,9 +948,9 @@ now committed.
    and `pet-zone/origin-pets.jpg` looks like the same photograph already
    tracked as `amenities/pet-park-dogs.jpg`.
 
-12. **36 warnings** from the first review round were never worked — only the
+14. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-13. **Assets the owner owes**: real photographs for the five templates still on
+15. **Assets the owner owes**: real photographs for the five templates still on
    `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and the residence
    pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
@@ -902,7 +966,7 @@ now committed.
    `src/assets/amenities/residence-living-dining-bay-view.jpg` is the opposite
    case — tracked but unreferenced since the Amenities lead render was dropped,
    and NOT the same file as the identically-named one in `assets/gallery/`.
-12. Smaller, all live and all deliberate for now:
+16. Smaller, all live and all deliberate for now:
    - The Gallery lede promises "photos and videos"; the page has no video.
    - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
      frame them better now that they are cut-outs rather than photographs.
@@ -913,6 +977,14 @@ now committed.
      the phone-width burger is 38px against the 44px target guideline.
    - The old team `*-portrait.jpg` files are unreferenced now that the PNG
      cut-outs are in; they are still tracked.
+   - **The two forms are forked**: `InquiryForm.astro` and `ScheduleForm.astro`
+     duplicate ~225 lines of markup, styles and script. Every lead-path change
+     has to be made twice or the schedule form silently keeps the old
+     behaviour. Merge them when either is next touched substantially.
+   - On the schedule form, the presentation-method and time radios still
+     arrive in FUB's field summary doubled (`Visit sales gallery: Visit sales
+     gallery`). Left alone: the owner specified only the Inquiry layout, and
+     the note body carries both values cleanly.
    - Stacked full-width, the locator's map is 1513px tall at 1200px wide — the
      basemap is portrait, so "full width" costs height. Capped only below 900px
      if that becomes a problem.
@@ -932,7 +1004,7 @@ now committed.
   WordPress build. What exists is a client-review copy on GitHub Pages —
   noindex, no sitemap, no CRM pixel — at
   https://reachmiami.github.io/origin-residences/. Attaching the real domain is
-  open item 4 and is a launch, not a deployment step.
+  open item 6 and is a launch, not a deployment step.
 - No real-device testing. Emulated viewports only — iOS Safari and Android
   Chrome differ on video autoplay, `100svh` and font rendering.
 - The IDX account system (login, favourites, saved searches, mortgage

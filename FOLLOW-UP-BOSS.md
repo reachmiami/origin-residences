@@ -143,17 +143,19 @@ It checks the browser half only. Step 2 below is the half no script can reach.
 
 ### What you must do, in order
 
-1. **Turn on form capture** — Follow Up Boss → Pixel → Tracking. Nothing in
-   the browser can see this setting, so no amount of code will tell you it is
-   off. Until it is on, the Pixel records a pageview and creates no lead.
+1. ~~Turn on form capture~~ — **done 2026-10-23** (Follow Up Boss → Pixel →
+   Tracking). Nothing in the browser can see this setting; if leads ever stop
+   arriving, check it first.
 
-2. **Submit a real test lead** against a build with `REVIEW_DEPLOY` unset
-   (`npm run build && npm run preview` locally — the GitHub Pages review deploy
-   deliberately omits the Pixel, so testing there proves nothing). Confirm a
-   person record appears **with the message body populated** — that body is
-   where the residence, the appointment details and the consent record live.
+2. ~~Submit a real test lead~~ — **done 2026-10-23/24**, and repeat it after any
+   change to the forms, the Pixel snippet or FUB's settings. Use a build with
+   `REVIEW_DEPLOY` unset (`npm run build && npm run preview`; the review deploy
+   omits the Pixel) and your ad blocker OFF. Confirm the person exists **and**
+   the note body carries the residence, the appointment details and
+   `Consent given: Yes`.
 
-3. **Set `PUBLIC_FORM_RELAY_KEY`.** This is the only part of the pipeline that
+3. **Decide whether to set `PUBLIC_FORM_RELAY_KEY`** — the owner's call, open
+   item 1 in `HANDOFF.md`. It is the only part of the pipeline that
    can confirm delivery. A relay key is a UUID and is safe to publish — it can
    accept a form post and cannot read your CRM; `scripts/check-env.mjs` rejects
    anything that looks like an API key instead. Point the relay at the sales

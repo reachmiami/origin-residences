@@ -49,24 +49,24 @@ until I confirm.
 
 Swap the last paragraph for one of these:
 
-**Get leads flowing** — the top open item, and the only one blocking the site
-> Work open item 1 in HANDOFF.md. I've enabled Pixel form capture in Follow Up
-> Boss. Verify with a real submission that a lead is created, using a network
-> trace rather than trusting the success panel. Test against a local production
-> build — the review deploy omits the pixel on purpose.
+**Catch the leads ad blockers lose** — the top open item
+> Work open item 1 in HANDOFF.md. I've decided to enable the relay; here is the
+> access key: [KEY]. Point it at [ADDRESS] — never the @followupboss.me address
+> while Pixel form capture is on. Verify with verify-lead-path.mjs in both Pixel
+> states, then one real submission with my ad blocker ON, read back from email.
 
 **Fill in residence 401's sheet**
-> Work open item 2 in HANDOFF.md. Here is the MLS sheet for 401: [PASTE].
+> Work open item 4 in HANDOFF.md. Here is the MLS sheet for 401: [PASTE].
 > Put it into src/data/listings.ts and check the rows appear.
 
 **Stop the map pins burying the building**
-> Work open item 5 in HANDOFF.md. On the Neighborhood locator the gold Origin
+> Work open item 7 in HANDOFF.md. On the Neighborhood locator the gold Origin
 > marker measures 85% covered by numbered pins on "All", and 24 of 29 pins
 > overlap another. Keep the mark beneath the numbers, but make it visible at
 > every category. Measure the coverage before and after.
 
 **Put the site on its real domain**
-> Work open item 4 in HANDOFF.md. I've bought [DOMAIN] and pointed its DNS at
+> Work open item 6 in HANDOFF.md. I've bought [DOMAIN] and pointed its DNS at
 > GitHub Pages. Set it in Settings → Pages and confirm the build drops the
 > subfolder, the noindex and the CRM pixel's absence — all three should follow
 > automatically. Verify on the deployed site, not locally.
@@ -115,8 +115,12 @@ Swap the last paragraph for one of these:
 - **One homepage.** `/` carries the sunset hero; `/v2/` is retired and
   redirects. `HOME_PATH` in `src/i18n/ui.ts` is the single place the home
   destination is written down
-- Follow Up Boss Pixel `WT-FBRKNWTI` is installed but **form capture is off**,
-  so no leads are being created yet
+- **Leads reach Follow Up Boss** via the Pixel `WT-FBRKNWTI` with form
+  capture on — verified with real leads. Visitors who block `widgetbe.com`
+  (default in uBlock Origin, AdGuard, Brave) are told to call; the relay that
+  would catch them is built but not configured. FUB **ignores `type="hidden"`
+  inputs**, so the note body is a visually hidden `<textarea>` — read
+  `FOLLOW-UP-BOSS.md` before touching either form
 
 ## Working notes that save real time
 

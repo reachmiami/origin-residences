@@ -78,7 +78,7 @@ lists them and — more importantly — the ways a measurement can lie to you.
    neighbourhood locator's list) and SemiBold 600 (the locator's category
    filter). Both are
    latin-subset files. The lightness is the brand signal; widening this further
-   is the owner's call, not a styling decision. See open item 5 in `HANDOFF.md`.
+   is the owner's call, not a styling decision. See the open item "Decide on the off-kit font weights" in `HANDOFF.md`.
 3. **Colours come from tokens**, never raw hex in components.
 4. **No modals or lightboxes** — an explicit client requirement. Reveals happen
    in place or through navigation.
