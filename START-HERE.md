@@ -49,27 +49,32 @@ until I confirm.
 
 Swap the last paragraph for one of these:
 
-**Catch the leads ad blockers lose** — the top open item
-> Work open item 1 in HANDOFF.md. I've decided to enable the relay; here is the
+**Fix the privacy policy** — the top open item, a false statement on the live site
+> Work open item 1 in HANDOFF.md. Rewrite the privacy policy so it names Follow
+> Up Boss and widgetbe as processors and stops claiming the site runs no
+> trackers. Draft it for my lawyer to review; do not publish it until I say so,
+> because every push now goes live.
+
+**Catch the leads ad blockers lose**
+> Work open item 2 in HANDOFF.md. I've decided to enable the relay; here is the
 > access key: [KEY]. Point it at [ADDRESS] — never the @followupboss.me address
 > while Pixel form capture is on. Verify with verify-lead-path.mjs in both Pixel
 > states, then one real submission with my ad blocker ON, read back from email.
 
 **Fill in residence 401's sheet**
-> Work open item 4 in HANDOFF.md. Here is the MLS sheet for 401: [PASTE].
+> Work open item 6 in HANDOFF.md. Here is the MLS sheet for 401: [PASTE].
 > Put it into src/data/listings.ts and check the rows appear.
 
 **Stop the map pins burying the building**
-> Work open item 7 in HANDOFF.md. On the Neighborhood locator the gold Origin
+> Work open item 8 in HANDOFF.md. On the Neighborhood locator the gold Origin
 > marker measures 85% covered by numbered pins on "All", and 24 of 29 pins
 > overlap another. Keep the mark beneath the numbers, but make it visible at
 > every category. Measure the coverage before and after.
 
-**Put the site on its real domain**
-> Work open item 6 in HANDOFF.md. I've bought [DOMAIN] and pointed its DNS at
-> GitHub Pages. Set it in Settings → Pages and confirm the build drops the
-> subfolder, the noindex and the CRM pixel's absence — all three should follow
-> automatically. Verify on the deployed site, not locally.
+**Catch the old site's traffic**
+> Work open item 4 in HANDOFF.md. Here is the old WordPress sitemap / Search
+> Console export: [PASTE]. List which old URLs now 404 on originresidences.com
+> and propose redirects — measure against the live site.
 
 **Supply the missing artwork**
 > Some pages are standing on a placeholder photograph — grep BAND_PLACEHOLDER.
@@ -83,11 +88,14 @@ Swap the last paragraph for one of these:
   solely by `src/data/released.json`. An unreleased residence gets **no page at
   all** now: no URL, no floor-plan PDF, no drawing. Adding its number back
   restores everything in one edit
-- **Deployed for client review** at https://reachmiami.github.io/origin-residences/
-  — every page noindex, no sitemap, no CRM pixel. The public site is still the
-  old WordPress build
-- **The site builds for two different roots** — the apex domain, and a
-  `/origin-residences/` subfolder on the review copy. Never write a
+- **LIVE at https://originresidences.com** (GitHub Pages, HTTPS enforced) since
+  2026-10-24, replacing the WordPress site. **There is no staging copy: every
+  push to `homepage-stack-hero-scrim-forms` deploys to the public site**, and a
+  test lead submitted there is a real CRM record. Test on a local
+  `npm run build && npm run preview`
+- **The site builds for two different roots** — the apex domain in production,
+  and a `/origin-residences/` subfolder whenever Pages runs without the custom
+  domain. Never write a
   root-absolute path by hand: internal links go through `localizePath()`,
   `public/` files through `asset()`, and anything imported from `src/assets/` is
   rewritten by Vite

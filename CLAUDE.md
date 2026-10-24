@@ -89,7 +89,8 @@ touching anything it depended on, and correct it when it changes.
 These are in `HANDOFF.md` in full. The ones most easily broken by accident:
 
 - **Never write a root-absolute path by hand.** The site builds for two roots —
-  the apex domain, and a `/origin-residences/` subfolder on the review deploy.
+  the apex domain in production, and a `/origin-residences/` subfolder
+  whenever Pages serves without the custom domain or on a staging copy.
   Internal links go through `localizePath()`, `public/` files through
   `asset()`; anything imported from `src/assets/` is rewritten by Vite.
 - **No credential in a `PUBLIC_*` variable.** `scripts/check-env.mjs` blocks the

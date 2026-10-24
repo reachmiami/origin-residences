@@ -51,10 +51,14 @@ qualified enquiry, not on traffic.
   carrying the residence, source page and consent record. Visitors whose
   browser blocks `widgetbe.com` (EasyPrivacy, on by default in uBlock Origin,
   AdGuard and Brave) **cannot** submit; they are told to call. The relay that
-  would catch them is built and verified but not configured — open item 1
-- **Deployed** for client review at
-  https://reachmiami.github.io/origin-residences/ — noindex, no CRM pixel, no
-  sitemap. The live public site is still the old WordPress build
+  would catch them is built and verified but not configured — open item 2
+- **LIVE at https://originresidences.com** since 2026-10-24, on GitHub Pages
+  with HTTPS enforced. It replaced the old WordPress site. Indexed, sitemap
+  published, Pixel on. `www.`, `http://` and the old
+  `reachmiami.github.io/origin-residences/` all 301 to it
+- **There is no staging copy.** Every push to `homepage-stack-hero-scrim-forms`
+  deploys straight to the public site, and any test lead submitted there is a
+  real Follow Up Boss record — open item 3
 - Home page **markup 89KB raw / 26KB gzipped**, against 719KB of markup
   on the incumbent — the comparison README.md defines, measured rather than
   recalled. Full homepage load with images is **~1.15MB**; the two figures
@@ -70,8 +74,22 @@ guessed the URL.
 
 Working branch: `homepage-stack-hero-scrim-forms`. **Nothing is merged to
 `main`**, which still sits on the original rebuild. Everything below is
-committed. The lead-delivery work is not observable on the review deploy,
-which omits the Pixel by design.
+committed and live.
+
+#### Launch on the real domain
+
+The owner pointed the domain at GitHub Pages on 2026-10-24. Two things went
+wrong, both now fixed, and both are in Gotchas:
+
+- **HTTPS would not issue** because the apex kept an `AAAA` record for the old
+  WordPress host (The Constant Company / Vultr). Replacing it with GitHub's
+  four IPv6 addresses let the certificate issue.
+- **For a while the domain served the review build** — subfolder asset paths,
+  `noindex`, no Pixel — because the last deploy predated the custom domain.
+  The workflow picks the domain up only when it next runs. Two deploys fixed
+  it: one for `http://`, then one more once HTTPS was enforced, because
+  `configure-pages` reports `http://` until then and every canonical link and
+  sitemap entry is built from that.
 
 #### Lead delivery — from "always succeeds" to verified
 
@@ -86,7 +104,7 @@ The first real submissions then showed two things no script could:
 - **The Pixel path works**, once the owner enabled form capture. The owner's
   first failed test was their own ad blocker: `widgetbe.com` is the only host
   in the stack on any major blocklist. That share of visitors is the case for
-  the relay — see open item 1.
+  the relay — see open item 2.
 - **Follow Up Boss ignores `type="hidden"` inputs.** The note body — residence,
   source page, language and the TCPA consent record — had been reaching
   nobody. It is now a visually hidden `<textarea>`, and a real lead confirmed
@@ -97,12 +115,11 @@ The first real submissions then showed two things no script could:
 
 #### Deployment
 
-- **Built for a subfolder** so the site could go on GitHub Pages before a
-  domain exists. `site` and `base` come from the environment and the workflow
-  fills them from `actions/configure-pages`, so attaching a custom domain later
-  is a change in the GitHub UI with no matching change in the repo.
-- **The review copy is held back deliberately**: noindex on every page, no
-  sitemap, and the Follow Up Boss pixel omitted. See the Deployment section.
+- **The deploy target comes from GitHub, not the repo.** `site` and `base`
+  come from the environment and the workflow fills them from
+  `actions/configure-pages`, so attaching the domain needed no code change —
+  and detaching it would silently turn the review mode back on. See the
+  Deployment section.
 
 #### Listings
 
@@ -381,55 +398,54 @@ Nothing imports it. It is left in place rather than deleted because it is the
 only implementation of the bedroom/level filter, which is worth having back if
 the developer releases enough inventory to need filtering again.
 
-## Deployment — GitHub Pages review copy
+## Deployment — GitHub Pages, live at originresidences.com
 
-The client reviews the site on GitHub Pages while the real domain is still
-being decided. `.github/workflows/deploy.yml` builds on every push to
-`homepage-stack-hero-scrim-forms` and publishes `dist/`.
+`.github/workflows/deploy.yml` builds on every push to
+`homepage-stack-hero-scrim-forms` and publishes `dist/` to
+**https://originresidences.com**. That is production: there is no staging copy
+(open item 3), so a push is a release.
 
-- **Live review copy:** https://reachmiami.github.io/origin-residences/
 - **Repo:** https://github.com/reachmiami/origin-residences (public)
+- **DNS** (GoDaddy, `domaincontrol.com`): apex `A` → `185.199.108–111.153`,
+  apex `AAAA` → `2606:50c0:8000–8003::153`, `www` CNAME →
+  `reachmiami.github.io`. Any other `A`/`AAAA` on the apex breaks HTTPS — see
+  Gotchas.
+- **Certificate:** Let's Encrypt, issued and renewed by GitHub; covers apex and
+  `www`. HTTPS is enforced in Settings → Pages.
 
-The repo is PUBLIC, which is what makes Pages free. `src/data/` pricing and the
-full photography set are readable by anyone who finds it, and Pages offers no
-password on any plan — the URL is the only thing gating access. If that stops
-being acceptable, going private means a paid plan before the site will build
-at all.
+The repo is PUBLIC, which is what makes Pages free. Everything in `src/` is
+readable by anyone, whatever `released.json` hides from the built site —
+open item 7. Going private means a paid plan before the site will build.
 
 **Nothing in the repo names the deployment target.** `actions/configure-pages`
 reports where Pages actually serves this repo from, and the workflow feeds
 those outputs to the build as `SITE_URL` and `BASE_PATH`. A plain
 `npm run build` with neither variable set produces the production shape —
-apex domain, at the root — exactly as before.
+apex domain, at the root.
 
-### Attaching the real domain
+**A change to the Pages settings needs a rebuild to take effect.** The target
+is read when the workflow runs, not when the setting changes. After changing
+the custom domain or the HTTPS setting, run the workflow by hand
+(`gh workflow run deploy.yml --ref homepage-stack-hero-scrim-forms`) and
+check the live canonical URL.
 
-Set it in **Settings → Pages → Custom domain**. That is the whole change.
-`configure-pages` then reports the custom domain at the root, so the next
-build drops the subfolder and the noindex on its own. Do not edit
-`astro.config.mjs` for this.
+### Review mode — dormant, and how it comes back
 
-### What the review copy deliberately does not do
-
-Both keyed off `REVIEW_DEPLOY`, which the workflow sets only when the Pages
-origin is a `github.io` address:
+`REVIEW_DEPLOY` is set only when the Pages origin is a `github.io` address,
+which it no longer is. It is kept because it is what makes a non-production
+copy safe, and it would switch back on by itself if the custom domain were
+removed. When on:
 
 - **Every page is `noindex, nofollow`.** A `robots.txt` cannot do this from a
-  project page — it would sit at `/<repo>/robots.txt`, and crawlers only read
-  the one at the domain root, which this repo does not own.
-- **No sitemap is generated.** Publishing a machine-readable list of all 120
-  URLs is the opposite of what noindex is for — it is precisely the file a
-  crawler reads to find pages it would not otherwise reach. Production keeps
-  its sitemap; the integration is simply not registered on a review build.
-- **The Follow Up Boss pixel is omitted** (`src/components/FubPixel.astro`).
-  It writes to the live CRM. A client clicking through the forms on a review
-  build would otherwise create real person records and start action plans
-  against them. With no Pixel and no relay key, a submission there has nowhere
-  to go, and the form **says so** and gives the phone number — it no longer
-  shows a success panel for a lead that went nowhere.
+  project page — crawlers only read the one at the domain root.
+- **No sitemap is generated** — the file a crawler reads to find pages it
+  would not otherwise reach.
+- **The Follow Up Boss pixel is omitted** (`src/components/FubPixel.astro`),
+  so clicking through forms cannot create real CRM records. With no Pixel and
+  no relay key the form says it could not send and gives the phone number.
 
-Both are off the moment a real domain is attached, which is the correct
-behaviour for a launch but worth knowing before you attach one.
+A staging copy, if one is set up, should build with `REVIEW_DEPLOY=true` and a
+`BASE_PATH` for its subfolder.
 
 ## Video — what ships, and how it was made
 
@@ -567,8 +583,8 @@ name. Both now render *through* the component via its `<slot>`. If a block has
 to look like another component's block, put it inside that component.
 
 **Never write a root-absolute path by hand.** The site builds for two
-different roots — the apex domain, and a `/<repo>/` subfolder on the Pages
-review copy. An `href="/amenities/"` or `src="/logo-origin.svg"` is correct in
+different roots — the apex domain in production, and a `/<repo>/` subfolder
+whenever Pages serves it without a custom domain (and on any staging copy). An `href="/amenities/"` or `src="/logo-origin.svg"` is correct in
 only one of them and 404s in the other. Internal links go through
 `localizePath()`; `public/` files go through `asset()`; anything imported from
 `src/assets/` is rewritten by Vite and needs neither. This is also why the
@@ -748,6 +764,20 @@ while phones kept it. Re-read the braces after any media-query surgery.
 resets Y to `center`. Where a figure is meant to stand on the card's lower edge,
 write both: `-150px bottom`.
 
+**A leftover `AAAA` record makes GitHub Pages report "HTTPS not available".**
+The `A` records were right; the apex also kept an IPv6 record for the old
+WordPress host. Let's Encrypt prefers IPv6, so its domain check reached the
+old server and the certificate never issued. A curl from this machine reached
+GitHub either way, so it proved nothing — `dig AAAA` against the
+authoritative nameserver is the check. Every apex `A`/`AAAA` must be GitHub's.
+
+**Attaching a custom domain does not rebuild the site.** Until the workflow
+next ran, `originresidences.com` served the review build: 78 subfolder asset
+paths that 404 at the root, `noindex`, no Pixel. And `configure-pages`
+reports `http://` until HTTPS is enforced, so the first rebuild baked
+`http://` into every canonical link and the sitemap. Rebuild after each Pages
+setting change, and check the live canonical.
+
 **Follow Up Boss ignores `type="hidden"` inputs — silently.** The lead note's
 whole context block, including the consent record, was a hidden input and
 reached nobody, while every local check passed: `verify-lead-path.mjs`
@@ -839,10 +869,16 @@ defect until the probe was examined.
 ## Open items, in the order I'd take them
 
 Closed since this list was last updated: enabling Pixel form capture (done by
-the owner, verified with real leads), and the Follow Up Boss note format (the
-context was being dropped; fixed and verified 2026-10-24).
+the owner, verified with real leads), the Follow Up Boss note format (fixed and
+verified 2026-10-24), and attaching the real domain (live 2026-10-24).
 
-1. **Decide whether to turn on the relay.** The Pixel is the only delivery
+1. **The privacy policy contradicts the LIVE site.** It states "This Site sets no
+   cookies and runs no analytics or advertising trackers" on pages that load
+   `widgetbe.com`, and names neither Follow Up Boss nor widgetbe as a
+   processor. Since 2026-10-24 that is a false statement on the public site,
+   not a draft; it needs rewriting and a legal review now.
+
+2. **Decide whether to turn on the relay.** The Pixel is the only delivery
    path, and `widgetbe.com` is blocked by default in uBlock Origin, AdGuard and
    Brave — so a predictable share of an affluent, privacy-tooled audience can
    only be told to call. The relay (`PUBLIC_FORM_RELAY_KEY`) catches exactly
@@ -853,34 +889,45 @@ context was being dropped; fixed and verified 2026-10-24).
    point at the account's `@followupboss.me` address while form capture is on:
    that would duplicate every person record.
 
-2. **The privacy policy contradicts the site.** It states "This Site sets no
-   cookies and runs no analytics or advertising trackers" on pages that load
-   `widgetbe.com`, and names neither Follow Up Boss nor widgetbe as a
-   processor. A false published statement on a lead-generation site; it needs
-   rewriting and a legal review before launch.
+3. **Decide whether to have a staging copy.** The review copy is gone — its
+   URL now redirects to production — so every push is a release, with no
+   place for the owner to look first and no safe place to submit a test lead.
+   Options: accept that and test locally (`npm run build && npm run preview`);
+   or publish a second, noindexed, Pixel-free build from another repo or
+   branch with `REVIEW_DEPLOY=true` and its own `BASE_PATH`. The owner's
+   decision.
 
-3. **The audit's Phases 3 and 4 were never written down.** Phases 0–2 are
+4. **Launch follow-ups nobody has checked yet.** The domain changed hands
+   from WordPress on 2026-10-24 and none of these has been looked at:
+   - **Old WordPress URLs.** Anything indexed or linked under the old site's
+     paths now hits GitHub's 404 page unless it happens to match a new one.
+     No list of the old URLs exists in the repo — the scraper fetched only
+     the homepage, and the Wayback index returned nothing from here. Get
+     the old sitemap or a Search Console export, then decide on redirects
+     (Pages has no server redirects; it would mean stub pages).
+   - **Search Console**: verify the domain and submit `/sitemap-index.xml`.
+   - **Anything else the old host served** on this domain — DNS was edited
+     by hand, so check that MX and other records still point where they
+     should.
+
+5. **The audit's Phases 3 and 4 were never written down.** Phases 0–2 are
    committed and described in their commit messages. A session note claimed
    3 and 4 were listed here; they were not, and no file or commit records
    them. Ask the owner what they were, or re-run the audit's later phases —
    do not reconstruct them from memory.
 
-4. **Supply the MLS sheet for residence 401.** It carries an asking price and
+6. **Supply the MLS sheet for residence 401.** It carries an asking price and
    nothing else — no MLS number, HOA, taxes, parking or lot size — so those
    rows are absent from its listing page. `src/data/listings.ts`, one object,
    and the rows appear on their own.
 
-5. **Decide what happens to the review site's exposure.** The repo is public,
-   so `src/data/` pricing and the full photography set are readable by anyone
-   who finds it, and GitHub Pages has no password on any plan. Noindex keeps it
-   out of search; it is not access control. Going private needs GitHub Pro
-   before the site will build at all.
+7. **The repo is public, and `src/` is readable whatever is released.**
+   `released.json` keeps unreleased residences off the built site, but their
+   data and drawings in `src/` are visible to anyone who finds the repo, and
+   Pages has no password on any plan. Going private needs GitHub Pro before
+   the site will build at all.
 
-6. **Attach the real domain when it exists.** Settings → Pages → Custom domain,
-   and nothing in the repo changes — the workflow reads the target from GitHub.
-   That switch also lifts the noindex and restores the CRM pixel, so it is a
-   launch, not a cosmetic change.
-7. **The locator's pins crowd, and they are burying the building.** At the
+8. **The locator's pins crowd, and they are burying the building.** At the
    owner-requested 32px, the gold Origin mark measures **85% covered** by
    numbered pins on "All", and **24 of 29 pins overlap** at least one other (48
    overlapping pairs). The owner asked for that mark to be visible across every
@@ -890,13 +937,13 @@ context was being dropped; fixed and verified 2026-10-24).
    the Sunny Isles school pull it out, leaving a lot of empty mainland. Tighten
    it only if you regenerate the basemap AND every `x`/`y` together; they share
    one projection and changing one alone silently misplaces every pin.
-8. **17 places from the owner's list have no coordinates** and are absent from
+9. **17 places from the owner's list have no coordinates** and are absent from
    the locator, including both public sculptures and Ruth K. Broad K-8. Roads,
    routes and programmes were left out deliberately — they are not single points.
    Note also that all 36 Bal Harbour Shops tenants share the mall's pin, as do
    the restaurants inside each hotel, which is why pins are `aria-hidden` and
    the list carries the semantics.
-9. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
+10. **Decide on the off-kit font weights — there are two now.** Medium 500 (the
    homepage header, both forms, the locator's list and site label) and SemiBold
    600 (the locator's category filter). The kit contains only 100/200/300. Either the
    brand's weight range has genuinely widened, in which case say so in
@@ -905,12 +952,12 @@ context was being dropped; fixed and verified 2026-10-24).
    500 or 600 falls back, so keep those weights on known strings. The previous
    Medium file is NOT in git history in usable form — it was a broken subset and
    was replaced, with a copy kept only in the last session's scratchpad.
-10. **Native review of `es` and `pt-br`** before those locales go public. Also a
+11. **Native review of `es` and `pt-br`** before those locales go public. Also a
    counsel question on whether the translated consent text carries the same
    force — `TRANSLATION-REVIEW.md` has the detail. Two known English-only spots:
    the footer's maker credit ("Made with ♥ in Miami.") and the Neighborhood
    headline, which changed in English while es/pt-br still read "secluded".
-11. **Locator accessibility calls made deliberately at the owner's request.**
+12. **Locator accessibility calls made deliberately at the owner's request.**
    Each was flagged when made; revisit if any matters:
    - Dimmed groups run at `opacity: 0.15`, roughly **2.4:1** — below AA. The
      content is de-emphasised rather than removed and comes back in one click.
@@ -920,7 +967,7 @@ context was being dropped; fixed and verified 2026-10-24).
      announced only by the chip's own `aria-pressed`.
    - The selected chip is distinguished by **colour alone**; the weight cue went
      when every chip moved to 600.
-12. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
+13. **Two AA failures in the header, surfaced by `measure-page-head.mjs` and
    deliberately NOT fixed in passing.** Both are the same root cause as the
    page-head eyebrow — raw `--gold` used as text — but they live in the header,
    which HANDOFF records as the most regression-prone area in this build, and
@@ -937,7 +984,7 @@ context was being dropped; fixed and verified 2026-10-24).
      gold fill is the CTA's identity — so it probably needs the owner, not a
      fix. Large-text AA (3:1) is also missed, narrowly.
 
-13. **The amenity deck needs more photographs, and three cards need a line.**
+14. **The amenity deck needs more photographs, and three cards need a line.**
    Four of the six folders hold a SINGLE image — `clubroom`, `fitness-center`,
    `kidsroom`, `pet-zone` — so those cards drift but never cross-fade; only
    rooftop and aqua club have five each. Drop files into the folder and they
@@ -948,9 +995,9 @@ context was being dropped; fixed and verified 2026-10-24).
    and `pet-zone/origin-pets.jpg` looks like the same photograph already
    tracked as `amenities/pet-park-dogs.jpg`.
 
-14. **36 warnings** from the first review round were never worked — only the
+15. **36 warnings** from the first review round were never worked — only the
    FAIL-level findings were fixed.
-15. **Assets the owner owes**: real photographs for the five templates still on
+16. **Assets the owner owes**: real photographs for the five templates still on
    `BAND_PLACEHOLDER` (Floor Plans, the three legal pages, and the residence
    pages — The Team came off it when it moved to `.page-head`); a horizontal one-line logo and a white-on-transparent SVG (the
    stacked lockup is weakest on phones); and floor-plan PDFs for 26 of 27
@@ -966,7 +1013,7 @@ context was being dropped; fixed and verified 2026-10-24).
    `src/assets/amenities/residence-living-dining-bay-view.jpg` is the opposite
    case — tracked but unreferenced since the Amenities lead render was dropped,
    and NOT the same file as the identically-named one in `assets/gallery/`.
-16. Smaller, all live and all deliberate for now:
+17. Smaller, all live and all deliberate for now:
    - The Gallery lede promises "photos and videos"; the page has no video.
    - The team cut-outs use `object-fit: cover`, so they crop; `contain` may
      frame them better now that they are cut-outs rather than photographs.
@@ -1000,11 +1047,8 @@ context was being dropped; fixed and verified 2026-10-24).
 
 ## What has *not* been done
 
-- **The public site is unchanged.** `originresidences.com` is still the old
-  WordPress build. What exists is a client-review copy on GitHub Pages —
-  noindex, no sitemap, no CRM pixel — at
-  https://reachmiami.github.io/origin-residences/. Attaching the real domain is
-  open item 6 and is a launch, not a deployment step.
+- **The launch follow-ups** — old WordPress URLs, Search Console, other DNS
+  records — are open item 4 and none has been started.
 - No real-device testing. Emulated viewports only — iOS Safari and Android
   Chrome differ on video autoplay, `100svh` and font rendering.
 - The IDX account system (login, favourites, saved searches, mortgage

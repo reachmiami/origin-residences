@@ -148,9 +148,10 @@ It checks the browser half only. Step 2 below is the half no script can reach.
    arriving, check it first.
 
 2. ~~Submit a real test lead~~ — **done 2026-10-23/24**, and repeat it after any
-   change to the forms, the Pixel snippet or FUB's settings. Use a build with
-   `REVIEW_DEPLOY` unset (`npm run build && npm run preview`; the review deploy
-   omits the Pixel) and your ad blocker OFF. Confirm the person exists **and**
+   change to the forms, the Pixel snippet or FUB's settings. Use a local
+   `npm run build && npm run preview`, or the live site — either way it is a
+   real record in FUB, since there is no staging copy any more — with your ad
+   blocker OFF. Confirm the person exists **and**
    the note body carries the residence, the appointment details and
    `Consent given: Yes`.
 
