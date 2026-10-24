@@ -905,10 +905,15 @@ verified 2026-10-24), and attaching the real domain (live 2026-10-24).
      the homepage, and the Wayback index returned nothing from here. Get
      the old sitemap or a Search Console export, then decide on redirects
      (Pages has no server redirects; it would mean stub pages).
-   - **Search Console**: verify the domain and submit `/sitemap-index.xml`.
-   - **Anything else the old host served** on this domain — DNS was edited
-     by hand, so check that MX and other records still point where they
-     should.
+   - **Search Console is probably already set up.** The domain carries a
+     `google-site-verification` TXT record, so someone — likely whoever ran
+     the WordPress site — verified it. Find that account: its Pages report is
+     the old-URL list the bullet above needs. Then submit
+     `/sitemap-index.xml`. If nobody owns it, verify afresh.
+   - ~~Other DNS records~~ — checked 2026-10-24: MX → `mail.originresidences.com`
+     (its own `A` record, untouched by the Pages change), SPF intact. The
+     owner does not use mail on this domain and the site displays no
+     `@originresidences.com` address.
 
 5. **The audit's Phases 3 and 4 were never written down.** Phases 0–2 are
    committed and described in their commit messages. A session note claimed
@@ -1047,8 +1052,8 @@ verified 2026-10-24), and attaching the real domain (live 2026-10-24).
 
 ## What has *not* been done
 
-- **The launch follow-ups** — old WordPress URLs, Search Console, other DNS
-  records — are open item 4 and none has been started.
+- **The launch follow-ups** — old WordPress URLs and Search Console — are
+  open item 4 and have not been started.
 - No real-device testing. Emulated viewports only — iOS Safari and Android
   Chrome differ on video autoplay, `100svh` and font rendering.
 - The IDX account system (login, favourites, saved searches, mortgage
