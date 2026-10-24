@@ -913,11 +913,20 @@ verified 2026-10-24), and attaching the real domain (live 2026-10-24).
    branch with `REVIEW_DEPLOY=true` and its own `BASE_PATH`. The owner's
    decision.
 
-4. **Finish the launch in Search Console.** The owner verified the domain
-   on 2026-10-24. Still to do: submit `/sitemap-index.xml` (Indexing →
-   Sitemaps), and in a few weeks re-read the Pages report's "Not found (404)"
-   list — it should be the `/property/…` IDX pages and WordPress leftovers
-   only. Anything else there is an old address worth a redirect.
+4. **Re-read Search Console's 404 list around mid-November 2026.** By then
+   Google will have recrawled the old addresses. Indexing → Pages → "Not
+   found (404)" should hold only the `/property/…` IDX pages and WordPress
+   leftovers; anything else is an old address real visitors still use, and
+   worth a redirect.
+
+   Done 2026-10-24: the owner verified the domain, and both
+   `sitemap-index.xml` and `sitemap-0.xml` are submitted and read (42 pages).
+   **The old WordPress site was very likely compromised:** two spam sitemaps,
+   `bionic.php?sitemap.xml` and `hidey.php?sitemap.xml`, had been submitted on
+   2024-05-09 — scripts no WordPress install creates, and a common SEO-spam
+   pattern. They are removed, and the owner has reviewed the property's users
+   and owners. The scripts cannot run on the static site. Any spam URLs still
+   indexed will drop out as they 404.
 
    Done: old WordPress URLs were audited from the owner's export (115 URLs,
    844 clicks — 810 already land on unchanged paths) and the ones with an
