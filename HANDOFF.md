@@ -90,6 +90,11 @@ wrong, both now fixed, and both are in Gotchas:
   it: one for `http://`, then one more once HTTPS was enforced, because
   `configure-pages` reports `http://` until then and every canonical link and
   sitemap entry is built from that.
+- **Old WordPress addresses** were audited from the owner's Search Console
+  export. 96% of the old site's search clicks already landed on paths this
+  site serves unchanged; the rest with a real equivalent now redirect,
+  including every unreleased residence (to `/residences/`). The 73 old IDX
+  `/property/` pages are left to drop out on purpose — see `astro.config.mjs`.
 
 #### Lead delivery — from "always succeeds" to verified
 
@@ -219,8 +224,11 @@ styles per file. Anything global under that name will collide with all three.
 Edit **`src/data/released.json`** and rebuild. Nothing else. Currently
 `["302","401"]`.
 
-An unreleased residence gets **no page at all** — no URL, no floor-plan PDF, no
-drawing. It is not an unlinked page; it 404s.
+An unreleased residence gets **no page at all** — no floor-plan PDF, no
+drawing, no content at its address. Since launch that address redirects to
+`/residences/` through an empty meta-refresh stub (`astro.config.mjs`,
+derived from `released.json`), so an old bookmark lands on the inventory
+instead of an error. The stub publishes nothing about the residence.
 
 That is a change from the original design, and the reason matters: the old
 arrangement generated all 27 and left the hidden ones unlinked and `noindex`
@@ -283,7 +291,7 @@ shows two cards in two columns, nothing links to 701, **and nothing serves it**:
 
 | | Before | Now |
 | --- | --- | --- |
-| Page | built, unlinked, noindex, HTTP 200 | **not built — 404** |
+| Page | built, unlinked, noindex, HTTP 200 | **not built** — address redirects to `/residences/` |
 | Floor-plan PDF | served from `public/` | **not built** |
 | Floor-plan drawing | emitted by Vite, 287KB, unreferenced | **not built** |
 
@@ -778,6 +786,14 @@ reports `http://` until HTTPS is enforced, so the first rebuild baked
 `http://` into every canonical link and the sitemap. Rebuild after each Pages
 setting change, and check the live canonical.
 
+**A redirect stub is an HTML file, and file counts will mistake it for a
+page.** Each Astro redirect emits a meta-refresh `index.html`. Once every
+unreleased residence got one, `assert-output.mjs` counted 31 "residence
+pages" — and an emptied `released.json` would have produced 27 stubs and
+passed the very check written for it. Stubs are now recognised by content and
+excluded; the check prints pages and redirects separately. Any new script
+that counts `dist/` should do the same.
+
 **Follow Up Boss ignores `type="hidden"` inputs — silently.** The lead note's
 whole context block, including the consent record, was a hidden input and
 reached nobody, while every local check passed: `verify-lead-path.mjs`
@@ -897,23 +913,18 @@ verified 2026-10-24), and attaching the real domain (live 2026-10-24).
    branch with `REVIEW_DEPLOY=true` and its own `BASE_PATH`. The owner's
    decision.
 
-4. **Launch follow-ups nobody has checked yet.** The domain changed hands
-   from WordPress on 2026-10-24 and none of these has been looked at:
-   - **Old WordPress URLs.** Anything indexed or linked under the old site's
-     paths now hits GitHub's 404 page unless it happens to match a new one.
-     No list of the old URLs exists in the repo — the scraper fetched only
-     the homepage, and the Wayback index returned nothing from here. Get
-     the old sitemap or a Search Console export, then decide on redirects
-     (Pages has no server redirects; it would mean stub pages).
-   - **Search Console is probably already set up.** The domain carries a
-     `google-site-verification` TXT record, so someone — likely whoever ran
-     the WordPress site — verified it. Find that account: its Pages report is
-     the old-URL list the bullet above needs. Then submit
-     `/sitemap-index.xml`. If nobody owns it, verify afresh.
-   - ~~Other DNS records~~ — checked 2026-10-24: MX → `mail.originresidences.com`
-     (its own `A` record, untouched by the Pages change), SPF intact. The
-     owner does not use mail on this domain and the site displays no
-     `@originresidences.com` address.
+4. **Finish the launch in Search Console.** The owner verified the domain
+   on 2026-10-24. Still to do: submit `/sitemap-index.xml` (Indexing →
+   Sitemaps), and in a few weeks re-read the Pages report's "Not found (404)"
+   list — it should be the `/property/…` IDX pages and WordPress leftovers
+   only. Anything else there is an old address worth a redirect.
+
+   Done: old WordPress URLs were audited from the owner's export (115 URLs,
+   844 clicks — 810 already land on unchanged paths) and the ones with an
+   equivalent now redirect; the reasoning and the deliberate exclusions are
+   in `astro.config.mjs`. DNS other than the website records is untouched
+   (MX → `mail.originresidences.com`, SPF intact; the owner does not use mail
+   on this domain).
 
 5. **The audit's Phases 3 and 4 were never written down.** Phases 0–2 are
    committed and described in their commit messages. A session note claimed

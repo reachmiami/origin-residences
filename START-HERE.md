@@ -71,11 +71,6 @@ Swap the last paragraph for one of these:
 > overlap another. Keep the mark beneath the numbers, but make it visible at
 > every category. Measure the coverage before and after.
 
-**Catch the old site's traffic**
-> Work open item 4 in HANDOFF.md. Here is the old WordPress sitemap / Search
-> Console export: [PASTE]. List which old URLs now 404 on originresidences.com
-> and propose redirects — measure against the live site.
-
 **Supply the missing artwork**
 > Some pages are standing on a placeholder photograph — grep BAND_PLACEHOLDER.
 > I'm handing you real images for [PAGES]. Wire them up and re-run the relevant
@@ -86,7 +81,8 @@ Swap the last paragraph for one of these:
 - **42 pages**, 3 locales (English at root, `/es/`, `/pt-br/`)
 - **27 residences in the building, 2 released** — 302 and 401 — controlled
   solely by `src/data/released.json`. An unreleased residence gets **no page at
-  all** now: no URL, no floor-plan PDF, no drawing. Adding its number back
+  all**: no floor-plan PDF, no drawing — its address only redirects to
+  `/residences/`. Adding its number back
   restores everything in one edit
 - **LIVE at https://originresidences.com** (GitHub Pages, HTTPS enforced) since
   2026-10-24, replacing the WordPress site. **There is no staging copy: every
